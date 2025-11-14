@@ -36,26 +36,27 @@ import { useForm } from 'react-hook-form';
 import moment from 'moment';
 import axios from 'axios';
 import { save } from '@tauri-apps/plugin-dialog';
-import { writeFile } from '@tauri-apps/plugin-fs';
+import { readFile, writeFile } from '@tauri-apps/plugin-fs';
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 import { openPath, revealItemInDir } from '@tauri-apps/plugin-opener';
 import { MainContext } from '../contexts/MainContext';
 import { CONFIG } from '../config';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 
 
 const fioriTheme = {
     palette: {
         primary: {
-            main: '#0A6ED1', // Azul SAP Fiori
+            main: '#0A6ED1',
         },
         success: {
-            main: '#107E3E', // Verde SAP
+            main: '#107E3E',
         },
         warning: {
-            main: '#D48806', // Naranja SAP
+            main: '#D48806',
         },
         error: {
-            main: '#B3261E', // Rojo SAP
+            main: '#B3261E',
         },
         background: {
             default: '#F5F5F5',
@@ -82,6 +83,83 @@ const ReportGenerator = () => {
     const [elapsedTime, setElapsedTime] = useState(0);
     const timerRef = useRef(null);
     const startTimeRef = useRef(null);
+
+    const listenerRegistered = useRef(false);
+    const handleDroppedFiles = async (filePaths) => {
+        try {
+            const processedFiles = await Promise.all(
+                filePaths.map(async (filePath) => {
+                    try {
+                        const fileBuffer = await readFile(filePath);
+                        const fileName = filePath.split(/[\\/]/).pop();
+
+                        if (!fileName.match(/\.(xlsx|xls|xlsm)$/i)) {
+                            console.warn(`Archivo ignorado: ${fileName}`);
+                            return null;
+                        }
+
+                        const blob = new Blob([fileBuffer], {
+                            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                        });
+                        const file = new File([blob], fileName, {
+                            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                        });
+
+                        return {
+                            file,
+                            id: `${fileName}-${Date.now()}`,
+                            name: fileName,
+                            size: (file.size / 1024).toFixed(2),
+                            status: 'pending',
+                        };
+                    } catch (error) {
+                        console.error('Error procesando archivo:', error);
+                        return null;
+                    }
+                })
+            );
+
+            const validFiles = processedFiles.filter(f => f !== null);
+            if (validFiles.length > 0) {
+                setFiles((prev) => [...prev, ...validFiles]);
+            }
+
+            if (validFiles.length < filePaths.length) {
+                alert('Algunos archivos fueron ignorados (solo se permiten archivos Excel)');
+            }
+        } catch (error) {
+            console.error('Error al procesar archivos arrastrados:', error);
+            alert('Error al procesar los archivos arrastrados');
+        }
+    };
+
+    // useEffect para el drag and drop
+    useEffect(() => {
+        if (listenerRegistered.current) {
+            return;
+        }
+        listenerRegistered.current = true;
+        let unlistenFn;
+        const setupDragDrop = async () => {
+            const appWindow = getCurrentWebviewWindow();
+
+            const unlisten = await appWindow.onDragDropEvent(async (event) => {
+                if (event.payload.type === 'drop') {
+                    await handleDroppedFiles(event.payload.paths);
+                }
+            });
+
+            return unlisten;
+        };
+
+        setupDragDrop().then(fn => {
+            unlistenFn = fn;
+        });
+
+        return () => {
+            if (unlistenFn) unlistenFn();
+        };
+    }, []);
 
     // Efecto para el contador de tiempo
     useEffect(() => {

@@ -35,7 +35,6 @@ import {
     History as HistoryIcon,
     AccountCircle,
     Logout,
-    Settings,
     Star,
     People,
     ProductionQuantityLimits,
@@ -91,31 +90,33 @@ const MainLayout = () => {
 
     const handleProfile = () => {
         handleUserMenuClose();
-        alert('Funcionalidad de perfil próximamente');
+        navigate('/profile');
     };
 
     const isActive = (path) => location.pathname === path;
 
     const menuItems = [
-        {
-            title: 'Reportes Excel',
-            icon: <DescriptionIcon />,
-            type: 'group',
-            open: reportsOpen,
-            setOpen: setReportsOpen,
-            items: [
-                {
-                    title: 'Generar Reporte',
-                    icon: <ArticleIcon />,
-                    path: '/reports/generate',
-                },
-                {
-                    title: 'Historial',
-                    icon: <HistoryIcon />,
-                    path: '/reports/history',
-                },
-            ],
-        },
+        ...(user?.es_lider ? [
+            {
+                title: 'Reportes Excel',
+                icon: <DescriptionIcon />,
+                type: 'group',
+                open: reportsOpen,
+                setOpen: setReportsOpen,
+                items: [
+                    {
+                        title: 'Generar Reporte',
+                        icon: <ArticleIcon />,
+                        path: '/reports/generate',
+                    },
+                    {
+                        title: 'Historial',
+                        icon: <HistoryIcon />,
+                        path: '/reports/history',
+                    },
+                ],
+            },
+        ] : []),
         {
             title: 'Integración Bitrix',
             icon: <IntegrationIcon />,
@@ -552,14 +553,6 @@ const MainLayout = () => {
                                     </ListItemIcon>
                                     Mi Perfil
                                 </MenuItem>
-
-                                <MenuItem onClick={() => { handleUserMenuClose(); /* Navegar a configuración */ }}>
-                                    <ListItemIcon>
-                                        <Settings fontSize="small" />
-                                    </ListItemIcon>
-                                    Configuración
-                                </MenuItem>
-
                                 <Divider />
 
                                 <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>

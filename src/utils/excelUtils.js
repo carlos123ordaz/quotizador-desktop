@@ -89,9 +89,7 @@ const extractProductos = (sheet, listaProductos) => {
         if (!hasValue) continue;
         const nombre = getCellValue(sheet, 2, currentCol);
         const precio = getCellValue(sheet, 20, currentCol) || 0;
-        console.log(nombre, precio)
         const productoInfo = listaProductos[nombre];
-        console.log(productoInfo)
         if (productoInfo) {
             productos.push({
                 cantidad: 1,

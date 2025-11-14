@@ -120,7 +120,7 @@ export const ExportDialog = ({ open, onClose }) => {
             if (fechaFin) params.fecha_fin = fechaFin;
             if (departamento) params.departamento = departamento;
 
-            console.log('Exportando con parámetros:', params);
+
 
             // Usar axios en lugar de tauriFetch (igual que en ReportHistory pero adaptado)
             const response = await axios.get(`${CONFIG.uri}/processed-excels/export`, {

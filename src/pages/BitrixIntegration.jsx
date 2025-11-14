@@ -55,6 +55,8 @@ import axios from 'axios';
 import { MainContext } from '../contexts/MainContext';
 import { CONFIG } from '../config';
 import numeral from 'numeral';
+import { readFile } from '@tauri-apps/plugin-fs';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 
 export const BitrixIntegration = () => {
     const [files, setFiles] = useState([]);
@@ -89,6 +91,87 @@ export const BitrixIntegration = () => {
         cardBg: '#FFFFFF',
         border: '#D9D9D9'
     };
+
+    const handleDroppedFiles = useCallback(async (filePaths) => {
+        setLoading(true);
+        setErrorMessage('');
+        try {
+            const processedFiles = await Promise.all(
+                filePaths.map(async (filePath) => {
+                    try {
+                        const fileBuffer = await readFile(filePath);
+                        const fileName = filePath.split(/[\\/]/).pop();
+                        const blob = new Blob([fileBuffer], {
+                            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                        });
+                        const file = new File([blob], fileName, {
+                            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                        });
+
+                        const data = await processExcelFile(file, listaProductos);
+                        return {
+                            file,
+                            data,
+                            status: 'pending',
+                            id: Math.random().toString(36).substr(2, 9)
+                        };
+                    } catch (error) {
+                        console.error('❌ Error:', error);
+                        const fileName = filePath.split(/[\\/]/).pop();
+                        return {
+                            file: { name: fileName },
+                            data: null,
+                            status: 'error',
+                            error: error.message,
+                            id: Math.random().toString(36).substr(2, 9)
+                        };
+                    }
+                })
+            );
+            setFiles((prev) => [...prev, ...processedFiles]);
+            if (processedFiles.length > 0 && selectedFileIndex === null) {
+                setSelectedFileIndex(0);
+                setCurrentFileData(processedFiles[0].data);
+            }
+        } catch (error) {
+            setErrorMessage('Error al procesar archivos: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [listaProductos, selectedFileIndex]);
+
+    useEffect(() => {
+        let unlistenFn;
+        let isSubscribed = true;
+        const setupDragDrop = async () => {
+            const appWindow = getCurrentWebviewWindow();
+            const unlisten = await appWindow.onDragDropEvent(async (event) => {
+                if (!isSubscribed) return;
+                if (event.payload.type === 'drop') {
+                    const paths = event.payload.paths;
+                    await handleDroppedFiles(paths);
+                }
+            });
+            return unlisten;
+        };
+
+        setupDragDrop().then(fn => {
+            if (isSubscribed) {
+                unlistenFn = fn;
+            } else {
+                fn();
+            }
+        }).catch(err => {
+            console.error('❌ Error en setup:', err);
+        });
+
+        return () => {
+            isSubscribed = false;
+            if (unlistenFn) {
+                unlistenFn();
+            }
+        };
+    }, [handleDroppedFiles]);
 
     const handleFileUpload = async (event) => {
         const uploadedFiles = Array.from(event.target.files);
@@ -144,7 +227,6 @@ export const BitrixIntegration = () => {
                     producto.area2
                 ];
             });
-            console.log(data);
             setListaProductos(data);
         } catch (error) {
             setErrorMessage('Error al obtener productos: ' + error.message);
@@ -449,16 +531,12 @@ export const BitrixIntegration = () => {
                 QUANTITY: p.cantidad,
                 TAX_RATE: p.tasa
             }));
-
-            console.log('productos', productos);
-
             await axios.post(`${webhook}/crm.deal.productrows.set`, {
                 ID: currentFileData.numDeal,
                 rows: productos
             });
 
             const dealParams = buildDealPayload();
-            console.log('deal', dealParams);
             await axios.post(`${webhook}/crm.deal.update`, dealParams);
 
             if (createQuote) {
@@ -479,7 +557,6 @@ export const BitrixIntegration = () => {
                 setSuccessMessage(`Quote ${newQuoteId} creada exitosamente para ${currentFileData.name} (Deal #${currentFileData.numDeal})`);
             } else {
                 const quoteParams = buildQuotePayload(null, formData.numQuote);
-                console.log('quote', quoteParams);
                 await axios.post(`${webhook}/crm.quote.update`, quoteParams);
 
                 await axios.post(`${webhook}/crm.quote.productrows.set`, {
@@ -522,7 +599,6 @@ export const BitrixIntegration = () => {
             try {
                 const historyResponse = await axios.post(`${CONFIG.uri}/history`, historyData);
                 historyId = historyResponse.data._id || historyResponse.data.id;
-                console.log('Historial guardado con ID:', historyId);
             } catch (historyError) {
                 console.error('Error al guardar en historial:', historyError);
             }
@@ -546,7 +622,6 @@ export const BitrixIntegration = () => {
                         };
 
                         await axios.post(`${CONFIG.uri}/processed-excels`, processedExcelData);
-                        console.log('Excel procesado guardado exitosamente');
                     }
                 } catch (excelError) {
                     console.error('Error al procesar Excel para DB:', excelError);
@@ -672,14 +747,8 @@ export const BitrixIntegration = () => {
                             <TableCell sx={{ bgcolor: fioriColors.primary, color: 'white', fontWeight: 'bold' }}>
                                 Nombre
                             </TableCell>
-                            <TableCell align="right" sx={{ bgcolor: fioriColors.primary, color: 'white', fontWeight: 'bold' }}>
+                            <TableCell sx={{ bgcolor: fioriColors.primary, color: 'white', fontWeight: 'bold' }}>
                                 Precio
-                            </TableCell>
-                            <TableCell align="right" sx={{ bgcolor: fioriColors.primary, color: 'white', fontWeight: 'bold' }}>
-                                Cantidad
-                            </TableCell>
-                            <TableCell align="right" sx={{ bgcolor: fioriColors.primary, color: 'white', fontWeight: 'bold' }}>
-                                Tasa
                             </TableCell>
                             <TableCell sx={{ bgcolor: fioriColors.primary, color: 'white', fontWeight: 'bold' }}>
                                 Área
@@ -691,9 +760,7 @@ export const BitrixIntegration = () => {
                             <TableRow key={index} hover>
                                 <TableCell>{producto.productId}</TableCell>
                                 <TableCell>{producto.nombre}</TableCell>
-                                <TableCell align="right">${producto.precio ? numeral(producto.precio).format('0,0.00') : ''}</TableCell>
-                                <TableCell align="right">{producto.cantidad}</TableCell>
-                                <TableCell align="right">{producto.tasa}%</TableCell>
+                                <TableCell>${producto.precio ? numeral(producto.precio).format('0,0.00') : ''}</TableCell>
                                 <TableCell>
                                     <Chip
                                         label={producto.unidadNegocio}

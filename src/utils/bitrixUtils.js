@@ -14,7 +14,7 @@ export const lista_area = (products, area, tipo = 0, listaProductos) => {
     const ar = obj_area[area];
     const listado = products
         .map(prod => {
-            const key = Object.keys(listaProductos).find(k => listaProductos[k][0] === prod.productId);
+            const key = Object.keys(listaProductos).find(k => listaProductos[k][0] === prod.PRODUCT_ID);
             if (key) {
                 const value = listaProductos[key][2 + tipo];
                 if (ar.has(value)) return value;
@@ -68,7 +68,7 @@ export const unidad_negocio = (products, tipo = 0, listaProductos) => {
     const unidades = new Set();
 
     products.forEach(prod => {
-        const key = Object.keys(listaProductos).find(k => listaProductos[k][0] === prod.productId);
+        const key = Object.keys(listaProductos).find(k => listaProductos[k][0] === prod.PRODUCT_ID);
         if (key) {
             unidades.add(listaProductos[key][1]);
         }

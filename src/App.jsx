@@ -10,6 +10,7 @@ import { BitrixHistory } from './pages/BitrixHistory'
 import { BitrixIntegration } from './pages/BitrixIntegration'
 import EmployeesPage from './pages/EmployeesPage'
 import ProductsPage from './pages/ProductsPage'
+import ProfilePage from './pages/ProfilePage'
 
 function App() {
 
@@ -27,6 +28,7 @@ function App() {
             <Route path="/reports/history" element={<ReportHistory />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/users" element={<EmployeesPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Routes>
 
