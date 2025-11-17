@@ -28,6 +28,7 @@ import {
     Divider,
     Container,
     CircularProgress,
+    useTheme,
 } from '@mui/material';
 import {
     Search as SearchIcon,
@@ -55,27 +56,8 @@ import { openPath, revealItemInDir } from '@tauri-apps/plugin-opener';
 import { MainContext } from '../contexts/MainContext';
 import { CONFIG } from '../config';
 
-const fioriTheme = {
-    palette: {
-        primary: {
-            main: '#0A6ED1',
-        },
-        success: {
-            main: '#107E3E',
-        },
-        warning: {
-            main: '#D48806',
-        },
-        error: {
-            main: '#B3261E',
-        },
-        background: {
-            default: '#F5F5F5',
-        },
-    },
-};
-
 const ReportHistory = () => {
+    const theme = useTheme();
     const [reports, setReports] = useState([]);
     const [filteredReports, setFilteredReports] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -234,8 +216,6 @@ const ReportHistory = () => {
         handleCloseMenu();
     };
 
-
-
     const handleOpenMenu = (event, report) => {
         setAnchorEl(event.currentTarget);
         setSelectedReport(report);
@@ -256,7 +236,7 @@ const ReportHistory = () => {
     const handleFilterChange = (status) => {
         setFilterStatus(status);
         handleCloseFilterMenu();
-        setPage(0); // Reset a la primera página al filtrar
+        setPage(0);
     };
 
     const handleChangePage = (event, newPage) => {
@@ -293,11 +273,11 @@ const ReportHistory = () => {
                     label="Exitoso"
                     size="small"
                     sx={{
-                        bgcolor: '#D1E7DD',
-                        color: fioriTheme.palette.success.main,
+                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(16, 126, 62, 0.2)' : '#D1E7DD',
+                        color: 'success.main',
                         fontWeight: 600,
                         '& .MuiChip-icon': {
-                            color: fioriTheme.palette.success.main,
+                            color: 'success.main',
                         },
                     }}
                 />
@@ -309,11 +289,11 @@ const ReportHistory = () => {
                 label="Error"
                 size="small"
                 sx={{
-                    bgcolor: '#F8D7DA',
-                    color: fioriTheme.palette.error.main,
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(179, 38, 30, 0.2)' : '#F8D7DA',
+                    color: 'error.main',
                     fontWeight: 600,
                     '& .MuiChip-icon': {
-                        color: fioriTheme.palette.error.main,
+                        color: 'error.main',
                     },
                 }}
             />
@@ -323,54 +303,21 @@ const ReportHistory = () => {
     return (
         <Box sx={{
             minHeight: '100vh',
-            bgcolor: fioriTheme.palette.background.default,
-            py: 4,
+            bgcolor: 'background.default',
         }}>
             <Container maxWidth="xl">
-                {/* Header */}
-                <Box sx={{ mb: 4 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography
-                            variant="body1"
-                            sx={{
-                                color: '#6B7280',
-                                fontSize: '14px',
-                            }}
-                        >
-                            Visualiza y gestiona todos los reportes generados
-                        </Typography>
-                        <Button
-                            variant="outlined"
-                            startIcon={<RefreshIcon />}
-                            onClick={handleRefresh}
-                            disabled={loading}
-                            sx={{
-                                fontWeight: 600,
-                                fontSize: '14px',
-                                textTransform: 'none',
-                                borderColor: '#D1D5DB',
-                                color: '#1F2937',
-                                '&:hover': {
-                                    borderColor: '#9CA3AF',
-                                    bgcolor: '#F9FAFB',
-                                },
-                            }}
-                        >
-                            Actualizar
-                        </Button>
-                    </Box>
-                </Box>
 
                 {/* Tarjetas de estadísticas */}
-                <Grid container spacing={2} sx={{ mb: 4 }}>
+                <Grid container spacing={2} sx={{ mb: 4, pt: 3 }}>
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                         <Paper
                             elevation={0}
                             sx={{
                                 p: 2,
-                                border: '1px solid #E5E7EB',
-                                borderRadius: '8px',
-                                bgcolor: '#FFFFFF',
+                                border: 1,
+                                borderColor: 'divider',
+                                borderRadius: 2,
+                                bgcolor: 'background.paper',
                             }}
                         >
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -378,7 +325,7 @@ const ReportHistory = () => {
                                     <Typography
                                         variant="caption"
                                         sx={{
-                                            color: '#6B7280',
+                                            color: 'text.secondary',
                                             display: 'block',
                                             mb: 0.5,
                                             fontWeight: 500,
@@ -390,7 +337,7 @@ const ReportHistory = () => {
                                         variant="h6"
                                         sx={{
                                             fontWeight: 700,
-                                            color: fioriTheme.palette.primary.main,
+                                            color: 'primary.main',
                                         }}
                                     >
                                         {stats.total}
@@ -399,7 +346,7 @@ const ReportHistory = () => {
                                 <AssessmentIcon
                                     sx={{
                                         fontSize: 40,
-                                        color: fioriTheme.palette.primary.main,
+                                        color: 'primary.main',
                                         opacity: 0.1,
                                     }}
                                 />
@@ -412,9 +359,10 @@ const ReportHistory = () => {
                             elevation={0}
                             sx={{
                                 p: 2,
-                                border: '1px solid #E5E7EB',
-                                borderRadius: '8px',
-                                bgcolor: '#FFFFFF',
+                                border: 1,
+                                borderColor: 'divider',
+                                borderRadius: 2,
+                                bgcolor: 'background.paper',
                             }}
                         >
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -422,7 +370,7 @@ const ReportHistory = () => {
                                     <Typography
                                         variant="caption"
                                         sx={{
-                                            color: '#6B7280',
+                                            color: 'text.secondary',
                                             display: 'block',
                                             mb: 0.5,
                                             fontWeight: 500,
@@ -434,7 +382,7 @@ const ReportHistory = () => {
                                         variant="h6"
                                         sx={{
                                             fontWeight: 700,
-                                            color: fioriTheme.palette.success.main,
+                                            color: 'success.main',
                                         }}
                                     >
                                         {stats.success}
@@ -443,7 +391,7 @@ const ReportHistory = () => {
                                 <CheckCircleIcon
                                     sx={{
                                         fontSize: 40,
-                                        color: fioriTheme.palette.success.main,
+                                        color: 'success.main',
                                         opacity: 0.1,
                                     }}
                                 />
@@ -456,9 +404,10 @@ const ReportHistory = () => {
                             elevation={0}
                             sx={{
                                 p: 2,
-                                border: '1px solid #E5E7EB',
-                                borderRadius: '8px',
-                                bgcolor: '#FFFFFF',
+                                border: 1,
+                                borderColor: 'divider',
+                                borderRadius: 2,
+                                bgcolor: 'background.paper',
                             }}
                         >
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -466,7 +415,7 @@ const ReportHistory = () => {
                                     <Typography
                                         variant="caption"
                                         sx={{
-                                            color: '#6B7280',
+                                            color: 'text.secondary',
                                             display: 'block',
                                             mb: 0.5,
                                             fontWeight: 500,
@@ -478,7 +427,7 @@ const ReportHistory = () => {
                                         variant="h6"
                                         sx={{
                                             fontWeight: 700,
-                                            color: fioriTheme.palette.error.main,
+                                            color: 'error.main',
                                         }}
                                     >
                                         {stats.errors}
@@ -487,7 +436,7 @@ const ReportHistory = () => {
                                 <ErrorIcon
                                     sx={{
                                         fontSize: 40,
-                                        color: fioriTheme.palette.error.main,
+                                        color: 'error.main',
                                         opacity: 0.1,
                                     }}
                                 />
@@ -501,9 +450,10 @@ const ReportHistory = () => {
                     elevation={0}
                     sx={{
                         p: 2.5,
-                        border: '1px solid #E5E7EB',
-                        borderRadius: '8px',
-                        bgcolor: '#FFFFFF',
+                        border: 1,
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        bgcolor: 'background.paper',
                         mb: 3,
                     }}
                 >
@@ -518,23 +468,14 @@ const ReportHistory = () => {
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
-                                            <SearchIcon sx={{ color: '#9CA3AF' }} />
+                                            <SearchIcon sx={{ color: 'text.secondary' }} />
                                         </InputAdornment>
                                     ),
                                 }}
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
-                                        borderRadius: '6px',
-                                        bgcolor: '#F9FAFB',
-                                        '& fieldset': {
-                                            borderColor: '#E5E7EB',
-                                        },
-                                        '&:hover fieldset': {
-                                            borderColor: '#D1D5DB',
-                                        },
-                                        '&.Mui-focused fieldset': {
-                                            borderColor: fioriTheme.palette.primary.main,
-                                        },
+                                        borderRadius: 1.5,
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
                                     },
                                 }}
                             />
@@ -549,12 +490,7 @@ const ReportHistory = () => {
                                     fontWeight: 600,
                                     fontSize: '14px',
                                     textTransform: 'none',
-                                    borderColor: '#D1D5DB',
-                                    color: filterStatus !== 'all' ? fioriTheme.palette.primary.main : '#1F2937',
-                                    '&:hover': {
-                                        borderColor: '#9CA3AF',
-                                        bgcolor: '#F9FAFB',
-                                    },
+                                    color: filterStatus !== 'all' ? 'primary.main' : 'text.primary',
                                 }}
                             >
                                 {filterStatus === 'all' ? 'Filtrar por Estado' : `Estado: ${filterStatus}`}
@@ -592,18 +528,23 @@ const ReportHistory = () => {
                     component={Paper}
                     elevation={0}
                     sx={{
-                        border: '1px solid #E5E7EB',
-                        borderRadius: '8px',
-                        bgcolor: '#FFFFFF',
+                        border: 1,
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        bgcolor: 'background.paper',
                     }}
                 >
                     <Table>
                         <TableHead>
-                            <TableRow sx={{ bgcolor: '#F9FAFB', borderBottom: '2px solid #E5E7EB' }}>
+                            <TableRow sx={{
+                                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
+                                borderBottom: 2,
+                                borderColor: 'divider'
+                            }}>
                                 <TableCell
                                     sx={{
                                         fontWeight: 700,
-                                        color: '#1F2937',
+                                        color: 'text.primary',
                                         fontSize: '13px',
                                         py: 1.5,
                                     }}
@@ -614,7 +555,7 @@ const ReportHistory = () => {
                                     align="center"
                                     sx={{
                                         fontWeight: 700,
-                                        color: '#1F2937',
+                                        color: 'text.primary',
                                         fontSize: '13px',
                                         py: 1.5,
                                     }}
@@ -625,7 +566,7 @@ const ReportHistory = () => {
                                     align="right"
                                     sx={{
                                         fontWeight: 700,
-                                        color: '#1F2937',
+                                        color: 'text.primary',
                                         fontSize: '13px',
                                         py: 1.5,
                                     }}
@@ -636,7 +577,7 @@ const ReportHistory = () => {
                                     align="right"
                                     sx={{
                                         fontWeight: 700,
-                                        color: '#1F2937',
+                                        color: 'text.primary',
                                         fontSize: '13px',
                                         py: 1.5,
                                     }}
@@ -647,7 +588,7 @@ const ReportHistory = () => {
                                     align="center"
                                     sx={{
                                         fontWeight: 700,
-                                        color: '#1F2937',
+                                        color: 'text.primary',
                                         fontSize: '13px',
                                         py: 1.5,
                                     }}
@@ -658,7 +599,7 @@ const ReportHistory = () => {
                                     align="center"
                                     sx={{
                                         fontWeight: 700,
-                                        color: '#1F2937',
+                                        color: 'text.primary',
                                         fontSize: '13px',
                                         py: 1.5,
                                     }}
@@ -671,8 +612,8 @@ const ReportHistory = () => {
                             {loading ? (
                                 <TableRow>
                                     <TableCell colSpan={6} sx={{ textAlign: 'center', py: 8 }}>
-                                        <CircularProgress size={40} sx={{ color: fioriTheme.palette.primary.main }} />
-                                        <Typography variant="body2" sx={{ mt: 2, color: '#6B7280' }}>
+                                        <CircularProgress size={40} sx={{ color: 'primary.main' }} />
+                                        <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
                                             Cargando reportes...
                                         </Typography>
                                     </TableCell>
@@ -680,7 +621,7 @@ const ReportHistory = () => {
                             ) : filteredReports.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={6} sx={{ textAlign: 'center', py: 8 }}>
-                                        <Typography variant="body2" sx={{ color: '#6B7280' }}>
+                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                                             No se encontraron reportes
                                         </Typography>
                                     </TableCell>
@@ -690,9 +631,10 @@ const ReportHistory = () => {
                                     <TableRow
                                         key={report._id}
                                         sx={{
-                                            borderBottom: '1px solid #E5E7EB',
+                                            borderBottom: 1,
+                                            borderColor: 'divider',
                                             '&:hover': {
-                                                bgcolor: '#F9FAFB',
+                                                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
                                             },
                                         }}
                                     >
@@ -700,7 +642,7 @@ const ReportHistory = () => {
                                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                 <FileIcon
                                                     sx={{
-                                                        color: fioriTheme.palette.primary.main,
+                                                        color: 'primary.main',
                                                         mr: 1,
                                                         fontSize: 20,
                                                     }}
@@ -710,7 +652,7 @@ const ReportHistory = () => {
                                                         variant="body2"
                                                         sx={{
                                                             fontWeight: 600,
-                                                            color: '#1F2937',
+                                                            color: 'text.primary',
                                                         }}
                                                     >
                                                         {report.filename}
@@ -718,7 +660,7 @@ const ReportHistory = () => {
                                                     <Typography
                                                         variant="caption"
                                                         sx={{
-                                                            color: '#9CA3AF',
+                                                            color: 'text.secondary',
                                                         }}
                                                     >
                                                         #{report._id}
@@ -734,7 +676,7 @@ const ReportHistory = () => {
                                                 variant="body2"
                                                 sx={{
                                                     fontWeight: 600,
-                                                    color: '#1F2937',
+                                                    color: 'text.primary',
                                                 }}
                                             >
                                                 {report.files_processed || 0}
@@ -745,7 +687,7 @@ const ReportHistory = () => {
                                                 variant="body2"
                                                 sx={{
                                                     fontWeight: 600,
-                                                    color: fioriTheme.palette.primary.main,
+                                                    color: 'primary.main',
                                                 }}
                                             >
                                                 {report.total_records?.toLocaleString() || '0'}
@@ -757,17 +699,10 @@ const ReportHistory = () => {
                                                     variant="body2"
                                                     sx={{
                                                         fontWeight: 600,
-                                                        color: '#1F2937',
+                                                        color: 'text.primary',
                                                     }}
                                                 >
                                                     {moment.utc(report.created_at).local().format('DD/MM/YYYY HH:mm')}
-                                                </Typography>
-                                                <Typography
-                                                    variant="caption"
-                                                    sx={{
-                                                        color: '#9CA3AF',
-                                                    }}
-                                                >
                                                 </Typography>
                                             </Box>
                                         </TableCell>
@@ -777,10 +712,10 @@ const ReportHistory = () => {
                                                     size="small"
                                                     onClick={(e) => handleOpenMenu(e, report)}
                                                     sx={{
-                                                        color: '#6B7280',
+                                                        color: 'text.secondary',
                                                         '&:hover': {
-                                                            bgcolor: 'rgba(10, 110, 209, 0.08)',
-                                                            color: fioriTheme.palette.primary.main,
+                                                            bgcolor: 'action.hover',
+                                                            color: 'primary.main',
                                                         },
                                                     }}
                                                 >
@@ -804,13 +739,10 @@ const ReportHistory = () => {
                         labelRowsPerPage="Filas por página:"
                         labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`}
                         sx={{
-                            borderTop: '1px solid #E5E7EB',
-                            '& .MuiTablePagination-selectLabel': {
-                                color: '#6B7280',
-                                fontSize: '13px',
-                            },
-                            '& .MuiTablePagination-displayedRows': {
-                                color: '#6B7280',
+                            borderTop: 1,
+                            borderColor: 'divider',
+                            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                                color: 'text.secondary',
                                 fontSize: '13px',
                             },
                         }}
@@ -824,8 +756,7 @@ const ReportHistory = () => {
                     onClose={handleCloseMenu}
                     PaperProps={{
                         sx: {
-                            borderRadius: '8px',
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                            borderRadius: 2,
                         },
                     }}
                 >
@@ -869,8 +800,7 @@ const ReportHistory = () => {
                     fullWidth
                     PaperProps={{
                         sx: {
-                            borderRadius: '8px',
-                            boxShadow: '0 16px 48px rgba(0,0,0,0.12)',
+                            borderRadius: 2,
                         },
                     }}
                 >
@@ -880,16 +810,17 @@ const ReportHistory = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            borderBottom: '1px solid #E5E7EB',
+                            borderBottom: 1,
+                            borderColor: 'divider',
                         }}
                     >
-                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#1F2937' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                             Detalles del Reporte
                         </Typography>
                         <IconButton
                             onClick={() => setDetailsDialogOpen(false)}
                             size="small"
-                            sx={{ color: '#6B7280' }}
+                            sx={{ color: 'text.secondary' }}
                         >
                             <CloseIcon />
                         </IconButton>
@@ -903,7 +834,7 @@ const ReportHistory = () => {
                                     <Typography
                                         variant="caption"
                                         sx={{
-                                            color: '#6B7280',
+                                            color: 'text.secondary',
                                             display: 'block',
                                             mb: 0.5,
                                             fontWeight: 500,
@@ -915,7 +846,7 @@ const ReportHistory = () => {
                                         variant="body2"
                                         sx={{
                                             fontWeight: 600,
-                                            color: '#1F2937',
+                                            color: 'text.primary',
                                             fontFamily: 'monospace',
                                             fontSize: '12px',
                                         }}
@@ -924,14 +855,14 @@ const ReportHistory = () => {
                                     </Typography>
                                 </Box>
 
-                                <Divider sx={{ my: 1 }} />
+                                <Divider />
 
                                 {/* Nombre del Archivo */}
                                 <Box>
                                     <Typography
                                         variant="caption"
                                         sx={{
-                                            color: '#6B7280',
+                                            color: 'text.secondary',
                                             display: 'block',
                                             mb: 0.5,
                                             fontWeight: 500,
@@ -944,14 +875,15 @@ const ReportHistory = () => {
                                             display: 'flex',
                                             alignItems: 'center',
                                             p: 1,
-                                            bgcolor: '#F9FAFB',
-                                            borderRadius: '6px',
-                                            border: '1px solid #E5E7EB',
+                                            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
+                                            borderRadius: 1.5,
+                                            border: 1,
+                                            borderColor: 'divider',
                                         }}
                                     >
                                         <FileIcon
                                             sx={{
-                                                color: fioriTheme.palette.primary.main,
+                                                color: 'primary.main',
                                                 mr: 1,
                                                 fontSize: 18,
                                             }}
@@ -960,7 +892,7 @@ const ReportHistory = () => {
                                             variant="body2"
                                             sx={{
                                                 fontWeight: 600,
-                                                color: '#1F2937',
+                                                color: 'text.primary',
                                                 wordBreak: 'break-all',
                                             }}
                                         >
@@ -969,14 +901,14 @@ const ReportHistory = () => {
                                     </Box>
                                 </Box>
 
-                                <Divider sx={{ my: 1 }} />
+                                <Divider />
 
                                 {/* Estado */}
                                 <Box>
                                     <Typography
                                         variant="caption"
                                         sx={{
-                                            color: '#6B7280',
+                                            color: 'text.secondary',
                                             display: 'block',
                                             mb: 0.5,
                                             fontWeight: 500,
@@ -994,7 +926,7 @@ const ReportHistory = () => {
                                     )}
                                 </Box>
 
-                                <Divider sx={{ my: 1 }} />
+                                <Divider />
 
                                 {/* Estadísticas */}
                                 <Grid container spacing={2}>
@@ -1003,7 +935,7 @@ const ReportHistory = () => {
                                             <Typography
                                                 variant="caption"
                                                 sx={{
-                                                    color: '#6B7280',
+                                                    color: 'text.secondary',
                                                     display: 'block',
                                                     mb: 0.5,
                                                     fontWeight: 500,
@@ -1015,7 +947,7 @@ const ReportHistory = () => {
                                                 variant="h6"
                                                 sx={{
                                                     fontWeight: 700,
-                                                    color: fioriTheme.palette.primary.main,
+                                                    color: 'primary.main',
                                                 }}
                                             >
                                                 {selectedReport.files_processed || 0}
@@ -1027,7 +959,7 @@ const ReportHistory = () => {
                                             <Typography
                                                 variant="caption"
                                                 sx={{
-                                                    color: '#6B7280',
+                                                    color: 'text.secondary',
                                                     display: 'block',
                                                     mb: 0.5,
                                                     fontWeight: 500,
@@ -1040,8 +972,8 @@ const ReportHistory = () => {
                                                 sx={{
                                                     fontWeight: 700,
                                                     color: selectedReport.files_with_errors > 0
-                                                        ? fioriTheme.palette.error.main
-                                                        : '#9CA3AF',
+                                                        ? 'error.main'
+                                                        : 'text.secondary',
                                                 }}
                                             >
                                                 {selectedReport.files_with_errors || 0}
@@ -1050,14 +982,14 @@ const ReportHistory = () => {
                                     </Grid>
                                 </Grid>
 
-                                <Divider sx={{ my: 1 }} />
+                                <Divider />
 
                                 {/* Total de Registros */}
                                 <Box>
                                     <Typography
                                         variant="caption"
                                         sx={{
-                                            color: '#6B7280',
+                                            color: 'text.secondary',
                                             display: 'block',
                                             mb: 0.5,
                                             fontWeight: 500,
@@ -1069,14 +1001,14 @@ const ReportHistory = () => {
                                         variant="h6"
                                         sx={{
                                             fontWeight: 700,
-                                            color: '#1F2937',
+                                            color: 'text.primary',
                                         }}
                                     >
                                         {selectedReport.total_records?.toLocaleString() || '0'}
                                     </Typography>
                                 </Box>
 
-                                <Divider sx={{ my: 1 }} />
+                                <Divider />
 
                                 {/* Información técnica */}
                                 <Grid container spacing={2}>
@@ -1085,7 +1017,7 @@ const ReportHistory = () => {
                                             <Typography
                                                 variant="caption"
                                                 sx={{
-                                                    color: '#6B7280',
+                                                    color: 'text.secondary',
                                                     display: 'block',
                                                     mb: 0.5,
                                                     fontWeight: 500,
@@ -1097,7 +1029,7 @@ const ReportHistory = () => {
                                                 variant="body2"
                                                 sx={{
                                                     fontWeight: 600,
-                                                    color: '#1F2937',
+                                                    color: 'text.primary',
                                                 }}
                                             >
                                                 {selectedReport.file_size > 0 ? formatFileSize(selectedReport.file_size) : '-'}
@@ -1109,7 +1041,7 @@ const ReportHistory = () => {
                                             <Typography
                                                 variant="caption"
                                                 sx={{
-                                                    color: '#6B7280',
+                                                    color: 'text.secondary',
                                                     display: 'block',
                                                     mb: 0.5,
                                                     fontWeight: 500,
@@ -1121,7 +1053,7 @@ const ReportHistory = () => {
                                                 variant="body2"
                                                 sx={{
                                                     fontWeight: 600,
-                                                    color: '#1F2937',
+                                                    color: 'text.primary',
                                                 }}
                                             >
                                                 {selectedReport.processing_time > 0 ? `${selectedReport.processing_time}s` : '-'}
@@ -1130,14 +1062,14 @@ const ReportHistory = () => {
                                     </Grid>
                                 </Grid>
 
-                                <Divider sx={{ my: 1 }} />
+                                <Divider />
 
                                 {/* Fecha de Generación */}
                                 <Box>
                                     <Typography
                                         variant="caption"
                                         sx={{
-                                            color: '#6B7280',
+                                            color: 'text.secondary',
                                             display: 'block',
                                             mb: 0.5,
                                             fontWeight: 500,
@@ -1149,7 +1081,7 @@ const ReportHistory = () => {
                                         variant="body2"
                                         sx={{
                                             fontWeight: 600,
-                                            color: '#1F2937',
+                                            color: 'text.primary',
                                         }}
                                     >
                                         {moment(selectedReport.createdAt).format('DD/MM/YYYY HH:mm:ss')}
@@ -1157,7 +1089,7 @@ const ReportHistory = () => {
                                     <Typography
                                         variant="caption"
                                         sx={{
-                                            color: '#9CA3AF',
+                                            color: 'text.secondary',
                                             display: 'block',
                                             mt: 0.5,
                                         }}
@@ -1172,7 +1104,8 @@ const ReportHistory = () => {
                     <DialogActions
                         sx={{
                             p: 2.5,
-                            borderTop: '1px solid #E5E7EB',
+                            borderTop: 1,
+                            borderColor: 'divider',
                             gap: 1,
                         }}
                     >
@@ -1183,12 +1116,6 @@ const ReportHistory = () => {
                                 fontWeight: 600,
                                 fontSize: '14px',
                                 textTransform: 'none',
-                                borderColor: '#D1D5DB',
-                                color: '#1F2937',
-                                '&:hover': {
-                                    borderColor: '#9CA3AF',
-                                    bgcolor: '#F9FAFB',
-                                },
                             }}
                         >
                             Cerrar
@@ -1205,9 +1132,9 @@ const ReportHistory = () => {
                                     fontWeight: 600,
                                     fontSize: '14px',
                                     textTransform: 'none',
-                                    bgcolor: fioriTheme.palette.success.main,
+                                    bgcolor: 'success.main',
                                     '&:hover': {
-                                        bgcolor: '#096B31',
+                                        bgcolor: 'success.dark',
                                     },
                                 }}
                             >
@@ -1216,6 +1143,7 @@ const ReportHistory = () => {
                         )}
                     </DialogActions>
                 </Dialog>
+
                 {/* Diálogo de descarga exitosa */}
                 <Dialog
                     open={downloadDialog.open}
@@ -1224,8 +1152,7 @@ const ReportHistory = () => {
                     fullWidth
                     PaperProps={{
                         sx: {
-                            borderRadius: '8px',
-                            boxShadow: '0 16px 48px rgba(0,0,0,0.12)',
+                            borderRadius: 2,
                         }
                     }}
                 >
@@ -1235,25 +1162,26 @@ const ReportHistory = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            borderBottom: '1px solid #E5E7EB',
+                            borderBottom: 1,
+                            borderColor: 'divider',
                         }}
                     >
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <CheckCircleIcon
                                 sx={{
-                                    color: fioriTheme.palette.success.main,
+                                    color: 'success.main',
                                     mr: 1.5,
                                     fontSize: 24,
                                 }}
                             />
-                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1F2937' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                                 Archivo guardado exitosamente
                             </Typography>
                         </Box>
                         <IconButton
                             size="small"
                             onClick={handleCloseDownloadDialog}
-                            sx={{ color: '#6B7280' }}
+                            sx={{ color: 'text.secondary' }}
                         >
                             <CloseIcon />
                         </IconButton>
@@ -1264,16 +1192,17 @@ const ReportHistory = () => {
                             <Box
                                 sx={{
                                     p: 1.5,
-                                    bgcolor: '#F9FAFB',
-                                    border: '1px solid #E5E7EB',
-                                    borderRadius: '6px',
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
+                                    border: 1,
+                                    borderColor: 'divider',
+                                    borderRadius: 1.5,
                                 }}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     <DescriptionIcon
                                         sx={{
                                             fontSize: 32,
-                                            color: fioriTheme.palette.success.main,
+                                            color: 'success.main',
                                             mr: 1.5,
                                         }}
                                     />
@@ -1282,7 +1211,7 @@ const ReportHistory = () => {
                                             variant="body2"
                                             sx={{
                                                 fontWeight: 600,
-                                                color: '#1F2937',
+                                                color: 'text.primary',
                                                 wordBreak: 'break-all',
                                             }}
                                         >
@@ -1290,7 +1219,7 @@ const ReportHistory = () => {
                                         </Typography>
                                         <Typography
                                             variant="caption"
-                                            sx={{ color: '#6B7280' }}
+                                            sx={{ color: 'text.secondary' }}
                                         >
                                             Archivo Excel
                                         </Typography>
@@ -1301,7 +1230,7 @@ const ReportHistory = () => {
                                 <Typography
                                     variant="caption"
                                     sx={{
-                                        color: '#6B7280',
+                                        color: 'text.secondary',
                                         display: 'block',
                                         mb: 1,
                                         fontWeight: 500,
@@ -1312,12 +1241,13 @@ const ReportHistory = () => {
                                 <Box
                                     sx={{
                                         p: 1,
-                                        bgcolor: '#F9FAFB',
-                                        border: '1px solid #E5E7EB',
-                                        borderRadius: '6px',
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
+                                        border: 1,
+                                        borderColor: 'divider',
+                                        borderRadius: 1.5,
                                         fontFamily: 'monospace',
                                         fontSize: '12px',
-                                        color: '#4B5563',
+                                        color: 'text.secondary',
                                         wordBreak: 'break-all',
                                     }}
                                 >
@@ -1330,7 +1260,8 @@ const ReportHistory = () => {
                     <DialogActions
                         sx={{
                             p: 2.5,
-                            borderTop: '1px solid #E5E7EB',
+                            borderTop: 1,
+                            borderColor: 'divider',
                             gap: 1,
                         }}
                     >
@@ -1344,12 +1275,6 @@ const ReportHistory = () => {
                                 fontWeight: 600,
                                 fontSize: '14px',
                                 textTransform: 'none',
-                                borderColor: '#D1D5DB',
-                                color: '#1F2937',
-                                '&:hover': {
-                                    borderColor: '#9CA3AF',
-                                    bgcolor: '#F9FAFB',
-                                },
                             }}
                         >
                             Mostrar en carpeta
@@ -1364,9 +1289,9 @@ const ReportHistory = () => {
                                 fontWeight: 600,
                                 fontSize: '14px',
                                 textTransform: 'none',
-                                bgcolor: fioriTheme.palette.success.main,
+                                bgcolor: 'success.main',
                                 '&:hover': {
-                                    bgcolor: '#096B31',
+                                    bgcolor: 'success.dark',
                                 },
                             }}
                         >

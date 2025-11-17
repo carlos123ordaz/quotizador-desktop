@@ -11,7 +11,8 @@ import {
     InputAdornment,
     Alert,
     CircularProgress,
-    Container
+    Container,
+    useTheme
 } from '@mui/material';
 import { Visibility, VisibilityOff, PersonAdd } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
@@ -20,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { CONFIG } from '../config';
 
 const RegisterScreen = () => {
+    const theme = useTheme();
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
@@ -82,7 +84,7 @@ const RegisterScreen = () => {
         <Box
             sx={{
                 minHeight: '100vh',
-                backgroundColor: '#f5f5f5',
+                backgroundColor: 'background.default',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -94,9 +96,10 @@ const RegisterScreen = () => {
                     elevation={0}
                     sx={{
                         p: 4,
-                        border: '1px solid #e0e0e0',
-                        borderRadius: 1,
-                        backgroundColor: '#ffffff'
+                        border: 1,
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        backgroundColor: 'background.paper'
                     }}
                 >
                     {/* Header */}
@@ -104,7 +107,7 @@ const RegisterScreen = () => {
                         <PersonAdd
                             sx={{
                                 fontSize: 48,
-                                color: '#0070f2',
+                                color: 'primary.main',
                                 mb: 2
                             }}
                         />
@@ -112,8 +115,7 @@ const RegisterScreen = () => {
                             variant="h5"
                             sx={{
                                 fontWeight: 500,
-                                color: '#32363a',
-                                fontFamily: '"72", "72full", Arial, Helvetica, sans-serif'
+                                color: 'text.primary',
                             }}
                         >
                             Registro de Usuario
@@ -121,9 +123,8 @@ const RegisterScreen = () => {
                         <Typography
                             variant="body2"
                             sx={{
-                                color: '#6a6d70',
+                                color: 'text.secondary',
                                 mt: 1,
-                                fontFamily: '"72", "72full", Arial, Helvetica, sans-serif'
                             }}
                         >
                             Complete el formulario para crear una nueva cuenta
@@ -168,10 +169,10 @@ const RegisterScreen = () => {
                                         sx={{
                                             '& .MuiOutlinedInput-root': {
                                                 '&:hover fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 },
                                                 '&.Mui-focused fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 }
                                             }
                                         }}
@@ -201,10 +202,10 @@ const RegisterScreen = () => {
                                         sx={{
                                             '& .MuiOutlinedInput-root': {
                                                 '&:hover fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 },
                                                 '&.Mui-focused fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 }
                                             }
                                         }}
@@ -237,10 +238,10 @@ const RegisterScreen = () => {
                                         sx={{
                                             '& .MuiOutlinedInput-root': {
                                                 '&:hover fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 },
                                                 '&.Mui-focused fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 }
                                             }
                                         }}
@@ -271,10 +272,10 @@ const RegisterScreen = () => {
                                         sx={{
                                             '& .MuiOutlinedInput-root': {
                                                 '&:hover fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 },
                                                 '&.Mui-focused fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 }
                                             }
                                         }}
@@ -317,10 +318,10 @@ const RegisterScreen = () => {
                                         sx={{
                                             '& .MuiOutlinedInput-root': {
                                                 '&:hover fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 },
                                                 '&.Mui-focused fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 }
                                             }
                                         }}
@@ -337,21 +338,16 @@ const RegisterScreen = () => {
                                 sx={{
                                     mt: 2,
                                     py: 1.5,
-                                    backgroundColor: '#0070f2',
                                     textTransform: 'none',
                                     fontSize: '1rem',
                                     fontWeight: 500,
-                                    fontFamily: '"72", "72full", Arial, Helvetica, sans-serif',
-                                    '&:hover': {
-                                        backgroundColor: '#0064d9'
-                                    },
                                     '&:disabled': {
-                                        backgroundColor: '#e0e0e0'
+                                        backgroundColor: 'action.disabledBackground'
                                     }
                                 }}
                             >
                                 {loading ? (
-                                    <CircularProgress size={24} sx={{ color: '#fff' }} />
+                                    <CircularProgress size={24} sx={{ color: theme.palette.mode === 'dark' ? 'primary.main' : '#fff' }} />
                                 ) : (
                                     'Registrar Usuario'
                                 )}
@@ -364,15 +360,14 @@ const RegisterScreen = () => {
                         <Typography
                             variant="body2"
                             sx={{
-                                color: '#6a6d70',
-                                fontFamily: '"72", "72full", Arial, Helvetica, sans-serif'
+                                color: 'text.secondary',
                             }}
                         >
                             ¿Ya tienes una cuenta?{' '}
                             <Button
                                 sx={{
                                     textTransform: 'none',
-                                    color: '#0070f2',
+                                    color: 'primary.main',
                                     fontWeight: 500,
                                     p: 0,
                                     minWidth: 'auto',

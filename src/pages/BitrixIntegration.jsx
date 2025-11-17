@@ -37,7 +37,9 @@ import {
     Stepper,
     Step,
     StepLabel,
-    CircularProgress
+    CircularProgress,
+    Tooltip,
+    useTheme,
 } from '@mui/material';
 import {
     CloudUpload,
@@ -57,8 +59,10 @@ import { CONFIG } from '../config';
 import numeral from 'numeral';
 import { readFile } from '@tauri-apps/plugin-fs';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import moment from 'moment';
 
 export const BitrixIntegration = () => {
+    const theme = useTheme();
     const [files, setFiles] = useState([]);
     const [selectedFileIndex, setSelectedFileIndex] = useState(null);
     const [currentFileData, setCurrentFileData] = useState(null);
@@ -68,29 +72,19 @@ export const BitrixIntegration = () => {
     const [createQuote, setCreateQuote] = useState(true);
     const [processing, setProcessing] = useState(false);
     const { user } = useContext(MainContext);
+    const [dealData, setDealData] = useState(null);
     const [formData, setFormData] = useState({
         crearQuote: false,
         numQuote: '',
-        fechaCorreo: '',
-        fechaInicio: '',
-        fechaEnvio: '',
-        fechaCierre: '',
-        cambiarFechaCierre: false
+        fechaCorreo: moment().format('YYYY-MM-DD'),
+        fechaInicio: moment().format('YYYY-MM-DD'),
+        fechaEnvio: moment().format('YYYY-MM-DD'),
+        fechaCierre: moment().format('YYYY-MM-DD'),
+        cambiarFechaCierre: false,
     });
     const [errors, setErrors] = useState({});
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-
-    const fioriColors = {
-        primary: '#0070F2',
-        secondary: '#6E6E6E',
-        success: '#2B7D2B',
-        warning: '#E76500',
-        error: '#BB0000',
-        background: '#F5F5F5',
-        cardBg: '#FFFFFF',
-        border: '#D9D9D9'
-    };
 
     const handleDroppedFiles = useCallback(async (filePaths) => {
         setLoading(true);
@@ -258,11 +252,11 @@ export const BitrixIntegration = () => {
         setFormData({
             crearQuote: false,
             numQuote: '',
-            fechaCorreo: '',
-            fechaInicio: '',
-            fechaEnvio: '',
-            fechaCierre: '',
-            cambiarFechaCierre: false
+            fechaCorreo: moment().format('YYYY-MM-DD'),
+            fechaInicio: moment().format('YYYY-MM-DD'),
+            fechaEnvio: moment().format('YYYY-MM-DD'),
+            fechaCierre: moment().format('YYYY-MM-DD'),
+            cambiarFechaCierre: false,
         });
         setErrors({});
     };
@@ -341,7 +335,8 @@ export const BitrixIntegration = () => {
                 "UF_CRM_1444152618": depart_cisac(productos, 0, listaProductos),
                 "UF_CRM_1672638903": currentFileData.utilidad,
                 "UF_CRM_1579702489": depart_cisac(productos, 0, listaProductos).length > 1 ? 1 : 0,
-                "ASSIGNED_BY_ID": getEmpleadoId(currentFileData.responsable, empleados)
+                "ASSIGNED_BY_ID": getEmpleadoId(currentFileData.responsable, empleados),
+                "PROBABILITY": dealData['PROBABILITY'],
             }
         };
 
@@ -510,13 +505,38 @@ export const BitrixIntegration = () => {
         }
     };
 
+    const getDealData = async () => {
+        try {
+            const webhook = user.webhook_bitrix;
+            const dealResponse = await axios.get(`${webhook}/crm.deal.get`, {
+                params: { ID: currentFileData.numDeal }
+            });
+            setDealData(dealResponse.data.result);
+        } catch (error) {
+            console.error('Error al obtener datos del deal:', error);
+        }
+    }
+
+    useEffect(() => {
+        if (currentFileData) {
+            getDealData();
+        }
+    }, [currentFileData]);
+
     const handleSubmit = async () => {
         if (!validateForm()) {
             const key = Object.keys(errors)[0];
             setErrorMessage(errors[key]);
             return;
         }
-
+        if (!dealData) {
+            setErrorMessage('No se pudo obtener información del deal. Por favor, intenta de nuevo.');
+            return;
+        }
+        if (Number(dealData['PROBABILITY']) <= 0) {
+            setErrorMessage('La probabilidad del deal debe ser mayor a 0.');
+            return;
+        }
         setProcessing(true);
         setErrorMessage('');
         setSuccessMessage('');
@@ -540,10 +560,6 @@ export const BitrixIntegration = () => {
             await axios.post(`${webhook}/crm.deal.update`, dealParams);
 
             if (createQuote) {
-                const dealResponse = await axios.get(`${webhook}/crm.deal.get`, {
-                    params: { ID: currentFileData.numDeal }
-                });
-                const dealData = dealResponse.data.result;
                 const quoteParams = buildQuotePayload(dealData);
                 const quoteResponse = await axios.post(`${webhook}/crm.quote.add`, quoteParams);
                 const newQuoteId = quoteResponse.data.result;
@@ -602,8 +618,6 @@ export const BitrixIntegration = () => {
             } catch (historyError) {
                 console.error('Error al guardar en historial:', historyError);
             }
-
-            // NUEVO: Procesar y guardar Excel en la base de datos
             if (historyId) {
                 try {
                     const excelProcessed = await processExcelForDB(files[selectedFileIndex].file);
@@ -625,7 +639,6 @@ export const BitrixIntegration = () => {
                     }
                 } catch (excelError) {
                     console.error('Error al procesar Excel para DB:', excelError);
-                    // No detener el flujo si falla el guardado del Excel
                 }
             }
 
@@ -741,16 +754,16 @@ export const BitrixIntegration = () => {
                 <Table stickyHeader size="small">
                     <TableHead>
                         <TableRow>
-                            <TableCell sx={{ bgcolor: fioriColors.primary, color: 'white', fontWeight: 'bold' }}>
+                            <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }}>
                                 ID
                             </TableCell>
-                            <TableCell sx={{ bgcolor: fioriColors.primary, color: 'white', fontWeight: 'bold' }}>
+                            <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }}>
                                 Nombre
                             </TableCell>
-                            <TableCell sx={{ bgcolor: fioriColors.primary, color: 'white', fontWeight: 'bold' }}>
+                            <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }}>
                                 Precio
                             </TableCell>
-                            <TableCell sx={{ bgcolor: fioriColors.primary, color: 'white', fontWeight: 'bold' }}>
+                            <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }}>
                                 Área
                             </TableCell>
                         </TableRow>
@@ -784,8 +797,12 @@ export const BitrixIntegration = () => {
                                         {Object.entries(totales).map(([area, total]) => (
                                             total > 0 && (
                                                 <Grid size={{ xs: 6, sm: 4, md: 2 }} key={area}>
-                                                    <Paper sx={{ p: 1, textAlign: 'center', bgcolor: fioriColors.background }}>
-                                                        <Typography variant="caption" color="textSecondary">
+                                                    <Paper sx={{
+                                                        p: 1,
+                                                        textAlign: 'center',
+                                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                    }}>
+                                                        <Typography variant="caption" color="text.secondary">
                                                             {area}
                                                         </Typography>
                                                         <Typography variant="body2" fontWeight="bold">
@@ -806,7 +823,7 @@ export const BitrixIntegration = () => {
     };
 
     return (
-        <Box sx={{ bgcolor: fioriColors.background, minHeight: '100vh', py: 3 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 3 }}>
             <Container maxWidth="xl">
                 {successMessage && (
                     <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
@@ -828,9 +845,9 @@ export const BitrixIntegration = () => {
 
                 <Grid container spacing={3}>
                     <Grid size={{ xs: 12, md: 3 }}>
-                        <Card elevation={0} sx={{ borderRadius: 2 }}>
+                        <Card elevation={0} sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
                             <CardContent>
-                                <Typography variant="h6" gutterBottom sx={{ color: fioriColors.primary }}>
+                                <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                                     Archivos
                                 </Typography>
                                 <Divider sx={{ mb: 2 }} />
@@ -842,8 +859,6 @@ export const BitrixIntegration = () => {
                                     fullWidth
                                     sx={{
                                         mb: 2,
-                                        bgcolor: fioriColors.primary,
-                                        '&:hover': { bgcolor: '#0060D1' },
                                         textTransform: 'none'
                                     }}
                                 >
@@ -864,21 +879,26 @@ export const BitrixIntegration = () => {
                                         <ListItem
                                             key={fileObj.id}
                                             sx={{
-                                                bgcolor: selectedFileIndex === index ? fioriColors.background : 'transparent',
+                                                bgcolor: selectedFileIndex === index
+                                                    ? (theme.palette.mode === 'dark' ? 'rgba(144, 202, 249, 0.08)' : '#F5F5F5')
+                                                    : 'transparent',
                                                 borderRadius: 1,
                                                 mb: 0.5,
                                                 cursor: 'pointer',
-                                                border: selectedFileIndex === index ? `2px solid ${fioriColors.primary}` : '1px solid #E0E0E0',
-                                                '&:hover': { bgcolor: fioriColors.background }
+                                                border: selectedFileIndex === index ? 2 : 1,
+                                                borderColor: selectedFileIndex === index ? 'primary.main' : 'divider',
+                                                '&:hover': {
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }
                                             }}
                                             onClick={() => handleSelectFile(index)}
                                             secondaryAction={
                                                 <Stack direction="row" spacing={0.5}>
                                                     {fileObj.status === 'success' && (
-                                                        <CheckCircle fontSize="small" sx={{ color: fioriColors.success }} />
+                                                        <CheckCircle fontSize="small" sx={{ color: 'success.main' }} />
                                                     )}
                                                     {fileObj.status === 'error' && (
-                                                        <Warning fontSize="small" sx={{ color: fioriColors.error }} />
+                                                        <Warning fontSize="small" sx={{ color: 'error.main' }} />
                                                     )}
                                                     <IconButton
                                                         edge="end"
@@ -893,7 +913,7 @@ export const BitrixIntegration = () => {
                                                 </Stack>
                                             }
                                         >
-                                            <InsertDriveFile fontSize="small" sx={{ mr: 1, color: fioriColors.primary }} />
+                                            <InsertDriveFile fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
                                             <ListItemText
                                                 primary={
                                                     <Typography variant="body2" noWrap>
@@ -901,7 +921,7 @@ export const BitrixIntegration = () => {
                                                     </Typography>
                                                 }
                                                 secondary={
-                                                    <Typography variant="caption" color="textSecondary">
+                                                    <Typography variant="caption" color="text.secondary">
                                                         {fileObj.status === 'pending' ? 'Pendiente' :
                                                             fileObj.status === 'success' ? 'Procesado' :
                                                                 fileObj.status === 'error' ? 'Error' : 'Listo'}
@@ -911,7 +931,7 @@ export const BitrixIntegration = () => {
                                         </ListItem>
                                     ))}
                                     {files.length === 0 && (
-                                        <Typography variant="body2" color="textSecondary" textAlign="center" sx={{ py: 2 }}>
+                                        <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ py: 2 }}>
                                             No hay archivos cargados
                                         </Typography>
                                     )}
@@ -923,27 +943,33 @@ export const BitrixIntegration = () => {
                     <Grid size={{ xs: 12, md: 9 }}>
                         {currentFileData ? (
                             <Stack spacing={3}>
-                                <Card elevation={0} sx={{ borderRadius: 2 }}>
+                                <Card elevation={0} sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
                                     <CardContent>
-                                        <Typography variant="h6" gutterBottom sx={{ color: fioriColors.primary }}>
+                                        <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                                             <Info sx={{ fontSize: 20, mr: 1, verticalAlign: 'middle' }} />
                                             Información del Deal
                                         </Typography>
                                         <Divider sx={{ mb: 2 }} />
                                         <Grid container spacing={2}>
                                             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                                                <Paper sx={{ p: 2, bgcolor: fioriColors.background }}>
-                                                    <Typography variant="caption" color="textSecondary">
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
                                                         Número de Deal
                                                     </Typography>
-                                                    <Typography variant="h6" sx={{ color: fioriColors.primary }}>
+                                                    <Typography variant="h6" sx={{ color: 'primary.main' }}>
                                                         {currentFileData.numDeal || 'N/A'}
                                                     </Typography>
                                                 </Paper>
                                             </Grid>
                                             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                                                <Paper sx={{ p: 2, bgcolor: fioriColors.background }}>
-                                                    <Typography variant="caption" color="textSecondary">
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
                                                         Nombre de la oferta
                                                     </Typography>
                                                     <Typography variant="body1" fontWeight="bold">
@@ -952,8 +978,11 @@ export const BitrixIntegration = () => {
                                                 </Paper>
                                             </Grid>
                                             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{ p: 2, bgcolor: fioriColors.background }}>
-                                                    <Typography variant="caption" color="textSecondary">
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
                                                         Preparado {currentFileData.preparado_unva && currentFileData.preparado_unai ? 'UNAU' : ''}
                                                     </Typography>
                                                     <Typography variant="body2">
@@ -962,8 +991,11 @@ export const BitrixIntegration = () => {
                                                 </Paper>
                                             </Grid>
                                             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{ p: 2, bgcolor: fioriColors.background }}>
-                                                    <Typography variant="caption" color="textSecondary">
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
                                                         Preparado UNVA
                                                     </Typography>
                                                     <Typography variant="body2">
@@ -972,8 +1004,11 @@ export const BitrixIntegration = () => {
                                                 </Paper>
                                             </Grid>
                                             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{ p: 2, bgcolor: fioriColors.background }}>
-                                                    <Typography variant="caption" color="textSecondary">
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
                                                         Preparado UNAI
                                                     </Typography>
                                                     <Typography variant="body2">
@@ -982,8 +1017,11 @@ export const BitrixIntegration = () => {
                                                 </Paper>
                                             </Grid>
                                             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                                                <Paper sx={{ p: 2, bgcolor: fioriColors.background }}>
-                                                    <Typography variant="caption" color="textSecondary">
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
                                                         Responsable
                                                     </Typography>
                                                     <Typography variant="body2">
@@ -992,8 +1030,11 @@ export const BitrixIntegration = () => {
                                                 </Paper>
                                             </Grid>
                                             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                                                <Paper sx={{ p: 2, bgcolor: fioriColors.background }}>
-                                                    <Typography variant="caption" color="textSecondary">
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
                                                         Visto Bueno
                                                     </Typography>
                                                     <Typography variant="body2">
@@ -1002,8 +1043,11 @@ export const BitrixIntegration = () => {
                                                 </Paper>
                                             </Grid>
                                             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                                                <Paper sx={{ p: 2, bgcolor: fioriColors.background }}>
-                                                    <Typography variant="caption" color="textSecondary">
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
                                                         Utilidad
                                                     </Typography>
                                                     <Typography variant="body2" fontWeight="bold">
@@ -1012,22 +1056,54 @@ export const BitrixIntegration = () => {
                                                 </Paper>
                                             </Grid>
                                             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                                                <Paper sx={{ p: 2, bgcolor: fioriColors.background }}>
-                                                    <Typography variant="caption" color="textSecondary">
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
                                                         Códigos
                                                     </Typography>
-                                                    <Typography variant="body2" noWrap>
-                                                        {currentFileData.rubrica || 'N/A'}
-                                                    </Typography>
+                                                    <Tooltip title={currentFileData.rubrica || 'N/A'} arrow>
+                                                        <Typography
+                                                            variant="body2"
+                                                            noWrap
+                                                            sx={{ cursor: 'pointer' }}
+                                                        >
+                                                            {currentFileData.rubrica || 'N/A'}
+                                                        </Typography>
+                                                    </Tooltip>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel>Probabilidad</InputLabel>
+                                                        <Select
+                                                            label="Probabilidad"
+                                                            value={dealData?.PROBABILITY || '0'}
+                                                            onChange={(e) => {
+                                                                setDealData({ ...currentFileData, PROBABILITY: e.target.value });
+                                                            }}
+                                                        >
+                                                            <MenuItem value="1">1</MenuItem>
+                                                            <MenuItem value="20">20</MenuItem>
+                                                            <MenuItem value="55">55</MenuItem>
+                                                            <MenuItem value="80">80</MenuItem>
+                                                            <MenuItem value="95">95</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
                                                 </Paper>
                                             </Grid>
                                         </Grid>
                                     </CardContent>
                                 </Card>
 
-                                <Card elevation={0} sx={{ borderRadius: 2 }}>
+                                <Card elevation={0} sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
                                     <CardContent>
-                                        <Typography variant="h6" gutterBottom sx={{ color: fioriColors.primary }}>
+                                        <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                                             <Description sx={{ fontSize: 20, mr: 1, verticalAlign: 'middle' }} />
                                             Productos ({currentFileData.productos?.length || 0})
                                         </Typography>
@@ -1036,16 +1112,19 @@ export const BitrixIntegration = () => {
                                     </CardContent>
                                 </Card>
 
-                                <Card elevation={0} sx={{ borderRadius: 2 }}>
+                                <Card elevation={0} sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
                                     <CardContent>
-                                        <Typography variant="h6" gutterBottom sx={{ color: fioriColors.primary }}>
+                                        <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                                             Configuración de Envío
                                         </Typography>
                                         <Divider sx={{ mb: 3 }} />
 
                                         <Grid container spacing={3}>
                                             <Grid size={{ xs: 12 }}>
-                                                <Paper sx={{ p: 2, bgcolor: fioriColors.background }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
                                                     <Typography variant="subtitle2" gutterBottom>
                                                         Estado del Quote
                                                     </Typography>
@@ -1081,6 +1160,7 @@ export const BitrixIntegration = () => {
                                                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                                     <TextField
                                                         fullWidth
+                                                        onClick={(e) => e.target.showPicker()}
                                                         label="Nueva Fecha Cierre"
                                                         type="date"
                                                         value={formData.fechaCierre}
@@ -1103,6 +1183,7 @@ export const BitrixIntegration = () => {
                                                             fullWidth
                                                             label="Fecha Correo"
                                                             type="date"
+                                                            onClick={(e) => e.target.showPicker()}
                                                             value={formData.fechaCorreo}
                                                             onChange={(e) => setFormData({
                                                                 ...formData,
@@ -1119,6 +1200,7 @@ export const BitrixIntegration = () => {
                                                         <TextField
                                                             fullWidth
                                                             label="Fecha Inicio"
+                                                            onClick={(e) => e.target.showPicker()}
                                                             type="date"
                                                             value={formData.fechaInicio}
                                                             onChange={(e) => setFormData({
@@ -1136,6 +1218,7 @@ export const BitrixIntegration = () => {
                                                         <TextField
                                                             fullWidth
                                                             label="Fecha Envío"
+                                                            onClick={(e) => e.target.showPicker()}
                                                             type="date"
                                                             value={formData.fechaEnvio}
                                                             onChange={(e) => setFormData({
@@ -1170,8 +1253,6 @@ export const BitrixIntegration = () => {
                                                 onClick={handleSubmit}
                                                 disabled={processing}
                                                 sx={{
-                                                    bgcolor: fioriColors.primary,
-                                                    '&:hover': { bgcolor: '#0060D1' },
                                                     textTransform: 'none'
                                                 }}
                                             >
@@ -1184,13 +1265,13 @@ export const BitrixIntegration = () => {
                                 </Card>
                             </Stack>
                         ) : (
-                            <Card elevation={0} sx={{ borderRadius: 2, textAlign: 'center', py: 8 }}>
+                            <Card elevation={0} sx={{ borderRadius: 2, textAlign: 'center', py: 8, bgcolor: 'background.paper' }}>
                                 <CardContent>
-                                    <CloudUpload sx={{ fontSize: 80, color: fioriColors.secondary, mb: 2 }} />
-                                    <Typography variant="h6" color="textSecondary" gutterBottom>
+                                    <CloudUpload sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
+                                    <Typography variant="h6" color="text.secondary" gutterBottom>
                                         No hay archivo seleccionado
                                     </Typography>
-                                    <Typography variant="body2" color="textSecondary">
+                                    <Typography variant="body2" color="text.secondary">
                                         Sube archivos Excel o selecciona uno del panel lateral
                                     </Typography>
                                 </CardContent>

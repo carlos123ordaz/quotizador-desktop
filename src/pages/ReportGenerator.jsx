@@ -15,6 +15,7 @@ import {
     DialogContent,
     DialogActions,
     Container,
+    useTheme,
 } from '@mui/material';
 import {
     CloudUpload as CloudUploadIcon,
@@ -44,27 +45,8 @@ import { CONFIG } from '../config';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 
 
-const fioriTheme = {
-    palette: {
-        primary: {
-            main: '#0A6ED1',
-        },
-        success: {
-            main: '#107E3E',
-        },
-        warning: {
-            main: '#D48806',
-        },
-        error: {
-            main: '#B3261E',
-        },
-        background: {
-            default: '#F5F5F5',
-        },
-    },
-};
-
 const ReportGenerator = () => {
+    const theme = useTheme();
     const [files, setFiles] = useState([]);
     const [processing, setProcessing] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -364,28 +346,27 @@ const ReportGenerator = () => {
     const getStatusIcon = (status) => {
         switch (status) {
             case 'success':
-                return <CheckCircleIcon sx={{ color: fioriTheme.palette.success.main, fontSize: 20 }} />;
+                return <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 20 }} />;
             case 'error':
-                return <ErrorIcon sx={{ color: fioriTheme.palette.error.main, fontSize: 20 }} />;
+                return <ErrorIcon sx={{ color: theme.palette.error.main, fontSize: 20 }} />;
             default:
-                return <DescriptionIcon sx={{ color: '#666', fontSize: 20 }} />;
+                return <DescriptionIcon sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />;
         }
     };
 
     return (
         <Box sx={{
             minHeight: '100vh',
-            bgcolor: fioriTheme.palette.background.default,
+            bgcolor: 'background.default',
             py: 4,
         }}>
             <Container>
                 {/* Header */}
                 <Box sx={{ mb: 4 }}>
-
                     <Typography
                         variant="body1"
                         sx={{
-                            color: '#6B7280',
+                            color: 'text.secondary',
                             fontSize: '14px',
                         }}
                     >
@@ -400,9 +381,10 @@ const ReportGenerator = () => {
                             elevation={0}
                             sx={{
                                 p: 3,
-                                border: '1px solid #E5E7EB',
-                                borderRadius: '8px',
-                                bgcolor: '#FFFFFF',
+                                border: 1,
+                                borderColor: 'divider',
+                                borderRadius: 2,
+                                bgcolor: 'background.paper',
                                 height: '100%',
                             }}
                         >
@@ -411,7 +393,7 @@ const ReportGenerator = () => {
                                 sx={{
                                     fontWeight: 600,
                                     mb: 2,
-                                    color: '#1F2937',
+                                    color: 'text.primary',
                                     fontSize: '16px',
                                 }}
                             >
@@ -421,17 +403,18 @@ const ReportGenerator = () => {
                             {/* Zona de carga */}
                             <Box
                                 sx={{
-                                    border: '2px dashed #D1D5DB',
-                                    borderRadius: '8px',
+                                    border: '2px dashed',
+                                    borderColor: 'divider',
+                                    borderRadius: 2,
                                     p: 3,
                                     textAlign: 'center',
-                                    bgcolor: '#F9FAFB',
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
                                     mb: 3,
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
                                     '&:hover': {
-                                        borderColor: fioriTheme.palette.primary.main,
-                                        bgcolor: '#F3F8FF',
+                                        borderColor: 'primary.main',
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(144, 202, 249, 0.08)' : '#F3F8FF',
                                     },
                                 }}
                                 component="label"
@@ -446,7 +429,7 @@ const ReportGenerator = () => {
                                 <CloudUploadIcon
                                     sx={{
                                         fontSize: 48,
-                                        color: fioriTheme.palette.primary.main,
+                                        color: 'primary.main',
                                         mb: 1,
                                     }}
                                 />
@@ -454,7 +437,7 @@ const ReportGenerator = () => {
                                     variant="subtitle2"
                                     sx={{
                                         fontWeight: 600,
-                                        color: '#1F2937',
+                                        color: 'text.primary',
                                         mb: 0.5,
                                     }}
                                 >
@@ -462,7 +445,7 @@ const ReportGenerator = () => {
                                 </Typography>
                                 <Typography
                                     variant="caption"
-                                    sx={{ color: '#6B7280' }}
+                                    sx={{ color: 'text.secondary' }}
                                 >
                                     O haz clic para seleccionar (Excel: .xlsx, .xls, .xlsm)
                                 </Typography>
@@ -481,7 +464,7 @@ const ReportGenerator = () => {
                                             variant="subtitle2"
                                             sx={{
                                                 fontWeight: 600,
-                                                color: '#1F2937',
+                                                color: 'text.primary',
                                             }}
                                         >
                                             {files.length} archivo(s) seleccionado(s)
@@ -497,13 +480,14 @@ const ReportGenerator = () => {
                                                     alignItems: 'center',
                                                     justifyContent: 'space-between',
                                                     p: 1.5,
-                                                    bgcolor: '#F9FAFB',
-                                                    border: '1px solid #E5E7EB',
-                                                    borderRadius: '6px',
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
+                                                    border: 1,
+                                                    borderColor: 'divider',
+                                                    borderRadius: 1.5,
                                                     transition: 'all 0.2s ease',
                                                     '&:hover': {
-                                                        bgcolor: '#F3F8FF',
-                                                        borderColor: fioriTheme.palette.primary.main,
+                                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(144, 202, 249, 0.08)' : '#F3F8FF',
+                                                        borderColor: 'primary.main',
                                                     },
                                                 }}
                                             >
@@ -514,7 +498,7 @@ const ReportGenerator = () => {
                                                             variant="body2"
                                                             sx={{
                                                                 fontWeight: 500,
-                                                                color: '#1F2937',
+                                                                color: 'text.primary',
                                                                 overflow: 'hidden',
                                                                 textOverflow: 'ellipsis',
                                                                 whiteSpace: 'nowrap',
@@ -524,7 +508,7 @@ const ReportGenerator = () => {
                                                         </Typography>
                                                         <Typography
                                                             variant="caption"
-                                                            sx={{ color: '#9CA3AF' }}
+                                                            sx={{ color: 'text.secondary' }}
                                                         >
                                                             {fileObj.size} KB
                                                         </Typography>
@@ -536,9 +520,9 @@ const ReportGenerator = () => {
                                                     disabled={processing}
                                                     sx={{
                                                         ml: 1,
-                                                        color: fioriTheme.palette.error.main,
+                                                        color: 'error.main',
                                                         '&:hover': {
-                                                            bgcolor: 'error.50',
+                                                            bgcolor: 'error.light',
                                                         },
                                                     }}
                                                 >
@@ -563,10 +547,6 @@ const ReportGenerator = () => {
                                         fontWeight: 600,
                                         fontSize: '14px',
                                         textTransform: 'none',
-                                        bgcolor: fioriTheme.palette.primary.main,
-                                        '&:hover': {
-                                            bgcolor: '#0552B1',
-                                        },
                                     }}
                                 >
                                     {processing ? `${progress < 100 ? 'Subiendo..' : 'Procesando..'}... ${progress < 100 && progress || formatTime(elapsedTime)} ${progress < 100 ? '%' : 's'}` : 'Procesar Archivos'}
@@ -581,12 +561,6 @@ const ReportGenerator = () => {
                                         fontWeight: 600,
                                         fontSize: '14px',
                                         textTransform: 'none',
-                                        borderColor: '#D1D5DB',
-                                        color: '#6B7280',
-                                        '&:hover': {
-                                            borderColor: '#9CA3AF',
-                                            bgcolor: '#F9FAFB',
-                                        },
                                     }}
                                 >
                                     Limpiar Todo
@@ -604,9 +578,10 @@ const ReportGenerator = () => {
                                     elevation={0}
                                     sx={{
                                         p: 2.5,
-                                        border: '1px solid #E5E7EB',
-                                        borderRadius: '8px',
-                                        bgcolor: '#FFFFFF',
+                                        border: 1,
+                                        borderColor: 'divider',
+                                        borderRadius: 2,
+                                        bgcolor: 'background.paper',
                                     }}
                                 >
                                     <Box
@@ -620,7 +595,7 @@ const ReportGenerator = () => {
                                             variant="subtitle2"
                                             sx={{
                                                 fontWeight: 600,
-                                                color: '#1F2937',
+                                                color: 'text.primary',
                                             }}
                                         >
                                             {progress < 100 ? 'Subiendo archivos..' : 'Procesando archivos..'}
@@ -629,7 +604,7 @@ const ReportGenerator = () => {
                                             variant="subtitle2"
                                             sx={{
                                                 fontWeight: 600,
-                                                color: fioriTheme.palette.primary.main,
+                                                color: 'primary.main',
                                             }}
                                         >
                                             {
@@ -642,13 +617,8 @@ const ReportGenerator = () => {
                                         value={progress}
                                         sx={{
                                             height: 8,
-                                            borderRadius: '4px',
-                                            bgcolor: '#E5E7EB',
+                                            borderRadius: 1,
                                             mb: 2,
-                                            '& .MuiLinearProgress-bar': {
-                                                borderRadius: '4px',
-                                                bgcolor: fioriTheme.palette.primary.main,
-                                            },
                                         }}
                                     />
                                 </Paper>
@@ -660,9 +630,10 @@ const ReportGenerator = () => {
                                     elevation={0}
                                     sx={{
                                         p: 2.5,
-                                        border: '1px solid #D1E7DD',
-                                        borderRadius: '8px',
-                                        bgcolor: '#F1F8F5',
+                                        border: 1,
+                                        borderColor: theme.palette.mode === 'dark' ? 'success.dark' : '#D1E7DD',
+                                        borderRadius: 2,
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(16, 126, 62, 0.08)' : '#F1F8F5',
                                     }}
                                 >
                                     <Box
@@ -674,7 +645,7 @@ const ReportGenerator = () => {
                                     >
                                         <CheckCircleIcon
                                             sx={{
-                                                color: fioriTheme.palette.success.main,
+                                                color: 'success.main',
                                                 fontSize: 24,
                                                 mr: 1.5,
                                                 mt: 0.5,
@@ -685,21 +656,21 @@ const ReportGenerator = () => {
                                                 variant="subtitle2"
                                                 sx={{
                                                     fontWeight: 600,
-                                                    color: fioriTheme.palette.success.main,
+                                                    color: 'success.main',
                                                 }}
                                             >
                                                 Procesamiento completado exitosamente
                                             </Typography>
                                             <Typography
                                                 variant="caption"
-                                                sx={{ color: '#4B5563', display: 'block', mt: 0.5 }}
+                                                sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}
                                             >
                                                 {moment(result.timestamp).format('DD/MM/YYYY HH:mm')}
                                             </Typography>
                                         </Box>
                                     </Box>
 
-                                    <Divider sx={{ my: 2, borderColor: '#D1E7DD' }} />
+                                    <Divider sx={{ my: 2 }} />
 
                                     {/* Estadísticas */}
                                     <Grid container spacing={2} sx={{ mb: 2 }}>
@@ -708,7 +679,7 @@ const ReportGenerator = () => {
                                                 <Typography
                                                     variant="caption"
                                                     sx={{
-                                                        color: '#6B7280',
+                                                        color: 'text.secondary',
                                                         display: 'block',
                                                         mb: 0.5,
                                                     }}
@@ -719,7 +690,7 @@ const ReportGenerator = () => {
                                                     variant="h6"
                                                     sx={{
                                                         fontWeight: 700,
-                                                        color: fioriTheme.palette.success.main,
+                                                        color: 'success.main',
                                                     }}
                                                 >
                                                     {result.processedFiles} / {result.totalFiles}
@@ -731,7 +702,7 @@ const ReportGenerator = () => {
                                                 <Typography
                                                     variant="caption"
                                                     sx={{
-                                                        color: '#6B7280',
+                                                        color: 'text.secondary',
                                                         display: 'block',
                                                         mb: 0.5,
                                                     }}
@@ -742,7 +713,7 @@ const ReportGenerator = () => {
                                                     variant="h6"
                                                     sx={{
                                                         fontWeight: 700,
-                                                        color: fioriTheme.palette.primary.main,
+                                                        color: 'primary.main',
                                                     }}
                                                 >
                                                     {result.totalRecords}
@@ -754,7 +725,7 @@ const ReportGenerator = () => {
                                                 <Typography
                                                     variant="caption"
                                                     sx={{
-                                                        color: '#6B7280',
+                                                        color: 'text.secondary',
                                                         display: 'block',
                                                         mb: 0.5,
                                                     }}
@@ -765,7 +736,7 @@ const ReportGenerator = () => {
                                                     variant="body2"
                                                     sx={{
                                                         fontWeight: 600,
-                                                        color: '#1F2937',
+                                                        color: 'text.primary',
                                                     }}
                                                 >
                                                     {result.processingTime}s
@@ -777,7 +748,7 @@ const ReportGenerator = () => {
                                                 <Typography
                                                     variant="caption"
                                                     sx={{
-                                                        color: '#6B7280',
+                                                        color: 'text.secondary',
                                                         display: 'block',
                                                         mb: 0.5,
                                                     }}
@@ -788,7 +759,7 @@ const ReportGenerator = () => {
                                                     variant="caption"
                                                     sx={{
                                                         fontFamily: 'monospace',
-                                                        color: '#4B5563',
+                                                        color: 'text.secondary',
                                                         fontSize: '12px',
                                                     }}
                                                 >
@@ -811,9 +782,9 @@ const ReportGenerator = () => {
                                                     fontWeight: 600,
                                                     fontSize: '14px',
                                                     textTransform: 'none',
-                                                    bgcolor: fioriTheme.palette.success.main,
+                                                    bgcolor: 'success.main',
                                                     '&:hover': {
-                                                        bgcolor: '#096B31',
+                                                        bgcolor: 'success.dark',
                                                     },
                                                 }}
                                             >
@@ -829,9 +800,10 @@ const ReportGenerator = () => {
                                 <Paper
                                     elevation={0}
                                     sx={{
-                                        border: '1px solid #FEDCD2',
-                                        borderRadius: '8px',
-                                        bgcolor: '#FEF6F5',
+                                        border: 1,
+                                        borderColor: theme.palette.mode === 'dark' ? 'warning.dark' : '#FEDCD2',
+                                        borderRadius: 2,
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(212, 136, 6, 0.08)' : '#FEF6F5',
                                     }}
                                 >
                                     <Box
@@ -847,7 +819,7 @@ const ReportGenerator = () => {
                                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                             <ErrorIcon
                                                 sx={{
-                                                    color: fioriTheme.palette.warning.main,
+                                                    color: 'warning.main',
                                                     mr: 1.5,
                                                     fontSize: 22,
                                                 }}
@@ -856,7 +828,7 @@ const ReportGenerator = () => {
                                                 variant="subtitle2"
                                                 sx={{
                                                     fontWeight: 600,
-                                                    color: '#1F2937',
+                                                    color: 'text.primary',
                                                 }}
                                             >
                                                 {errors.length} archivo(s) con errores
@@ -868,7 +840,7 @@ const ReportGenerator = () => {
                                     </Box>
 
                                     <Collapse in={showErrors}>
-                                        <Divider sx={{ borderColor: '#FEDCD2' }} />
+                                        <Divider />
                                         <Box sx={{ p: 2.5 }}>
                                             <Stack spacing={1.5}>
                                                 {errors.map((error, index) => (
@@ -876,16 +848,17 @@ const ReportGenerator = () => {
                                                         key={index}
                                                         sx={{
                                                             p: 1.5,
-                                                            bgcolor: '#FFFFFF',
-                                                            border: '1px solid #FEDCD2',
-                                                            borderRadius: '6px',
+                                                            bgcolor: 'background.paper',
+                                                            border: 1,
+                                                            borderColor: theme.palette.mode === 'dark' ? 'warning.dark' : '#FEDCD2',
+                                                            borderRadius: 1.5,
                                                         }}
                                                     >
                                                         <Typography
                                                             variant="body2"
                                                             sx={{
                                                                 fontWeight: 600,
-                                                                color: '#1F2937',
+                                                                color: 'text.primary',
                                                                 mb: 0.5,
                                                             }}
                                                         >
@@ -893,7 +866,7 @@ const ReportGenerator = () => {
                                                         </Typography>
                                                         <Typography
                                                             variant="caption"
-                                                            sx={{ color: '#6B7280' }}
+                                                            sx={{ color: 'text.secondary' }}
                                                         >
                                                             {error.error}
                                                         </Typography>
@@ -911,15 +884,16 @@ const ReportGenerator = () => {
                                     elevation={0}
                                     sx={{
                                         p: 2.5,
-                                        border: '1px solid #F9C8C8',
-                                        borderRadius: '8px',
-                                        bgcolor: '#FEF2F2',
+                                        border: 1,
+                                        borderColor: theme.palette.mode === 'dark' ? 'error.dark' : '#F9C8C8',
+                                        borderRadius: 2,
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(179, 38, 30, 0.08)' : '#FEF2F2',
                                     }}
                                 >
                                     <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
                                         <ErrorIcon
                                             sx={{
-                                                color: fioriTheme.palette.error.main,
+                                                color: 'error.main',
                                                 mr: 1.5,
                                                 mt: 0.25,
                                             }}
@@ -929,7 +903,7 @@ const ReportGenerator = () => {
                                                 variant="subtitle2"
                                                 sx={{
                                                     fontWeight: 600,
-                                                    color: fioriTheme.palette.error.main,
+                                                    color: 'error.main',
                                                     mb: 0.5,
                                                 }}
                                             >
@@ -937,7 +911,7 @@ const ReportGenerator = () => {
                                             </Typography>
                                             <Typography
                                                 variant="body2"
-                                                sx={{ color: '#6B7280' }}
+                                                sx={{ color: 'text.secondary' }}
                                             >
                                                 {result.error}
                                             </Typography>
@@ -957,8 +931,7 @@ const ReportGenerator = () => {
                     fullWidth
                     PaperProps={{
                         sx: {
-                            borderRadius: '8px',
-                            boxShadow: '0 16px 48px rgba(0,0,0,0.12)',
+                            borderRadius: 2,
                         }
                     }}
                 >
@@ -968,25 +941,26 @@ const ReportGenerator = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            borderBottom: '1px solid #E5E7EB',
+                            borderBottom: 1,
+                            borderColor: 'divider',
                         }}
                     >
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <CheckCircleIcon
                                 sx={{
-                                    color: fioriTheme.palette.success.main,
+                                    color: 'success.main',
                                     mr: 1.5,
                                     fontSize: 24,
                                 }}
                             />
-                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1F2937' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                                 Archivo guardado exitosamente
                             </Typography>
                         </Box>
                         <IconButton
                             size="small"
                             onClick={handleCloseDownloadDialog}
-                            sx={{ color: '#6B7280' }}
+                            sx={{ color: 'text.secondary' }}
                         >
                             <CloseIcon />
                         </IconButton>
@@ -998,16 +972,17 @@ const ReportGenerator = () => {
                             <Box
                                 sx={{
                                     p: 1.5,
-                                    bgcolor: '#F9FAFB',
-                                    border: '1px solid #E5E7EB',
-                                    borderRadius: '6px',
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
+                                    border: 1,
+                                    borderColor: 'divider',
+                                    borderRadius: 1.5,
                                 }}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     <DescriptionIcon
                                         sx={{
                                             fontSize: 32,
-                                            color: fioriTheme.palette.success.main,
+                                            color: 'success.main',
                                             mr: 1.5,
                                         }}
                                     />
@@ -1016,7 +991,7 @@ const ReportGenerator = () => {
                                             variant="body2"
                                             sx={{
                                                 fontWeight: 600,
-                                                color: '#1F2937',
+                                                color: 'text.primary',
                                                 wordBreak: 'break-all',
                                             }}
                                         >
@@ -1024,7 +999,7 @@ const ReportGenerator = () => {
                                         </Typography>
                                         <Typography
                                             variant="caption"
-                                            sx={{ color: '#6B7280' }}
+                                            sx={{ color: 'text.secondary' }}
                                         >
                                             Archivo Excel
                                         </Typography>
@@ -1037,7 +1012,7 @@ const ReportGenerator = () => {
                                 <Typography
                                     variant="caption"
                                     sx={{
-                                        color: '#6B7280',
+                                        color: 'text.secondary',
                                         display: 'block',
                                         mb: 1,
                                         fontWeight: 500,
@@ -1048,12 +1023,13 @@ const ReportGenerator = () => {
                                 <Box
                                     sx={{
                                         p: 1,
-                                        bgcolor: '#F9FAFB',
-                                        border: '1px solid #E5E7EB',
-                                        borderRadius: '6px',
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
+                                        border: 1,
+                                        borderColor: 'divider',
+                                        borderRadius: 1.5,
                                         fontFamily: 'monospace',
                                         fontSize: '12px',
-                                        color: '#4B5563',
+                                        color: 'text.secondary',
                                         wordBreak: 'break-all',
                                     }}
                                 >
@@ -1066,7 +1042,8 @@ const ReportGenerator = () => {
                     <DialogActions
                         sx={{
                             p: 2.5,
-                            borderTop: '1px solid #E5E7EB',
+                            borderTop: 1,
+                            borderColor: 'divider',
                             gap: 1,
                         }}
                     >
@@ -1080,12 +1057,6 @@ const ReportGenerator = () => {
                                 fontWeight: 600,
                                 fontSize: '14px',
                                 textTransform: 'none',
-                                borderColor: '#D1D5DB',
-                                color: '#1F2937',
-                                '&:hover': {
-                                    borderColor: '#9CA3AF',
-                                    bgcolor: '#F9FAFB',
-                                },
                             }}
                         >
                             Mostrar en carpeta
@@ -1100,9 +1071,9 @@ const ReportGenerator = () => {
                                 fontWeight: 600,
                                 fontSize: '14px',
                                 textTransform: 'none',
-                                bgcolor: fioriTheme.palette.success.main,
+                                bgcolor: 'success.main',
                                 '&:hover': {
-                                    bgcolor: '#096B31',
+                                    bgcolor: 'success.dark',
                                 },
                             }}
                         >

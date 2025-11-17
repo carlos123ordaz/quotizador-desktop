@@ -30,7 +30,6 @@ import moment from 'moment';
 
 const ProfilePage = () => {
     const { user, setUser } = useContext(MainContext);
-    console.log(user);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');

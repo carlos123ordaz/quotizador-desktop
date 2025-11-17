@@ -38,6 +38,8 @@ import {
     Star,
     People,
     ProductionQuantityLimits,
+    Brightness4 as DarkModeIcon,
+    Brightness7 as LightModeIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MainContext } from '../contexts/MainContext';
@@ -51,7 +53,7 @@ const MainLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-    const { user, setUser } = useContext(MainContext);
+    const { user, setUser, mode, toggleTheme } = useContext(MainContext);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [desktopOpen, setDesktopOpen] = useState(true);
     const [reportsOpen, setReportsOpen] = useState(true);
@@ -470,6 +472,17 @@ const MainLayout = () => {
                         {location.pathname.includes('/products') && 'Gestión de Productos'}
                         {location.pathname.includes('/employees') && 'Gestión de Empleados'}
                     </Typography>
+
+                    {/* Botón de cambio de tema */}
+                    <Tooltip title={mode === 'light' ? 'Modo oscuro' : 'Modo claro'}>
+                        <IconButton
+                            onClick={toggleTheme}
+                            color="inherit"
+                            sx={{ mr: 1 }}
+                        >
+                            {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
+                        </IconButton>
+                    </Tooltip>
 
                     {/* Avatar y menú de usuario */}
                     {user && (

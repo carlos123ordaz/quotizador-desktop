@@ -244,7 +244,7 @@ const EmployeesPage = () => {
     };
 
     return (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', padding: 2 }}>
             {loading && !initialLoading && (
                 <LinearProgress
                     sx={{

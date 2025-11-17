@@ -12,7 +12,8 @@ import {
     Container,
     FormControlLabel,
     Checkbox,
-    Divider
+    Divider,
+    useTheme
 } from '@mui/material';
 import { Visibility, VisibilityOff, Login, LockOpen } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
@@ -21,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { CONFIG } from '../config';
 
 const LoginScreen = () => {
+    const theme = useTheme();
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -70,7 +72,7 @@ const LoginScreen = () => {
         <Box
             sx={{
                 minHeight: '100vh',
-                backgroundColor: '#f5f5f5',
+                backgroundColor: 'background.default',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -82,9 +84,10 @@ const LoginScreen = () => {
                     elevation={0}
                     sx={{
                         p: 4,
-                        border: '1px solid #e0e0e0',
-                        borderRadius: 1,
-                        backgroundColor: '#ffffff'
+                        border: 1,
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        backgroundColor: 'background.paper'
                     }}
                 >
                     {/* Header */}
@@ -92,7 +95,7 @@ const LoginScreen = () => {
                         <LockOpen
                             sx={{
                                 fontSize: 48,
-                                color: '#0070f2',
+                                color: 'primary.main',
                                 mb: 2
                             }}
                         />
@@ -100,8 +103,7 @@ const LoginScreen = () => {
                             variant="h5"
                             sx={{
                                 fontWeight: 500,
-                                color: '#32363a',
-                                fontFamily: '"72", "72full", Arial, Helvetica, sans-serif'
+                                color: 'text.primary',
                             }}
                         >
                             Iniciar Sesión
@@ -109,9 +111,8 @@ const LoginScreen = () => {
                         <Typography
                             variant="body2"
                             sx={{
-                                color: '#6a6d70',
+                                color: 'text.secondary',
                                 mt: 1,
-                                fontFamily: '"72", "72full", Arial, Helvetica, sans-serif'
                             }}
                         >
                             Ingresa tus credenciales para acceder
@@ -158,10 +159,10 @@ const LoginScreen = () => {
                                         sx={{
                                             '& .MuiOutlinedInput-root': {
                                                 '&:hover fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 },
                                                 '&.Mui-focused fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 }
                                             }
                                         }}
@@ -204,10 +205,10 @@ const LoginScreen = () => {
                                         sx={{
                                             '& .MuiOutlinedInput-root': {
                                                 '&:hover fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 },
                                                 '&.Mui-focused fieldset': {
-                                                    borderColor: '#0070f2'
+                                                    borderColor: 'primary.main'
                                                 }
                                             }
                                         }}
@@ -234,9 +235,9 @@ const LoginScreen = () => {
                                                     {...field}
                                                     checked={field.value}
                                                     sx={{
-                                                        color: '#6a6d70',
+                                                        color: 'text.secondary',
                                                         '&.Mui-checked': {
-                                                            color: '#0070f2'
+                                                            color: 'primary.main'
                                                         }
                                                     }}
                                                 />
@@ -245,8 +246,7 @@ const LoginScreen = () => {
                                                 <Typography
                                                     variant="body2"
                                                     sx={{
-                                                        fontFamily: '"72", "72full", Arial, Helvetica, sans-serif',
-                                                        color: '#32363a'
+                                                        color: 'text.primary'
                                                     }}
                                                 >
                                                     Recordarme
@@ -259,10 +259,9 @@ const LoginScreen = () => {
                                 <Button
                                     sx={{
                                         textTransform: 'none',
-                                        color: '#0070f2',
+                                        color: 'primary.main',
                                         fontWeight: 500,
                                         fontSize: '0.875rem',
-                                        fontFamily: '"72", "72full", Arial, Helvetica, sans-serif',
                                         p: 0,
                                         minWidth: 'auto',
                                         '&:hover': {
@@ -290,21 +289,16 @@ const LoginScreen = () => {
                                 sx={{
                                     mt: 1,
                                     py: 1.5,
-                                    backgroundColor: '#0070f2',
                                     textTransform: 'none',
                                     fontSize: '1rem',
                                     fontWeight: 500,
-                                    fontFamily: '"72", "72full", Arial, Helvetica, sans-serif',
-                                    '&:hover': {
-                                        backgroundColor: '#0064d9'
-                                    },
                                     '&:disabled': {
-                                        backgroundColor: '#e0e0e0'
+                                        backgroundColor: 'action.disabledBackground'
                                     }
                                 }}
                             >
                                 {loading ? (
-                                    <CircularProgress size={24} sx={{ color: '#fff' }} />
+                                    <CircularProgress size={24} sx={{ color: theme.palette.mode === 'dark' ? 'primary.main' : '#fff' }} />
                                 ) : (
                                     'Iniciar Sesión'
                                 )}
@@ -317,8 +311,7 @@ const LoginScreen = () => {
                         <Typography
                             variant="body2"
                             sx={{
-                                color: '#6a6d70',
-                                fontFamily: '"72", "72full", Arial, Helvetica, sans-serif'
+                                color: 'text.secondary',
                             }}
                         >
                             o
@@ -330,15 +323,14 @@ const LoginScreen = () => {
                         <Typography
                             variant="body2"
                             sx={{
-                                color: '#6a6d70',
-                                fontFamily: '"72", "72full", Arial, Helvetica, sans-serif'
+                                color: 'text.secondary',
                             }}
                         >
                             ¿No tienes una cuenta?{' '}
                             <Button
                                 sx={{
                                     textTransform: 'none',
-                                    color: '#0070f2',
+                                    color: 'primary.main',
                                     fontWeight: 500,
                                     p: 0,
                                     minWidth: 'auto',
@@ -361,8 +353,7 @@ const LoginScreen = () => {
                         <Typography
                             variant="caption"
                             sx={{
-                                color: '#89919a',
-                                fontFamily: '"72", "72full", Arial, Helvetica, sans-serif'
+                                color: 'text.disabled',
                             }}
                         >
                             Al iniciar sesión, aceptas nuestros términos de servicio y política de privacidad
@@ -375,15 +366,14 @@ const LoginScreen = () => {
                     <Typography
                         variant="caption"
                         sx={{
-                            color: '#6a6d70',
-                            fontFamily: '"72", "72full", Arial, Helvetica, sans-serif'
+                            color: 'text.secondary',
                         }}
                     >
                         ¿Necesitas ayuda?{' '}
                         <Button
                             sx={{
                                 textTransform: 'none',
-                                color: '#0070f2',
+                                color: 'primary.main',
                                 fontWeight: 500,
                                 fontSize: '0.75rem',
                                 p: 0,

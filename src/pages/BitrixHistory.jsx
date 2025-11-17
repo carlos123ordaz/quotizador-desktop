@@ -37,6 +37,7 @@ import {
     List,
     ListItem,
     ListItemText,
+    useTheme,
 } from '@mui/material';
 import {
     Search as SearchIcon,
@@ -64,12 +65,15 @@ import { MainContext } from '../contexts/MainContext';
 import moment from 'moment';
 
 export const BitrixHistory = () => {
+    const theme = useTheme();
+
     // Estados principales
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
     const [totalHistory, setTotalHistory] = useState(0);
     const { user } = useContext(MainContext);
+
     // Estados de filtros y búsqueda
     const [searchTerm, setSearchTerm] = useState('');
     const [searchInput, setSearchInput] = useState('');
@@ -96,18 +100,6 @@ export const BitrixHistory = () => {
 
     // Estado para diálogo de exportación
     const [exportDialog, setExportDialog] = useState(false);
-
-    // Colores SAP Fiori
-    const fioriColors = {
-        primary: '#0070F2',
-        secondary: '#6E6E6E',
-        success: '#2B7D2B',
-        warning: '#E76500',
-        error: '#BB0000',
-        background: '#F5F5F5',
-        cardBg: '#FFFFFF',
-        border: '#D9D9D9'
-    };
 
     // Cargar historial al montar y cuando cambian los filtros
     useEffect(() => {
@@ -196,7 +188,6 @@ export const BitrixHistory = () => {
         setSelectedHistory(null);
     };
 
-
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('es-PE', {
             style: 'currency',
@@ -220,7 +211,7 @@ export const BitrixHistory = () => {
     };
 
     return (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', padding: 2 }}>
             {/* Indicador de carga global */}
             {loading && !initialLoading && (
                 <LinearProgress
@@ -247,7 +238,7 @@ export const BitrixHistory = () => {
                     <Card
                         elevation={0}
                         sx={{
-                            border: '1px solid',
+                            border: 1,
                             borderColor: 'divider',
                             borderRadius: 1,
                             transition: 'all 0.2s',
@@ -280,7 +271,7 @@ export const BitrixHistory = () => {
                     <Card
                         elevation={0}
                         sx={{
-                            border: '1px solid',
+                            border: 1,
                             borderColor: 'divider',
                             borderRadius: 1,
                             transition: 'all 0.2s',
@@ -313,7 +304,7 @@ export const BitrixHistory = () => {
                     <Card
                         elevation={0}
                         sx={{
-                            border: '1px solid',
+                            border: 1,
                             borderColor: 'divider',
                             borderRadius: 1,
                             transition: 'all 0.2s',
@@ -346,7 +337,7 @@ export const BitrixHistory = () => {
                     <Card
                         elevation={0}
                         sx={{
-                            border: '1px solid',
+                            border: 1,
                             borderColor: 'divider',
                             borderRadius: 1,
                             transition: 'all 0.2s',
@@ -379,7 +370,7 @@ export const BitrixHistory = () => {
                     <Card
                         elevation={0}
                         sx={{
-                            border: '1px solid',
+                            border: 1,
                             borderColor: 'divider',
                             borderRadius: 1,
                             transition: 'all 0.2s',
@@ -414,7 +405,7 @@ export const BitrixHistory = () => {
                 elevation={0}
                 sx={{
                     mb: 2,
-                    border: '1px solid',
+                    border: 1,
                     borderColor: 'divider',
                     borderRadius: 1,
                 }}
@@ -494,7 +485,7 @@ export const BitrixHistory = () => {
                         disabled={loading}
                         size="small"
                         sx={{
-                            border: '1px solid',
+                            border: 1,
                             borderColor: 'divider',
                             borderRadius: 1
                         }}
@@ -508,7 +499,7 @@ export const BitrixHistory = () => {
             <Paper
                 elevation={0}
                 sx={{
-                    border: '1px solid',
+                    border: 1,
                     borderColor: 'divider',
                     borderRadius: 1,
                     overflow: 'hidden',
@@ -622,7 +613,10 @@ export const BitrixHistory = () => {
                                                     <Box sx={{ margin: 2 }}>
                                                         <Grid container spacing={2}>
                                                             <Grid size={{ xs: 12, md: 6 }}>
-                                                                <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+                                                                <Paper sx={{
+                                                                    p: 2,
+                                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'grey.50'
+                                                                }}>
                                                                     <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                                         <PersonIcon fontSize="small" />
                                                                         Usuarios Involucrados
@@ -655,7 +649,10 @@ export const BitrixHistory = () => {
                                                             </Grid>
 
                                                             <Grid size={{ xs: 12, md: 6 }}>
-                                                                <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+                                                                <Paper sx={{
+                                                                    p: 2,
+                                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'grey.50'
+                                                                }}>
                                                                     <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                                         <MoneyIcon fontSize="small" />
                                                                         Información Financiera
@@ -689,7 +686,10 @@ export const BitrixHistory = () => {
 
                                                             {item.totales_por_area && Object.keys(item.totales_por_area).length > 0 && (
                                                                 <Grid size={{ xs: 12 }}>
-                                                                    <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+                                                                    <Paper sx={{
+                                                                        p: 2,
+                                                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'grey.50'
+                                                                    }}>
                                                                         <Typography variant="subtitle2" gutterBottom>
                                                                             Totales por Área
                                                                         </Typography>
@@ -698,8 +698,12 @@ export const BitrixHistory = () => {
                                                                             {Object.entries(item.totales_por_area).map(([area, total]) => (
                                                                                 total > 0 && (
                                                                                     <Grid size={{ xs: 6, sm: 4, md: 2 }} key={area}>
-                                                                                        <Paper sx={{ p: 1, textAlign: 'center', bgcolor: 'white' }}>
-                                                                                            <Typography variant="caption" color="textSecondary">
+                                                                                        <Paper sx={{
+                                                                                            p: 1,
+                                                                                            textAlign: 'center',
+                                                                                            bgcolor: 'background.paper'
+                                                                                        }}>
+                                                                                            <Typography variant="caption" color="text.secondary">
                                                                                                 {area}
                                                                                             </Typography>
                                                                                             <Typography variant="body2" fontWeight="bold">
@@ -716,7 +720,11 @@ export const BitrixHistory = () => {
 
                                                             {item.estado === 'error' && item.error_mensaje && (
                                                                 <Grid size={{ xs: 12 }}>
-                                                                    <Paper sx={{ p: 2, bgcolor: 'error.light', color: 'error.contrastText' }}>
+                                                                    <Paper sx={{
+                                                                        p: 2,
+                                                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(179, 38, 30, 0.2)' : 'error.light',
+                                                                        color: 'error.main'
+                                                                    }}>
                                                                         <Typography variant="subtitle2" gutterBottom>
                                                                             Mensaje de Error
                                                                         </Typography>
@@ -782,7 +790,10 @@ export const BitrixHistory = () => {
                 <DialogContent>
                     {selectedHistory && (
                         <Stack spacing={2}>
-                            <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+                            <Paper sx={{
+                                p: 2,
+                                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'grey.50'
+                            }}>
                                 <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <DescriptionIcon fontSize="small" />
                                     Información General
@@ -810,7 +821,10 @@ export const BitrixHistory = () => {
                             </Paper>
 
                             {selectedHistory.tipo_operacion === 'crear' && (
-                                <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+                                <Paper sx={{
+                                    p: 2,
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'grey.50'
+                                }}>
                                     <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <CalendarIcon fontSize="small" />
                                         Fechas
