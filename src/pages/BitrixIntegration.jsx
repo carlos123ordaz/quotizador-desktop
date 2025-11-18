@@ -123,9 +123,11 @@ export const BitrixIntegration = () => {
                 })
             );
             setFiles((prev) => [...prev, ...processedFiles]);
-            if (processedFiles.length > 0 && selectedFileIndex === null) {
-                setSelectedFileIndex(0);
-                setCurrentFileData(processedFiles[0].data);
+            const length = processedFiles.length;
+            if (length > 0 && selectedFileIndex === null) {
+                console.log('length', length)
+                setSelectedFileIndex(length - 1);
+                setCurrentFileData(processedFiles[length - 1].data);
             }
         } catch (error) {
             setErrorMessage('Error al procesar archivos: ' + error.message);
@@ -196,10 +198,10 @@ export const BitrixIntegration = () => {
             );
 
             setFiles((prev) => [...prev, ...processedFiles]);
-
-            if (processedFiles.length > 0 && selectedFileIndex === null) {
-                setSelectedFileIndex(0);
-                setCurrentFileData(processedFiles[0].data);
+            const length = processedFiles.length
+            if (length > 0 && selectedFileIndex === null) {
+                setSelectedFileIndex(length - 1);
+                setCurrentFileData(processedFiles[length - 1].data);
             }
         } catch (error) {
             setErrorMessage('Error al procesar archivos: ' + error.message);
@@ -267,8 +269,9 @@ export const BitrixIntegration = () => {
 
         if (index === selectedFileIndex) {
             if (newFiles.length > 0) {
-                setSelectedFileIndex(0);
-                setCurrentFileData(newFiles[0].data);
+                const index = newFiles.length - 1;
+                setSelectedFileIndex(index);
+                setCurrentFileData(newFiles[index].data);
             } else {
                 setSelectedFileIndex(null);
                 setCurrentFileData(null);
@@ -362,7 +365,7 @@ export const BitrixIntegration = () => {
         return params;
     };
 
-    const buildQuotePayload = (dealData, numQuote = null) => {
+    const buildQuotePayload = (_dealData, numQuote = null) => {
         const productos = currentFileData.productos.map(p => ({
             PRODUCT_ID: p.productId,
             PRICE: p.precio,
@@ -370,68 +373,69 @@ export const BitrixIntegration = () => {
             TAX_RATE: p.tasa
         }));
         const procedencia = { '1261': 1265, '1701': 1705, '1263': 1165 };
-
-        if (createQuote && dealData) {
+        const pic = { '3898': '3910', '3900': '3912', '3902': '3914' };
+        const pau = { '3904': '3916', '3906': '3918', '3908': '3920' };
+        if (createQuote && _dealData) {
             return {
                 fields: {
-                    "TITLE": dealData['TITLE'],
-                    "CURRENCY_ID": dealData['CURRENCY_ID'],
+                    "TITLE": _dealData['TITLE'],
+                    "CURRENCY_ID": _dealData['CURRENCY_ID'],
                     "DEAL_ID": currentFileData.numDeal,
-                    "COMPANY_ID": dealData['COMPANY_ID'],
-                    "CONTACT_ID": dealData['CONTACT_ID'],
-                    "BEGINDATE": dealData['BEGINDATE'],
-                    "CLOSEDATE": dealData['CLOSEDATE'],
-                    "ASSIGNED_BY_ID": dealData['ASSIGNED_BY_ID'],
-                    "UTM_SOURCE": dealData['UTM_SOURCE'],
-                    "UTM_MEDIUM": dealData['UTM_MEDIUM'],
-                    "UTM_CAMPAIGN": dealData['UTM_CAMPAIGN'],
-                    "UTM_CONTENT": dealData['UTM_CONTENT'],
-                    "UTM_TERM": dealData['UTM_TERM'],
-                    "LEAD_ID": dealData['LEAD_ID'],
-                    "UF_CRM_1672643073": dealData['UF_CRM_1672642957'],
-                    "UF_CRM_1672643100": dealData['UF_CRM_1672643001'],
-                    "UF_CRM_1672643342": dealData['UF_CRM_1672643298'],
-                    "UF_CRM_62AB9AAFA8FE1": dealData['UF_CRM_1655413285'],
-                    "UF_CRM_1579190330": dealData['UF_CRM_1579190263'],
-                    "UF_CRM_5611E9B1B1870": parseInt(dealData['UF_CRM_5716A1B70005A']) - 169,
-                    "UF_CRM_5611E9B1C3BD5": dealData['UF_CRM_5716A1B709633'],
-                    "UF_CRM_5B43D5CD2195D": Array.isArray(dealData['UF_CRM_1531171994'])
-                        ? dealData['UF_CRM_1531171994'].map(x =>
+                    "COMPANY_ID": _dealData['COMPANY_ID'],
+                    "CONTACT_ID": _dealData['CONTACT_ID'],
+                    "BEGINDATE": _dealData['BEGINDATE'],
+                    "CLOSEDATE": _dealData['CLOSEDATE'],
+                    "ASSIGNED_BY_ID": _dealData['ASSIGNED_BY_ID'],
+                    "UTM_SOURCE": _dealData['UTM_SOURCE'],
+                    "UTM_MEDIUM": _dealData['UTM_MEDIUM'],
+                    "UTM_CAMPAIGN": _dealData['UTM_CAMPAIGN'],
+                    "UTM_CONTENT": _dealData['UTM_CONTENT'],
+                    "UTM_TERM": _dealData['UTM_TERM'],
+                    "LEAD_ID": _dealData['LEAD_ID'],
+                    "UF_CRM_1672643073": _dealData['UF_CRM_1672642957'],
+                    "UF_CRM_1672643100": _dealData['UF_CRM_1672643001'],
+                    "UF_CRM_1672643342": _dealData['UF_CRM_1672643298'],
+                    "UF_CRM_62AB9AAFA8FE1": _dealData['UF_CRM_1655413285'],
+                    "UF_CRM_1579190330": _dealData['UF_CRM_1579190263'],
+                    "UF_CRM_5611E9B1B1870": parseInt(_dealData['UF_CRM_5716A1B70005A']) - 169,
+                    "UF_CRM_5611E9B1C3BD5": _dealData['UF_CRM_5716A1B709633'],
+                    "UF_CRM_5B43D5CD2195D": Array.isArray(_dealData['UF_CRM_1531171994'])
+                        ? _dealData['UF_CRM_1531171994'].map(x =>
                             procedencia[String(x)] || (parseInt(x) > 1200 ? parseInt(x) + 2 : parseInt(x) + 40)
                         )
-                        : dealData['UF_CRM_1531171994'],
-                    "UF_CRM_5611E9B18B540": Array.isArray(dealData['UF_CRM_5716A1B6EA8CF'])
-                        ? dealData['UF_CRM_5716A1B6EA8CF'].map(x => parseInt(x) - 169)
-                        : dealData['UF_CRM_5716A1B6EA8CF'],
-                    "UF_CRM_1579123526": Array.isArray(dealData['UF_CRM_1579123522'])
-                        ? dealData['UF_CRM_1579123522'].map(x => parseInt(x) + 6)
-                        : dealData['UF_CRM_1579123522'],
-                    "UF_CRM_599F061D53C4B": parseInt(dealData['UF_CRM_1503584748']) + 32,
-                    "UF_CRM_561405881EE7D": Array.isArray(dealData['UF_CRM_1444152618'])
-                        ? dealData['UF_CRM_1444152618'].map(x =>
+                        : _dealData['UF_CRM_1531171994'],
+                    "UF_CRM_5611E9B18B540": Array.isArray(_dealData['UF_CRM_5716A1B6EA8CF'])
+                        ? _dealData['UF_CRM_5716A1B6EA8CF'].map(x => parseInt(x) - 169)
+                        : _dealData['UF_CRM_5716A1B6EA8CF'],
+                    "UF_CRM_1579123526": Array.isArray(_dealData['UF_CRM_1579123522'])
+                        ? _dealData['UF_CRM_1579123522'].map(x => parseInt(x) + 6)
+                        : _dealData['UF_CRM_1579123522'],
+                    "UF_CRM_599F061D53C4B": parseInt(_dealData['UF_CRM_1503584748']) + 32,
+                    "UF_CRM_561405881EE7D": Array.isArray(_dealData['UF_CRM_1444152618'])
+                        ? _dealData['UF_CRM_1444152618'].map(x =>
                             parseInt(x) === 2087 ? parseInt(x) + 2 : parseInt(x) + 6
                         )
-                        : dealData['UF_CRM_1444152618'],
-                    "UF_CRM_1444015918": Array.isArray(dealData['UF_CRM_5716A1B71750E'])
-                        ? dealData['UF_CRM_5716A1B71750E'].map(x => {
+                        : _dealData['UF_CRM_1444152618'],
+                    "UF_CRM_1444015918": Array.isArray(_dealData['UF_CRM_5716A1B71750E'])
+                        ? _dealData['UF_CRM_5716A1B71750E'].map(x => {
                             const val = parseInt(x);
                             if (val === 2095) return val + 2;
                             if (val > 2000) return val + 8;
                             if (val === 530 || val === 532) return val - 167;
                             return val - 169;
                         })
-                        : dealData['UF_CRM_5716A1B71750E'],
-                    "UF_CRM_5611F0F434963": dealData['UF_CRM_1444016101'],
+                        : _dealData['UF_CRM_5716A1B71750E'],
+                    "UF_CRM_5611F0F434963": _dealData['UF_CRM_1444016101'],
                     "UF_CRM_1579118591": [getEmpleadoId(currentFileData.preparado, empleados)],
                     "UF_CRM_QUOTE_1726248570": [getEmpleadoId(currentFileData.preparado_unva, empleados)],
                     "UF_CRM_QUOTE_1726248646": [getEmpleadoId(currentFileData.preparado_unai, empleados)],
                     "UF_CRM_1444016304": getEmpleadoId(currentFileData.vistoBueno, empleados),
-                    "UF_CRM_5F2A353D3EE36": dealData['UF_CRM_1596601522'],
-                    "UF_CRM_1579702544": dealData['UF_CRM_1579702489'],
-                    "UF_CRM_5ABA80EAD4C53": dealData['UF_CRM_1522157323'],
-                    "UF_CRM_57A0FECB87D98": dealData['UF_CRM_1470168697'],
-                    "UF_CRM_1536612809": dealData['UF_CRM_1536612671'],
-                    "UF_CRM_1672641073": dealData['UF_CRM_1672640891'],
+                    "UF_CRM_5F2A353D3EE36": _dealData['UF_CRM_1596601522'],
+                    "UF_CRM_1579702544": _dealData['UF_CRM_1579702489'],
+                    "UF_CRM_5ABA80EAD4C53": _dealData['UF_CRM_1522157323'],
+                    "UF_CRM_57A0FECB87D98": _dealData['UF_CRM_1470168697'],
+                    "UF_CRM_1536612809": _dealData['UF_CRM_1536612671'],
+                    "UF_CRM_1672641073": _dealData['UF_CRM_1672640891'],
                     "UF_CRM_1579310925": formatDateForBitrix(formData.fechaCorreo),
                     "UF_CRM_1579191342": formatDateForBitrix(formData.fechaInicio),
                     "UF_CRM_1444014615": formatDateForBitrix(formData.fechaEnvio),
@@ -441,7 +445,9 @@ export const BitrixIntegration = () => {
                     "UF_CRM_1579310442": lista_area(productos, "UNAI", 1, listaProductos),
                     "UF_CRM_1579310649": lista_area(productos, "UNVA", 1, listaProductos),
                     "UF_CRM_1672639032": currentFileData.utilidad,
-                    "STATUS_ID": "SENT"
+                    "STATUS_ID": "SENT",
+                    "UF_CRM_6633E91D6E277": pic[dealData['UF_CRM_1714677510']],
+                    "UF_CRM_6633E91D8FD22": pau[dealData['UF_CRM_1714677550']],
                 }
             };
         } else {
@@ -460,7 +466,9 @@ export const BitrixIntegration = () => {
                     "UF_CRM_QUOTE_1726248646": [getEmpleadoId(currentFileData.preparado_unai, empleados)],
                     "UF_CRM_1444016304": getEmpleadoId(currentFileData.vistoBueno, empleados),
                     "UF_CRM_1672639032": currentFileData.utilidad,
-                    "ASSIGNED_BY_ID": getEmpleadoId(currentFileData.responsable, empleados)
+                    "ASSIGNED_BY_ID": getEmpleadoId(currentFileData.responsable, empleados),
+                    "UF_CRM_6633E91D6E277": pic[dealData['UF_CRM_1714677510']],
+                    "UF_CRM_6633E91D8FD22": pau[dealData['UF_CRM_1714677550']],
                 }
             };
             const valorUnidad = unidad_negocio(productos, 1, listaProductos);
@@ -511,6 +519,7 @@ export const BitrixIntegration = () => {
             const dealResponse = await axios.get(`${webhook}/crm.deal.get`, {
                 params: { ID: currentFileData.numDeal }
             });
+            console.log('deal: ', dealResponse.data.result);
             setDealData(dealResponse.data.result);
         } catch (error) {
             console.error('Error al obtener datos del deal:', error);
@@ -647,8 +656,8 @@ export const BitrixIntegration = () => {
             setFiles(updatedFiles);
 
             setTimeout(() => {
-                const nextIndex = selectedFileIndex + 1;
-                if (nextIndex < files.length) {
+                const nextIndex = selectedFileIndex - 1;
+                if (nextIndex >= 0) {
                     handleSelectFile(nextIndex);
                 } else {
                     setSelectedFileIndex(null);
