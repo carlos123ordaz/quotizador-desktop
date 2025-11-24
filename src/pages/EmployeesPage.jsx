@@ -244,7 +244,7 @@ const EmployeesPage = () => {
     };
 
     return (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', padding: 2 }}>
+        <Box sx={{ height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', padding: 1.5, overflow: 'hidden', boxSizing: 'border-box' }}>
             {loading && !initialLoading && (
                 <LinearProgress
                     sx={{
@@ -256,12 +256,12 @@ const EmployeesPage = () => {
                     }}
                 />
             )}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: 2, flexShrink: 0 }}>
                 <Typography variant="body2" color="text.secondary">
                     {totalEmployees} empleados • Administra el personal de la empresa
                 </Typography>
             </Box>
-            <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid container spacing={1.5} sx={{ mb: 2, flexShrink: 0 }}>
                 <Grid size={{ xs: 12, sm: 4 }}>
                     <Card
                         elevation={0}
@@ -275,35 +275,35 @@ const EmployeesPage = () => {
                             }
                         }}
                     >
-                        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                             {initialLoading ? (
-                                <Skeleton variant="rectangular" height={60} />
+                                <Skeleton variant="rectangular" height={50} />
                             ) : (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                                     <Avatar
                                         sx={{
                                             bgcolor: 'primary.main',
-                                            width: 48,
-                                            height: 48
+                                            width: 40,
+                                            height: 40
                                         }}
                                     >
-                                        <PersonIcon />
+                                        <PersonIcon fontSize="small" />
                                     </Avatar>
                                     <Box sx={{ flexGrow: 1 }}>
                                         <Typography
-                                            variant="h4"
+                                            variant="h5"
                                             sx={{
                                                 fontWeight: 300,
-                                                fontSize: '1.75rem',
+                                                fontSize: '1.5rem',
                                                 lineHeight: 1.2
                                             }}
                                         >
                                             {stats.total}
                                         </Typography>
                                         <Typography
-                                            variant="body2"
+                                            variant="caption"
                                             color="text.secondary"
-                                            sx={{ mt: 0.5 }}
+                                            sx={{ mt: 0.25 }}
                                         >
                                             Total de Empleados
                                         </Typography>
@@ -327,26 +327,26 @@ const EmployeesPage = () => {
                             }
                         }}
                     >
-                        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                             {initialLoading ? (
-                                <Skeleton variant="rectangular" height={60} />
+                                <Skeleton variant="rectangular" height={50} />
                             ) : (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                                     <Avatar
                                         sx={{
                                             bgcolor: 'success.main',
-                                            width: 48,
-                                            height: 48
+                                            width: 40,
+                                            height: 40
                                         }}
                                     >
-                                        <CheckCircleIcon />
+                                        <CheckCircleIcon fontSize="small" />
                                     </Avatar>
                                     <Box sx={{ flexGrow: 1 }}>
                                         <Typography
-                                            variant="h4"
+                                            variant="h5"
                                             sx={{
                                                 fontWeight: 300,
-                                                fontSize: '1.75rem',
+                                                fontSize: '1.5rem',
                                                 lineHeight: 1.2,
                                                 color: 'success.main'
                                             }}
@@ -354,9 +354,9 @@ const EmployeesPage = () => {
                                             {stats.activos}
                                         </Typography>
                                         <Typography
-                                            variant="body2"
+                                            variant="caption"
                                             color="text.secondary"
-                                            sx={{ mt: 0.5 }}
+                                            sx={{ mt: 0.25 }}
                                         >
                                             Empleados Activos
                                         </Typography>
@@ -380,26 +380,26 @@ const EmployeesPage = () => {
                             }
                         }}
                     >
-                        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                             {initialLoading ? (
-                                <Skeleton variant="rectangular" height={60} />
+                                <Skeleton variant="rectangular" height={50} />
                             ) : (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                                     <Avatar
                                         sx={{
                                             bgcolor: 'warning.main',
-                                            width: 48,
-                                            height: 48
+                                            width: 40,
+                                            height: 40
                                         }}
                                     >
-                                        <CancelIcon />
+                                        <CancelIcon fontSize="small" />
                                     </Avatar>
                                     <Box sx={{ flexGrow: 1 }}>
                                         <Typography
-                                            variant="h4"
+                                            variant="h5"
                                             sx={{
                                                 fontWeight: 300,
-                                                fontSize: '1.75rem',
+                                                fontSize: '1.5rem',
                                                 lineHeight: 1.2,
                                                 color: 'warning.main'
                                             }}
@@ -407,9 +407,9 @@ const EmployeesPage = () => {
                                             {stats.inactivos}
                                         </Typography>
                                         <Typography
-                                            variant="body2"
+                                            variant="caption"
                                             color="text.secondary"
-                                            sx={{ mt: 0.5 }}
+                                            sx={{ mt: 0.25 }}
                                         >
                                             Empleados Inactivos
                                         </Typography>
@@ -423,13 +423,14 @@ const EmployeesPage = () => {
             <Paper
                 elevation={0}
                 sx={{
-                    mb: 2,
+                    mb: 1.5,
                     border: '1px solid',
                     borderColor: 'divider',
                     borderRadius: 1,
+                    flexShrink: 0,
                 }}
             >
-                <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 'auto', sm: 64 }, py: { xs: 2, sm: 0 } }}>
+                <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 'auto', sm: 56 }, py: { xs: 1.5, sm: 0 } }}>
                     <TextField
                         placeholder="Buscar empleados..."
                         size="small"
@@ -511,15 +512,28 @@ const EmployeesPage = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     flexGrow: 1,
+                    minHeight: 0,
+                    maxHeight: '100%',
                 }}
             >
-                <TableContainer sx={{ flexGrow: 1 }}>
-                    <Table stickyHeader>
+                <TableContainer sx={{
+                    flexGrow: 1,
+                    flexShrink: 1,
+                    overflow: 'auto',
+                    minHeight: 0,
+                    // Ocultar scrollbar
+                    '&::-webkit-scrollbar': {
+                        display: 'none',
+                    },
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                }}>
+                    <Table stickyHeader size="small" sx={{ tableLayout: 'fixed' }}>
                         <TableHead>
                             <TableRow>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '20%' }}>ID</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '60%' }}>Nombre</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '20%' }}>Estado</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '20%', py: 1 }}>ID</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '60%', py: 1 }}>Nombre</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '20%', py: 1 }}>Estado</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -551,16 +565,19 @@ const EmployeesPage = () => {
                                             '&:hover': {
                                                 bgcolor: 'action.hover',
                                             },
+                                            '& .MuiTableCell-root': {
+                                                py: 0.75
+                                            }
                                         }}
                                         onClick={() => handleOpenDialog(employee)}
                                     >
                                         <TableCell>
-                                            <Typography variant="body2" fontWeight={500}>
+                                            <Typography variant="body2" fontWeight={500} sx={{ fontSize: '0.8125rem' }}>
                                                 {employee.codigo}
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
-                                            <Typography variant="body2">
+                                            <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
                                                 {employee.nombre}
                                             </Typography>
                                         </TableCell>
@@ -569,7 +586,7 @@ const EmployeesPage = () => {
                                                 label={employee.activo ? 'Activo' : 'Inactivo'}
                                                 color={employee.activo ? 'success' : 'default'}
                                                 size="small"
-                                                sx={{ fontWeight: 500 }}
+                                                sx={{ fontWeight: 500, height: 24, fontSize: '0.75rem' }}
                                             />
                                         </TableCell>
                                     </TableRow>
@@ -579,7 +596,7 @@ const EmployeesPage = () => {
                     </Table>
                 </TableContainer>
 
-                <Divider />
+                <Divider sx={{ flexShrink: 0 }} />
 
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25, 50, 100]}
@@ -595,8 +612,10 @@ const EmployeesPage = () => {
                     }
                     sx={{
                         borderTop: 'none',
+                        flexShrink: 0,
                         '.MuiTablePagination-toolbar': {
-                            minHeight: 52,
+                            minHeight: 48,
+                            py: 0.5,
                         }
                     }}
                 />
