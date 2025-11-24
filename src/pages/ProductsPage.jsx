@@ -236,7 +236,7 @@ const ProductsPage = () => {
     };
 
     return (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', padding: 2 }}>
+        <Box sx={{ height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', padding: 1.5, overflow: 'hidden', boxSizing: 'border-box' }}>
             {/* Indicador de carga global */}
             {loading && !initialLoading && (
                 <LinearProgress
@@ -257,13 +257,14 @@ const ProductsPage = () => {
             <Paper
                 elevation={0}
                 sx={{
-                    mb: 2,
+                    mb: 1.5,
                     border: '1px solid',
                     borderColor: 'divider',
                     borderRadius: 1,
+                    flexShrink: 0,
                 }}
             >
-                <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 'auto', sm: 64 }, py: { xs: 2, sm: 0 } }}>
+                <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 'auto', sm: 56 }, py: { xs: 1.5, sm: 0 } }}>
                     <TextField
                         placeholder="Buscar productos..."
                         size="small"
@@ -345,18 +346,31 @@ const ProductsPage = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     flexGrow: 1,
+                    minHeight: 0,
+                    maxHeight: '100%',
                 }}
             >
-                <TableContainer sx={{ flexGrow: 1 }}>
-                    <Table stickyHeader>
+                <TableContainer sx={{
+                    flexGrow: 1,
+                    flexShrink: 1,
+                    overflow: 'auto',
+                    minHeight: 0,
+                    // Ocultar scrollbar
+                    '&::-webkit-scrollbar': {
+                        display: 'none',
+                    },
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                }}>
+                    <Table stickyHeader size="small" sx={{ tableLayout: 'fixed' }}>
                         <TableHead>
                             <TableRow>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>ID</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>Nombre Excel</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>Nombre Bitrix</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>Unidad de Negocio</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>Fab. Deal</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>Fab. Cot</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '12%', py: 1 }}>ID</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '25%', py: 1 }}>Nombre Excel</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '25%', py: 1 }}>Nombre Bitrix</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '20%', py: 1 }}>Unidad de Negocio</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '12%', py: 1 }}>Fab. Deal</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '12%', py: 1 }}>Fab. Cot</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -388,36 +402,39 @@ const ProductsPage = () => {
                                             '&:hover': {
                                                 bgcolor: 'action.hover',
                                             },
+                                            '& .MuiTableCell-root': {
+                                                py: 0.75
+                                            }
                                         }}
                                         onClick={() => handleOpenDialog(product)}
                                     >
                                         <TableCell>
-                                            <Typography variant="body2" fontWeight={500}>
+                                            <Typography variant="body2" fontWeight={500} sx={{ fontSize: '0.8125rem' }}>
                                                 {product.code}
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
-                                            <Typography variant="body2">
+                                            <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
                                                 {product.name_excel || '-'}
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
-                                            <Typography variant="body2">
+                                            <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
                                                 {product.name_bitrix || '-'}
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
-                                            <Typography variant="body2">
+                                            <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
                                                 {product.unidad_negocio || '-'}
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
-                                            <Typography variant="body2">
+                                            <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
                                                 {product.area1 || '-'}
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
-                                            <Typography variant="body2">
+                                            <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
                                                 {product.area2 || '-'}
                                             </Typography>
                                         </TableCell>
@@ -428,7 +445,7 @@ const ProductsPage = () => {
                     </Table>
                 </TableContainer>
 
-                <Divider />
+                <Divider sx={{ flexShrink: 0 }} />
 
                 <TablePagination
                     rowsPerPageOptions={[5, 15, 25, 50, 100]}
@@ -444,8 +461,10 @@ const ProductsPage = () => {
                     }
                     sx={{
                         borderTop: 'none',
+                        flexShrink: 0,
                         '.MuiTablePagination-toolbar': {
-                            minHeight: 52,
+                            minHeight: 48,
+                            py: 0.5,
                         }
                     }}
                 />
