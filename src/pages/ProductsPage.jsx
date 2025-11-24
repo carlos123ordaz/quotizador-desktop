@@ -403,7 +403,7 @@ const ProductsPage = () => {
                                                 bgcolor: 'action.hover',
                                             },
                                             '& .MuiTableCell-root': {
-                                                py: 0.75
+                                                py: 1.25
                                             }
                                         }}
                                         onClick={() => handleOpenDialog(product)}
