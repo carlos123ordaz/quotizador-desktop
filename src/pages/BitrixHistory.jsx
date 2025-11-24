@@ -211,7 +211,7 @@ export const BitrixHistory = () => {
     };
 
     return (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', padding: 2 }}>
+        <Box sx={{ height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', padding: 1.5, overflow: 'hidden', boxSizing: 'border-box' }}>
             {/* Indicador de carga global */}
             {loading && !initialLoading && (
                 <LinearProgress
@@ -226,14 +226,14 @@ export const BitrixHistory = () => {
             )}
 
             {/* Header */}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: 2, flexShrink: 0 }}>
                 <Typography variant="body2" color="text.secondary">
                     {totalHistory} registros • Historial de envíos a Bitrix24
                 </Typography>
             </Box>
 
             {/* Tarjetas de estadísticas */}
-            <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid container spacing={1.5} sx={{ mb: 2, flexShrink: 0 }}>
                 <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
                     <Card
                         elevation={0}
@@ -245,19 +245,19 @@ export const BitrixHistory = () => {
                             '&:hover': { boxShadow: 1 }
                         }}
                     >
-                        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                             {initialLoading ? (
-                                <Skeleton variant="rectangular" height={60} />
+                                <Skeleton variant="rectangular" height={50} />
                             ) : (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <Avatar sx={{ bgcolor: 'primary.main', width: 48, height: 48 }}>
-                                        <HistoryIcon />
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                    <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
+                                        <HistoryIcon fontSize="small" />
                                     </Avatar>
                                     <Box sx={{ flexGrow: 1 }}>
-                                        <Typography variant="h4" sx={{ fontWeight: 300, fontSize: '1.75rem', lineHeight: 1.2 }}>
+                                        <Typography variant="h5" sx={{ fontWeight: 300, fontSize: '1.5rem', lineHeight: 1.2 }}>
                                             {stats.total_envios}
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.25 }}>
                                             Total Envíos
                                         </Typography>
                                     </Box>
@@ -278,19 +278,19 @@ export const BitrixHistory = () => {
                             '&:hover': { boxShadow: 1 }
                         }}
                     >
-                        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                             {initialLoading ? (
-                                <Skeleton variant="rectangular" height={60} />
+                                <Skeleton variant="rectangular" height={50} />
                             ) : (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <Avatar sx={{ bgcolor: 'success.main', width: 48, height: 48 }}>
-                                        <CheckCircleIcon />
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                    <Avatar sx={{ bgcolor: 'success.main', width: 40, height: 40 }}>
+                                        <CheckCircleIcon fontSize="small" />
                                     </Avatar>
                                     <Box sx={{ flexGrow: 1 }}>
-                                        <Typography variant="h4" sx={{ fontWeight: 300, fontSize: '1.75rem', lineHeight: 1.2, color: 'success.main' }}>
+                                        <Typography variant="h5" sx={{ fontWeight: 300, fontSize: '1.5rem', lineHeight: 1.2, color: 'success.main' }}>
                                             {stats.exitosos}
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.25 }}>
                                             Exitosos
                                         </Typography>
                                     </Box>
@@ -311,19 +311,19 @@ export const BitrixHistory = () => {
                             '&:hover': { boxShadow: 1 }
                         }}
                     >
-                        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                             {initialLoading ? (
-                                <Skeleton variant="rectangular" height={60} />
+                                <Skeleton variant="rectangular" height={50} />
                             ) : (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <Avatar sx={{ bgcolor: 'error.main', width: 48, height: 48 }}>
-                                        <ErrorIcon />
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                    <Avatar sx={{ bgcolor: 'error.main', width: 40, height: 40 }}>
+                                        <ErrorIcon fontSize="small" />
                                     </Avatar>
                                     <Box sx={{ flexGrow: 1 }}>
-                                        <Typography variant="h4" sx={{ fontWeight: 300, fontSize: '1.75rem', lineHeight: 1.2, color: 'error.main' }}>
+                                        <Typography variant="h5" sx={{ fontWeight: 300, fontSize: '1.5rem', lineHeight: 1.2, color: 'error.main' }}>
                                             {stats.errores}
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.25 }}>
                                             Con Errores
                                         </Typography>
                                     </Box>
@@ -344,19 +344,19 @@ export const BitrixHistory = () => {
                             '&:hover': { boxShadow: 1 }
                         }}
                     >
-                        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                             {initialLoading ? (
-                                <Skeleton variant="rectangular" height={60} />
+                                <Skeleton variant="rectangular" height={50} />
                             ) : (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <Avatar sx={{ bgcolor: 'info.main', width: 48, height: 48 }}>
-                                        <AddIcon />
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                    <Avatar sx={{ bgcolor: 'info.main', width: 40, height: 40 }}>
+                                        <AddIcon fontSize="small" />
                                     </Avatar>
                                     <Box sx={{ flexGrow: 1 }}>
-                                        <Typography variant="h4" sx={{ fontWeight: 300, fontSize: '1.75rem', lineHeight: 1.2, color: 'info.main' }}>
+                                        <Typography variant="h5" sx={{ fontWeight: 300, fontSize: '1.5rem', lineHeight: 1.2, color: 'info.main' }}>
                                             {stats.creaciones}
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.25 }}>
                                             Creaciones
                                         </Typography>
                                     </Box>
@@ -377,19 +377,19 @@ export const BitrixHistory = () => {
                             '&:hover': { boxShadow: 1 }
                         }}
                     >
-                        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                             {initialLoading ? (
-                                <Skeleton variant="rectangular" height={60} />
+                                <Skeleton variant="rectangular" height={50} />
                             ) : (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <Avatar sx={{ bgcolor: 'warning.main', width: 48, height: 48 }}>
-                                        <EditIcon />
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                    <Avatar sx={{ bgcolor: 'warning.main', width: 40, height: 40 }}>
+                                        <EditIcon fontSize="small" />
                                     </Avatar>
                                     <Box sx={{ flexGrow: 1 }}>
-                                        <Typography variant="h4" sx={{ fontWeight: 300, fontSize: '1.75rem', lineHeight: 1.2, color: 'warning.main' }}>
+                                        <Typography variant="h5" sx={{ fontWeight: 300, fontSize: '1.5rem', lineHeight: 1.2, color: 'warning.main' }}>
                                             {stats.actualizaciones}
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.25 }}>
                                             Actualizaciones
                                         </Typography>
                                     </Box>
@@ -404,13 +404,14 @@ export const BitrixHistory = () => {
             <Paper
                 elevation={0}
                 sx={{
-                    mb: 2,
+                    mb: 1.5,
                     border: 1,
                     borderColor: 'divider',
                     borderRadius: 1,
+                    flexShrink: 0,
                 }}
             >
-                <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 'auto', sm: 64 }, py: { xs: 2, sm: 0 } }}>
+                <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 'auto', sm: 56 }, py: { xs: 1.5, sm: 0 } }}>
                     <TextField
                         placeholder="Buscar en historial..."
                         size="small"
@@ -506,19 +507,34 @@ export const BitrixHistory = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     flexGrow: 1,
+                    minHeight: 0,
+                    maxHeight: '100%',
                 }}
             >
-                <TableContainer sx={{ flexGrow: 1 }}>
-                    <Table stickyHeader>
+                <TableContainer sx={{
+                    flexGrow: 1,
+                    flexShrink: 1,
+                    overflow: 'auto',
+                    minHeight: 0,
+                    // Ocultar scrollbar completamente
+                    '&::-webkit-scrollbar': {
+                        display: 'none',
+                    },
+                    // Para Firefox
+                    scrollbarWidth: 'none',
+                    // Para IE y Edge
+                    msOverflowStyle: 'none',
+                }}>
+                    <Table stickyHeader size="small" sx={{ tableLayout: 'fixed' }}>
                         <TableHead>
                             <TableRow>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: 50 }}></TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>Deal / Quote</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>Oferta</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>Tipo</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>Estado</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>Usuario</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>Fecha</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '60px', py: 1 }}></TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '15%', py: 1 }}>Deal / Quote</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '30%', py: 1 }}>Oferta</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '13%', py: 1 }}>Tipo</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '12%', py: 1 }}>Estado</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '15%', py: 1 }}>Usuario</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '15%', py: 1 }}>Fecha</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -550,6 +566,9 @@ export const BitrixHistory = () => {
                                                 '&:hover': {
                                                     bgcolor: 'action.hover',
                                                 },
+                                                '& .MuiTableCell-root': {
+                                                    py: 0.75
+                                                }
                                             }}
                                         >
                                             <TableCell>
@@ -557,24 +576,24 @@ export const BitrixHistory = () => {
                                                     size="small"
                                                     onClick={() => toggleRowExpansion(item._id)}
                                                 >
-                                                    {expandedRows[item._id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                                    {expandedRows[item._id] ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
                                                 </IconButton>
                                             </TableCell>
                                             <TableCell>
-                                                <Typography variant="body2" fontWeight={500}>
+                                                <Typography variant="body2" fontWeight={500} sx={{ fontSize: '0.8125rem' }}>
                                                     Deal #{item.num_deal}
                                                 </Typography>
                                                 {item.quote_id && (
-                                                    <Typography variant="caption" color="text.secondary">
+                                                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
                                                         Quote #{item.quote_id}
                                                     </Typography>
                                                 )}
                                             </TableCell>
                                             <TableCell>
-                                                <Typography variant="body2" noWrap sx={{ maxWidth: 250 }}>
+                                                <Typography variant="body2" noWrap sx={{ maxWidth: 250, fontSize: '0.8125rem' }}>
                                                     {item.nombre_oferta}
                                                 </Typography>
-                                                <Typography variant="caption" color="text.secondary">
+                                                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
                                                     {item.nombre_archivo}
                                                 </Typography>
                                             </TableCell>
@@ -583,7 +602,8 @@ export const BitrixHistory = () => {
                                                     label={item.tipo_operacion === 'crear' ? 'Creación' : 'Actualización'}
                                                     size="small"
                                                     color={item.tipo_operacion === 'crear' ? 'info' : 'warning'}
-                                                    icon={item.tipo_operacion === 'crear' ? <AddIcon /> : <EditIcon />}
+                                                    icon={item.tipo_operacion === 'crear' ? <AddIcon fontSize="small" /> : <EditIcon fontSize="small" />}
+                                                    sx={{ height: 24, fontSize: '0.75rem' }}
                                                 />
                                             </TableCell>
                                             <TableCell>
@@ -591,16 +611,17 @@ export const BitrixHistory = () => {
                                                     label={item.estado === 'exitoso' ? 'Exitoso' : 'Error'}
                                                     size="small"
                                                     color={item.estado === 'exitoso' ? 'success' : 'error'}
-                                                    icon={item.estado === 'exitoso' ? <CheckCircleIcon /> : <ErrorIcon />}
+                                                    icon={item.estado === 'exitoso' ? <CheckCircleIcon fontSize="small" /> : <ErrorIcon fontSize="small" />}
+                                                    sx={{ height: 24, fontSize: '0.75rem' }}
                                                 />
                                             </TableCell>
                                             <TableCell>
-                                                <Typography variant="body2">
+                                                <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
                                                     {item.usuario_envio}
                                                 </Typography>
                                             </TableCell>
                                             <TableCell>
-                                                <Typography variant="body2">
+                                                <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
                                                     {moment.utc(item.created_at).local().format('DD/MM/YYYY HH:mm')}
                                                 </Typography>
                                             </TableCell>
@@ -746,7 +767,7 @@ export const BitrixHistory = () => {
                     </Table>
                 </TableContainer>
 
-                <Divider />
+                <Divider sx={{ flexShrink: 0 }} />
 
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25, 50]}
@@ -762,8 +783,10 @@ export const BitrixHistory = () => {
                     }
                     sx={{
                         borderTop: 'none',
+                        flexShrink: 0,
                         '.MuiTablePagination-toolbar': {
-                            minHeight: 52,
+                            minHeight: 48,
+                            py: 0.5,
                         }
                     }}
                 />
