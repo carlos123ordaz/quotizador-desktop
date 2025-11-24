@@ -515,13 +515,14 @@ export const BitrixIntegration = () => {
 
     const getDealData = async () => {
         try {
+            setDealData(null);
             const webhook = user.webhook_bitrix;
             const dealResponse = await axios.get(`${webhook}/crm.deal.get`, {
                 params: { ID: currentFileData.numDeal }
             });
-            console.log('deal: ', dealResponse.data.result);
             setDealData(dealResponse.data.result);
         } catch (error) {
+            setErrorMessage('No se pudo encontrar la deal');
             console.error('Error al obtener datos del deal:', error);
         }
     }
@@ -544,6 +545,10 @@ export const BitrixIntegration = () => {
         }
         if (Number(dealData['PROBABILITY']) <= 0) {
             setErrorMessage('La probabilidad del deal debe ser mayor a 0.');
+            return;
+        }
+        if (!dealData) {
+            setErrorMessage('No se encontró la deal');
             return;
         }
         setProcessing(true);
@@ -969,7 +974,7 @@ export const BitrixIntegration = () => {
                                                         Número de Deal
                                                     </Typography>
                                                     <Typography variant="h6" sx={{ color: 'primary.main' }}>
-                                                        {currentFileData.numDeal || 'N/A'}
+                                                        {dealData ? (currentFileData.numDeal || 'N/A') : 'Cargando..'}
                                                     </Typography>
                                                 </Paper>
                                             </Grid>
@@ -1260,7 +1265,7 @@ export const BitrixIntegration = () => {
                                                 variant="contained"
                                                 startIcon={processing ? null : <Send />}
                                                 onClick={handleSubmit}
-                                                disabled={processing}
+                                                disabled={processing || !dealData}
                                                 sx={{
                                                     textTransform: 'none'
                                                 }}

@@ -21,7 +21,7 @@ function App() {
           <Route path="/login" element={<LoginScreen />} />
           <Route path="/register" element={<RegisterScreen />} />
           <Route element={<MainLayout />}>
-            <Route path="/" element={<ReportGenerator />} />
+            <Route path="/" element={<BitrixIntegration />} />
             <Route path="/bitrix/history" element={<BitrixHistory />} />
             <Route path="/bitrix/send" element={<BitrixIntegration />} />
             <Route path="/reports/generate" element={<ReportGenerator />} />
