@@ -66,8 +66,8 @@ export const BitrixIntegration = () => {
     const [files, setFiles] = useState([]);
     const [selectedFileIndex, setSelectedFileIndex] = useState(null);
     const [currentFileData, setCurrentFileData] = useState(null);
-    const [listaProductos, setListaProductos] = useState({})
-    const [empleados, setEmpleados] = useState([])
+    const [listaProductos, setListaProductos] = useState(null)
+    const [empleados, setEmpleados] = useState(null)
     const [loading, setLoading] = useState(false);
     const [createQuote, setCreateQuote] = useState(true);
     const [processing, setProcessing] = useState(false);
@@ -85,7 +85,7 @@ export const BitrixIntegration = () => {
     const [errors, setErrors] = useState({});
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-
+    const [loadingDealData, setLoadingDealData] = useState(false);
     const handleDroppedFiles = useCallback(async (filePaths) => {
         setLoading(true);
         setErrorMessage('');
@@ -125,15 +125,16 @@ export const BitrixIntegration = () => {
             setFiles((prev) => [...prev, ...processedFiles]);
             const length = processedFiles.length;
             if (length > 0 && selectedFileIndex === null) {
-                console.log('length', length)
                 setSelectedFileIndex(length - 1);
                 setCurrentFileData(processedFiles[length - 1].data);
             }
         } catch (error) {
+            console.error(error)
             setErrorMessage('Error al procesar archivos: ' + error.message);
         } finally {
             setLoading(false);
         }
+
     }, [listaProductos, selectedFileIndex]);
 
     useEffect(() => {
@@ -173,7 +174,6 @@ export const BitrixIntegration = () => {
         const uploadedFiles = Array.from(event.target.files);
         setLoading(true);
         setErrorMessage('');
-
         try {
             const processedFiles = await Promise.all(
                 uploadedFiles.map(async (file) => {
@@ -186,6 +186,7 @@ export const BitrixIntegration = () => {
                             id: Math.random().toString(36).substr(2, 9)
                         };
                     } catch (error) {
+                        console.log(error)
                         return {
                             file,
                             data: null,
@@ -516,6 +517,7 @@ export const BitrixIntegration = () => {
     const getDealData = async () => {
         try {
             setDealData(null);
+            setLoadingDealData(true);
             const webhook = user.webhook_bitrix;
             const dealResponse = await axios.get(`${webhook}/crm.deal.get`, {
                 params: { ID: currentFileData.numDeal }
@@ -524,6 +526,8 @@ export const BitrixIntegration = () => {
         } catch (error) {
             setErrorMessage('No se pudo encontrar la deal');
             console.error('Error al obtener datos del deal:', error);
+        } finally {
+            setLoadingDealData(false);
         }
     }
 
@@ -534,6 +538,10 @@ export const BitrixIntegration = () => {
     }, [currentFileData]);
 
     const handleSubmit = async () => {
+        if (loadingDealData) {
+            setErrorMessage('Espera a que se cargue la información del deal');
+            return;
+        }
         if (!validateForm()) {
             const key = Object.keys(errors)[0];
             setErrorMessage(errors[key]);
@@ -547,7 +555,7 @@ export const BitrixIntegration = () => {
             setErrorMessage('La probabilidad del deal debe ser mayor a 0.');
             return;
         }
-        if (!dealData) {
+        if (!dealData || !dealData['TITLE']) {
             setErrorMessage('No se encontró la deal');
             return;
         }
@@ -758,6 +766,26 @@ export const BitrixIntegration = () => {
         }
     }, [currentFileData, formData.webhook]);
 
+    if (!listaProductos || !empleados) {
+        return (
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '100vh',
+                    bgcolor: 'background.default',
+                    gap: 2
+                }}
+            >
+                <CircularProgress size={30} />
+                <Typography variant="h6" color="text.secondary">
+                    Cargando datos...
+                </Typography>
+            </Box>
+        );
+    }
     const renderProductTable = () => {
         if (!currentFileData || !currentFileData.productos) return null;
 
@@ -974,7 +1002,7 @@ export const BitrixIntegration = () => {
                                                         Número de Deal
                                                     </Typography>
                                                     <Typography variant="h6" sx={{ color: 'primary.main' }}>
-                                                        {dealData ? (currentFileData.numDeal || 'N/A') : 'Cargando..'}
+                                                        {!loadingDealData ? (currentFileData.numDeal || 'N/A') : 'Cargando..'}
                                                     </Typography>
                                                 </Paper>
                                             </Grid>
@@ -1265,7 +1293,7 @@ export const BitrixIntegration = () => {
                                                 variant="contained"
                                                 startIcon={processing ? null : <Send />}
                                                 onClick={handleSubmit}
-                                                disabled={processing || !dealData}
+                                                disabled={processing || !dealData || loadingDealData}
                                                 sx={{
                                                     textTransform: 'none'
                                                 }}
