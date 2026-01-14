@@ -87,6 +87,15 @@ export const BitrixIntegration = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [loadingDealData, setLoadingDealData] = useState(false);
     const handleDroppedFiles = useCallback(async (filePaths) => {
+        if (!listaProductos || Object.keys(listaProductos).length === 0) {
+            setErrorMessage('Los productos aún no se han cargado. Por favor, espera un momento e intenta de nuevo.');
+            return;
+        }
+
+        if (!empleados || Object.keys(empleados).length === 0) {
+            setErrorMessage('Los empleados aún no se han cargado. Por favor, espera un momento e intenta de nuevo.');
+            return;
+        }
         setLoading(true);
         setErrorMessage('');
         try {
@@ -171,7 +180,20 @@ export const BitrixIntegration = () => {
     }, [handleDroppedFiles]);
 
     const handleFileUpload = async (event) => {
+        if (!listaProductos || Object.keys(listaProductos).length === 0) {
+            setErrorMessage('Los productos aún no se han cargado. Por favor, espera un momento e intenta de nuevo.');
+            return;
+        }
+        if (!empleados || Object.keys(empleados).length === 0) {
+            setErrorMessage('Los empleados aún no se han cargado. Por favor, espera un momento e intenta de nuevo.');
+            return;
+        }
+
         const uploadedFiles = Array.from(event.target.files);
+        if (uploadedFiles.length === 0) {
+            setErrorMessage('No se seleccionaron archivos');
+            return;
+        }
         setLoading(true);
         setErrorMessage('');
         try {
@@ -362,7 +384,6 @@ export const BitrixIntegration = () => {
         if (formData.cambiarFechaCierre && formData.fechaCierre) {
             params.fields['CLOSEDATE'] = formatDateForBitrix(formData.fechaCierre);
         }
-
         return params;
     };
 
@@ -538,6 +559,10 @@ export const BitrixIntegration = () => {
     }, [currentFileData]);
 
     const handleSubmit = async () => {
+        if (!currentFileData?.productos || currentFileData.productos.length === 0) {
+            setErrorMessage('No hay productos para enviar');
+            return;
+        }
         if (loadingDealData) {
             setErrorMessage('Espera a que se cargue la información del deal');
             return;

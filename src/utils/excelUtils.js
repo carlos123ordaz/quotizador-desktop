@@ -82,7 +82,6 @@ export const processExcelFile = (file, listaProductos) => {
 const extractProductos = (sheet, listaProductos) => {
     const productos = [];
     let col = 5;
-
     for (let i = 0; i < 20; i++) {
         const currentCol = col + i;
         const hasValue = getCellValue(sheet, 18, currentCol);
