@@ -543,6 +543,9 @@ export const BitrixIntegration = () => {
             const dealResponse = await axios.get(`${webhook}/crm.deal.get`, {
                 params: { ID: currentFileData.numDeal }
             });
+            if (!dealResponse) {
+
+            }
             setDealData(dealResponse.data.result);
         } catch (error) {
             setErrorMessage('No se pudo encontrar la deal');
@@ -1152,7 +1155,7 @@ export const BitrixIntegration = () => {
                                                             label="Probabilidad"
                                                             value={dealData?.PROBABILITY || '0'}
                                                             onChange={(e) => {
-                                                                setDealData({ ...currentFileData, PROBABILITY: e.target.value });
+                                                                setDealData({ ...dealData, PROBABILITY: e.target.value });
                                                             }}
                                                         >
                                                             <MenuItem value="1">1</MenuItem>

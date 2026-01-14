@@ -27,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import { MainContext } from '../contexts/MainContext';
 import moment from 'moment';
+import { CONFIG } from '../config';
 
 const ProfilePage = () => {
     const { user, setUser } = useContext(MainContext);
@@ -81,7 +82,7 @@ const ProfilePage = () => {
         setError('');
         setSuccess('');
         try {
-            const response = await fetch(`http://localhost:8000/api/perfil/${user._id}`, {
+            const response = await fetch(`${CONFIG.uri}/perfil/${user._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -124,7 +125,7 @@ const ProfilePage = () => {
         setLoading(true);
 
         try {
-            const response = await fetch(`http://localhost:8000/api/perfil/${user._id}/cambiar-contrasena`, {
+            const response = await fetch(`${CONFIG.uri}/perfil/${user._id}/cambiar-contrasena`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
