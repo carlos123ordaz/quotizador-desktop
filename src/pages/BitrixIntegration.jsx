@@ -67,7 +67,7 @@ export const BitrixIntegration = () => {
     const [selectedFileIndex, setSelectedFileIndex] = useState(null);
     const [currentFileData, setCurrentFileData] = useState(null);
     const [listaProductos, setListaProductos] = useState(null)
-    const [empleados, setEmpleados] = useState(null)
+    const [empleados, setEmpleados] = useState(null);
     const [loading, setLoading] = useState(false);
     const [createQuote, setCreateQuote] = useState(true);
     const [processing, setProcessing] = useState(false);
@@ -93,7 +93,7 @@ export const BitrixIntegration = () => {
         }
 
         if (!empleados || Object.keys(empleados).length === 0) {
-            setErrorMessage('Los empleados aún no se han cargado. Por favor, espera un momento e intenta de nuevo.');
+            setErrorMessage('Los vendedores aún no se han cargado. Por favor, espera un momento e intenta de nuevo.');
             return;
         }
         setLoading(true);
@@ -262,7 +262,7 @@ export const BitrixIntegration = () => {
             });
             setEmpleados(data);
         } catch (error) {
-            setErrorMessage('Error al obtener empleados: ' + error.message);
+            setErrorMessage('Error al obtener vendedores: ' + error.message);
         }
     }
 
@@ -329,14 +329,13 @@ export const BitrixIntegration = () => {
                 newErrors.numQuote = 'El número de quote es requerido';
             }
         }
-
         if (formData.cambiarFechaCierre && formData.fechaCierre) {
             if (!isValidDate(formData.fechaCierre)) {
                 newErrors.fechaCierre = 'Formato de fecha inválido (YYYY-MM-DD)';
             }
         }
         if (!getEmpleadoId(currentFileData.preparado, empleados)) {
-            newErrors.preparado = 'Usuario no encontrado';
+            newErrors.preparado = 'Vendedor no encontrado, la persona tiene que estar registrado en el Bitrix y el Quotizador';
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -363,6 +362,7 @@ export const BitrixIntegration = () => {
                 "UF_CRM_1579702489": depart_cisac(productos, 0, listaProductos).length > 1 ? 1 : 0,
                 "ASSIGNED_BY_ID": getEmpleadoId(currentFileData.responsable, empleados),
                 "PROBABILITY": dealData['PROBABILITY'],
+                "UF_CRM_5716A1B6E160D": currentFileData.name,
             }
         };
 
@@ -470,6 +470,7 @@ export const BitrixIntegration = () => {
                     "STATUS_ID": "SENT",
                     "UF_CRM_6633E91D6E277": pic[dealData['UF_CRM_1714677510']],
                     "UF_CRM_6633E91D8FD22": pau[dealData['UF_CRM_1714677550']],
+                    "UF_CRM_QUOTE_1740087074371": productos?.length || 0,
                 }
             };
         } else {
@@ -491,6 +492,7 @@ export const BitrixIntegration = () => {
                     "ASSIGNED_BY_ID": getEmpleadoId(currentFileData.responsable, empleados),
                     "UF_CRM_6633E91D6E277": pic[dealData['UF_CRM_1714677510']],
                     "UF_CRM_6633E91D8FD22": pau[dealData['UF_CRM_1714677550']],
+                    "UF_CRM_QUOTE_1740087074371": productos?.length || 0,
                 }
             };
             const valorUnidad = unidad_negocio(productos, 1, listaProductos);
@@ -543,11 +545,12 @@ export const BitrixIntegration = () => {
             const dealResponse = await axios.get(`${webhook}/crm.deal.get`, {
                 params: { ID: currentFileData.numDeal }
             });
-            if (!dealResponse) {
-
-            }
             setDealData(dealResponse.data.result);
         } catch (error) {
+            if (error.response?.data?.error_description) {
+                setErrorMessage(error.response.data.error_description);
+                return;
+            }
             setErrorMessage('No se pudo encontrar la deal');
             console.error('Error al obtener datos del deal:', error);
         } finally {

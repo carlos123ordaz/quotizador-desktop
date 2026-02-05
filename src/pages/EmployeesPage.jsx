@@ -258,7 +258,7 @@ const EmployeesPage = () => {
             )}
             <Box sx={{ mb: 2, flexShrink: 0 }}>
                 <Typography variant="body2" color="text.secondary">
-                    {totalEmployees} empleados • Administra el personal de la empresa
+                    {totalEmployees} vendedores • Administra el personal de la empresa
                 </Typography>
             </Box>
             <Grid container spacing={1.5} sx={{ mb: 2, flexShrink: 0 }}>
@@ -305,7 +305,7 @@ const EmployeesPage = () => {
                                             color="text.secondary"
                                             sx={{ mt: 0.25 }}
                                         >
-                                            Total de Empleados
+                                            Total de Vendedores
                                         </Typography>
                                     </Box>
                                 </Box>
@@ -358,7 +358,7 @@ const EmployeesPage = () => {
                                             color="text.secondary"
                                             sx={{ mt: 0.25 }}
                                         >
-                                            Empleados Activos
+                                            Vendedores Activos
                                         </Typography>
                                     </Box>
                                 </Box>
@@ -411,7 +411,7 @@ const EmployeesPage = () => {
                                             color="text.secondary"
                                             sx={{ mt: 0.25 }}
                                         >
-                                            Empleados Inactivos
+                                            Vendedores Inactivos
                                         </Typography>
                                     </Box>
                                 </Box>
@@ -432,7 +432,7 @@ const EmployeesPage = () => {
             >
                 <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 'auto', sm: 56 }, py: { xs: 1.5, sm: 0 } }}>
                     <TextField
-                        placeholder="Buscar empleados..."
+                        placeholder="Buscar vendedores..."
                         size="small"
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
@@ -545,8 +545,8 @@ const EmployeesPage = () => {
                                         <PersonIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
                                         <Typography variant="h6" color="text.secondary" gutterBottom>
                                             {searchTerm || filterActivo !== 'all'
-                                                ? 'No se encontraron empleados'
-                                                : 'No hay empleados registrados'}
+                                                ? 'No se encontraron vendedores'
+                                                : 'No hay vendedores registrados'}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
                                             {searchTerm || filterActivo !== 'all'

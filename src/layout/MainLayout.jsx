@@ -470,7 +470,7 @@ const MainLayout = () => {
                         {location.pathname.includes('/bitrix/send') && 'Enviar a Bitrix'}
                         {location.pathname.includes('/bitrix/history') && 'Historial Bitrix'}
                         {location.pathname.includes('/products') && 'Gestión de Productos'}
-                        {location.pathname.includes('/employees') && 'Gestión de Empleados'}
+                        {location.pathname.includes('/employees') && 'Gestión de vendedores'}
                     </Typography>
 
                     {/* Botón de cambio de tema */}
