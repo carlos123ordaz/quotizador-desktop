@@ -81,6 +81,7 @@ export const BitrixIntegration = () => {
         fechaEnvio: moment().format('YYYY-MM-DD'),
         fechaCierre: moment().format('YYYY-MM-DD'),
         cambiarFechaCierre: false,
+        codeMaterial: ''
     });
     const [errors, setErrors] = useState({});
     const [successMessage, setSuccessMessage] = useState('');
@@ -471,6 +472,7 @@ export const BitrixIntegration = () => {
                     "UF_CRM_6633E91D6E277": pic[dealData['UF_CRM_1714677510']],
                     "UF_CRM_6633E91D8FD22": pau[dealData['UF_CRM_1714677550']],
                     "UF_CRM_QUOTE_1740087074371": productos?.length || 0,
+                    "UF_CRM_QUOTE_1740087091949": formData.codeMaterial ? formData.codeMaterial : 'NO APLICA',
                 }
             };
         } else {
@@ -493,6 +495,7 @@ export const BitrixIntegration = () => {
                     "UF_CRM_6633E91D6E277": pic[dealData['UF_CRM_1714677510']],
                     "UF_CRM_6633E91D8FD22": pau[dealData['UF_CRM_1714677550']],
                     "UF_CRM_QUOTE_1740087074371": productos?.length || 0,
+                    "UF_CRM_QUOTE_1740087091949": formData.codeMaterial ? formData.codeMaterial : 'NO APLICA',
                 }
             };
             const valorUnidad = unidad_negocio(productos, 1, listaProductos);
@@ -664,7 +667,6 @@ export const BitrixIntegration = () => {
                 estado: 'exitoso',
                 totales_por_area: totales
             };
-
             try {
                 const historyResponse = await axios.post(`${CONFIG.uri}/history`, historyData);
                 historyId = historyResponse.data._id || historyResponse.data.id;
@@ -674,7 +676,6 @@ export const BitrixIntegration = () => {
             if (historyId) {
                 try {
                     const excelProcessed = await processExcelForDB(files[selectedFileIndex].file);
-
                     if (excelProcessed && excelProcessed.success) {
                         const processedExcelData = {
                             history_id: historyId,
@@ -765,6 +766,7 @@ export const BitrixIntegration = () => {
                 {
                     params: {
                         "select[0]": "UF_CRM_1443821741",
+                        "select[1]": "UF_CRM_QUOTE_1740087091949",
                         "filter[DEAL_ID]": dealId
                     }
                 }
@@ -772,18 +774,18 @@ export const BitrixIntegration = () => {
             const data = response.data.result;
             let quoteExists = false;
             let existingQuoteId = '';
-
+            let material = ''
             for (const item of data) {
                 if (item['UF_CRM_1443821741'] === currentFileData.name) {
                     quoteExists = true;
                     existingQuoteId = item['ID'];
+                    material = item['UF_CRM_QUOTE_1740087091949'] || '';
                     break;
                 }
             }
-
             setCreateQuote(!quoteExists);
             if (quoteExists) {
-                setFormData(prev => ({ ...prev, numQuote: existingQuoteId }));
+                setFormData(prev => ({ ...prev, numQuote: existingQuoteId, codeMaterial: material }));
             }
         } catch (error) {
             console.error("Error al obtener quotes:", error);
@@ -796,6 +798,7 @@ export const BitrixIntegration = () => {
             fetchQuotes(currentFileData.numDeal);
         }
     }, [currentFileData, formData.webhook]);
+
 
     if (!listaProductos || !empleados) {
         return (
@@ -1307,8 +1310,32 @@ export const BitrixIntegration = () => {
                                                     </Grid>
                                                 </>
                                             )}
-                                        </Grid>
 
+
+                                        </Grid>
+                                        <br />
+                                        <Divider />
+                                        <br />
+                                        <Typography variant="h6" gutterBottom>
+                                            Campos adicionales
+                                        </Typography>
+                                        <br />
+                                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                                            <TextField
+                                                fullWidth
+                                                label="Material Number"
+                                                type="text"
+                                                placeholder='Opcional (NO APLICA)'
+                                                value={formData.codeMaterial}
+                                                onChange={(e) => setFormData({
+                                                    ...formData,
+                                                    codeMaterial: e.target.value
+                                                })}
+                                                error={!!errors.codeMaterial}
+                                                size="large"
+                                                InputLabelProps={{ shrink: true }}
+                                            />
+                                        </Grid>
                                         <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
                                             <Button
                                                 variant="outlined"
