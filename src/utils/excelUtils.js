@@ -40,6 +40,9 @@ export const processExcelFile = (file, listaProductos) => {
                 if (!preparado) {
                     preparado = preparado_unva || preparado_unai;
                 }
+                if (!preparado || preparado.includes('N.Ingresante')) {
+                    preparado = 'D.Rejas';
+                }
                 const productos = extractProductos(resumenSheet, listaProductos);
                 for (let i = 0; i < 20; i++) {
                     const nombre = getCellValue(resumenSheet, 2, 5 + i);

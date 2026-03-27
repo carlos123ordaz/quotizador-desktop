@@ -388,7 +388,7 @@ export const BitrixIntegration = () => {
         return params;
     };
 
-    const buildQuotePayload = (_dealData, numQuote = null) => {
+    const buildQuotePayload = (_dealData, numQuote = null, codeMaterial = null) => {
         const productos = currentFileData.productos.map(p => ({
             PRODUCT_ID: p.productId,
             PRICE: p.precio,
@@ -472,7 +472,7 @@ export const BitrixIntegration = () => {
                     "UF_CRM_6633E91D6E277": pic[dealData['UF_CRM_1714677510']],
                     "UF_CRM_6633E91D8FD22": pau[dealData['UF_CRM_1714677550']],
                     "UF_CRM_QUOTE_1740087074371": productos?.length || 0,
-                    "UF_CRM_QUOTE_1740087091949": formData.codeMaterial ? formData.codeMaterial : 'NO APLICA',
+                    "UF_CRM_QUOTE_1740087091949": codeMaterial ? codeMaterial : 'NO APLICA',
                 }
             };
         } else {
@@ -495,7 +495,7 @@ export const BitrixIntegration = () => {
                     "UF_CRM_6633E91D6E277": pic[dealData['UF_CRM_1714677510']],
                     "UF_CRM_6633E91D8FD22": pau[dealData['UF_CRM_1714677550']],
                     "UF_CRM_QUOTE_1740087074371": productos?.length || 0,
-                    "UF_CRM_QUOTE_1740087091949": formData.codeMaterial ? formData.codeMaterial : 'NO APLICA',
+                    "UF_CRM_QUOTE_1740087091949": codeMaterial ? codeMaterial : 'NO APLICA',
                 }
             };
             const valorUnidad = unidad_negocio(productos, 1, listaProductos);
@@ -616,7 +616,7 @@ export const BitrixIntegration = () => {
             await axios.post(`${webhook}/crm.deal.update`, dealParams);
 
             if (createQuote) {
-                const quoteParams = buildQuotePayload(dealData);
+                const quoteParams = buildQuotePayload(dealData, null, formData.codeMaterial);
                 const quoteResponse = await axios.post(`${webhook}/crm.quote.add`, quoteParams);
                 const newQuoteId = quoteResponse.data.result;
                 quoteId = newQuoteId;
@@ -628,7 +628,7 @@ export const BitrixIntegration = () => {
 
                 setSuccessMessage(`Quote ${newQuoteId} creada exitosamente para ${currentFileData.name} (Deal #${currentFileData.numDeal})`);
             } else {
-                const quoteParams = buildQuotePayload(null, formData.numQuote);
+                const quoteParams = buildQuotePayload(null, formData.numQuote, formData.codeMaterial);
                 await axios.post(`${webhook}/crm.quote.update`, quoteParams);
 
                 await axios.post(`${webhook}/crm.quote.productrows.set`, {
@@ -725,7 +725,7 @@ export const BitrixIntegration = () => {
                     preparado_unai: currentFileData.preparado_unai || null,
                     responsable: currentFileData.responsable,
                     visto_bueno: currentFileData.vistoBueno || null,
-                    usuario_envio: user.email || user.nombre || 'Usuario desconocido',
+                    usuario_envio: `${user.nombre} ${user.apellido}`,
                     usuario_envio_id: user.id || null,
                     utilidad: currentFileData.utilidad,
                     costo_auma: currentFileData.costoAuma || 0,
