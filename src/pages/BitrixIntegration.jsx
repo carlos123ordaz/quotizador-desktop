@@ -6,10 +6,6 @@ import {
     CardContent,
     Chip,
     Container,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
     Divider,
     FormControl,
     FormControlLabel,
@@ -34,9 +30,6 @@ import {
     TextField,
     Typography,
     Alert,
-    Stepper,
-    Step,
-    StepLabel,
     CircularProgress,
     Tooltip,
     useTheme,
@@ -136,6 +129,7 @@ export const BitrixIntegration = () => {
             const length = processedFiles.length;
             if (length > 0 && selectedFileIndex === null) {
                 setSelectedFileIndex(length - 1);
+                console.log(processedFiles[length - 1].data)
                 setCurrentFileData(processedFiles[length - 1].data);
             }
         } catch (error) {
@@ -450,8 +444,20 @@ export const BitrixIntegration = () => {
                         : _dealData['UF_CRM_5716A1B71750E'],
                     "UF_CRM_5611F0F434963": _dealData['UF_CRM_1444016101'],
                     "UF_CRM_1579118591": [getEmpleadoId(currentFileData.preparado, empleados)],
+                    "UF_CRM_69CC5489DF950": [getEmpleadoId(currentFileData.preparado_unau, empleados)],
                     "UF_CRM_QUOTE_1726248570": [getEmpleadoId(currentFileData.preparado_unva, empleados)],
                     "UF_CRM_QUOTE_1726248646": [getEmpleadoId(currentFileData.preparado_unai, empleados)],
+                    "UF_CRM_69CC5489ECC22": [getEmpleadoId(currentFileData.preparado_unap, empleados)],
+                    "UF_CRM_69CC548A02C33": [getEmpleadoId(currentFileData.preparado_unepc, empleados)],
+                    "UF_CRM_69CD86482EEB2": [getEmpleadoId(currentFileData.preparado_pau, empleados)],
+                    "UF_CRM_69CD5C83086F1": [getEmpleadoId(currentFileData.preparado_pic, empleados)],
+                    "UF_CRM_661D9628B88E4": [getEmpleadoId(currentFileData.responsable_unau, empleados)],
+                    "UF_CRM_661D9628DD97E": [getEmpleadoId(currentFileData.responsable_unva, empleados)],
+                    "UF_CRM_661D9628CF319": [getEmpleadoId(currentFileData.responsable_unai, empleados)],
+                    "UF_CRM_69C4DC33529E5": [getEmpleadoId(currentFileData.responsable_unap, empleados)],
+                    "UF_CRM_69CA73C54931F": [getEmpleadoId(currentFileData.responsable_unepc, empleados)],
+                    "UF_CRM_69CD864823A5E": [getEmpleadoId(currentFileData.responsable_pau, empleados)],
+                    "UF_CRM_69CD5C82DD531": [getEmpleadoId(currentFileData.responsable_pic, empleados)],
                     "UF_CRM_1444016304": getEmpleadoId(currentFileData.vistoBueno, empleados),
                     "UF_CRM_5F2A353D3EE36": _dealData['UF_CRM_1596601522'],
                     "UF_CRM_1579702544": _dealData['UF_CRM_1579702489'],
@@ -487,8 +493,20 @@ export const BitrixIntegration = () => {
                     "UF_CRM_561405881EE7D": depart_cisac(productos, 1, listaProductos),
                     "UF_CRM_1579702544": depart_cisac(productos, 1, listaProductos).length > 1 ? 1 : 0,
                     "UF_CRM_1579118591": [getEmpleadoId(currentFileData.preparado, empleados)],
+                    "UF_CRM_69CC5489DF950": [getEmpleadoId(currentFileData.preparado_unau, empleados)],
                     "UF_CRM_QUOTE_1726248570": [getEmpleadoId(currentFileData.preparado_unva, empleados)],
                     "UF_CRM_QUOTE_1726248646": [getEmpleadoId(currentFileData.preparado_unai, empleados)],
+                    "UF_CRM_69CC5489ECC22": [getEmpleadoId(currentFileData.preparado_unap, empleados)],
+                    "UF_CRM_69CC548A02C33": [getEmpleadoId(currentFileData.preparado_unepc, empleados)],
+                    "UF_CRM_69CD86482EEB2": [getEmpleadoId(currentFileData.preparado_pau, empleados)],
+                    "UF_CRM_69CD5C83086F1": [getEmpleadoId(currentFileData.preparado_pic, empleados)],
+                    "UF_CRM_661D9628B88E4": [getEmpleadoId(currentFileData.responsable_unau, empleados)],
+                    "UF_CRM_661D9628DD97E": [getEmpleadoId(currentFileData.responsable_unva, empleados)],
+                    "UF_CRM_661D9628CF319": [getEmpleadoId(currentFileData.responsable_unai, empleados)],
+                    "UF_CRM_69C4DC33529E5": [getEmpleadoId(currentFileData.responsable_unap, empleados)],
+                    "UF_CRM_69CA73C54931F": [getEmpleadoId(currentFileData.responsable_unepc, empleados)],
+                    "UF_CRM_69CD864823A5E": [getEmpleadoId(currentFileData.responsable_pau, empleados)],
+                    "UF_CRM_69CD5C82DD531": [getEmpleadoId(currentFileData.responsable_pic, empleados)],
                     "UF_CRM_1444016304": getEmpleadoId(currentFileData.vistoBueno, empleados),
                     "UF_CRM_1672639032": currentFileData.utilidad,
                     "ASSIGNED_BY_ID": getEmpleadoId(currentFileData.responsable, empleados),
@@ -647,6 +665,8 @@ export const BitrixIntegration = () => {
                 preparado: currentFileData.preparado,
                 preparado_unva: currentFileData.preparado_unva || null,
                 preparado_unai: currentFileData.preparado_unai || null,
+                preparado_unepc: currentFileData.preparado_unepc || null,
+                preparado_unap: currentFileData.preparado_unap || null,
                 responsable: currentFileData.responsable,
                 visto_bueno: currentFileData.vistoBueno || null,
                 usuario_envio: user.email || user.nombre || 'Usuario desconocido',
@@ -723,6 +743,8 @@ export const BitrixIntegration = () => {
                     preparado: currentFileData.preparado,
                     preparado_unva: currentFileData.preparado_unva || null,
                     preparado_unai: currentFileData.preparado_unai || null,
+                    preparado_unepc: currentFileData.preparado_unepc || null,
+                    preparado_unap: currentFileData.preparado_unap || null,
                     responsable: currentFileData.responsable,
                     visto_bueno: currentFileData.vistoBueno || null,
                     usuario_envio: `${user.nombre} ${user.apellido}`,
@@ -1018,7 +1040,7 @@ export const BitrixIntegration = () => {
 
                     <Grid size={{ xs: 12, md: 9 }}>
                         {currentFileData ? (
-                            <Stack spacing={3}>
+                            <Stack spacing={2}>
                                 <Card elevation={0} sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
                                     <CardContent>
                                         <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
@@ -1027,7 +1049,7 @@ export const BitrixIntegration = () => {
                                         </Typography>
                                         <Divider sx={{ mb: 2 }} />
                                         <Grid container spacing={2}>
-                                            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                                                 <Paper sx={{
                                                     p: 2,
                                                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
@@ -1035,12 +1057,12 @@ export const BitrixIntegration = () => {
                                                     <Typography variant="caption" color="text.secondary">
                                                         Número de Deal
                                                     </Typography>
-                                                    <Typography variant="h6" sx={{ color: 'primary.main' }}>
+                                                    <Typography noWrap variant="body1" sx={{ color: 'primary.main' }}>
                                                         {!loadingDealData ? (currentFileData.numDeal || 'N/A') : 'Cargando..'}
                                                     </Typography>
                                                 </Paper>
                                             </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                                                 <Paper sx={{
                                                     p: 2,
                                                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
@@ -1048,7 +1070,7 @@ export const BitrixIntegration = () => {
                                                     <Typography variant="caption" color="text.secondary">
                                                         Nombre de la oferta
                                                     </Typography>
-                                                    <Typography variant="body1" fontWeight="bold">
+                                                    <Typography noWrap variant="body1" fontWeight="bold">
                                                         {currentFileData.name || 'N/A'}
                                                     </Typography>
                                                 </Paper>
@@ -1059,10 +1081,36 @@ export const BitrixIntegration = () => {
                                                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
                                                 }}>
                                                     <Typography variant="caption" color="text.secondary">
-                                                        Preparado {currentFileData.preparado_unva && currentFileData.preparado_unai ? 'UNAU' : ''}
+                                                        Preparado
                                                     </Typography>
                                                     <Typography variant="body2">
                                                         {currentFileData.preparado || '-'}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Preparado UNAU
+                                                    </Typography>
+                                                    <Typography variant="body2">
+                                                        {currentFileData.preparado_unau || '-'}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Preparado UNAI
+                                                    </Typography>
+                                                    <Typography variant="body2">
+                                                        {currentFileData.preparado_unai || '-'}
                                                     </Typography>
                                                 </Paper>
                                             </Grid>
@@ -1092,7 +1140,59 @@ export const BitrixIntegration = () => {
                                                     </Typography>
                                                 </Paper>
                                             </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Preparado UNAP
+                                                    </Typography>
+                                                    <Typography variant="body2">
+                                                        {currentFileData.preparado_unap || '-'}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Preparado UNEPC
+                                                    </Typography>
+                                                    <Typography variant="body2">
+                                                        {currentFileData.preparado_unepc || '-'}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Preparado PIC
+                                                    </Typography>
+                                                    <Typography variant="body2">
+                                                        {currentFileData.preparado_pic || '-'}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Preparado PAU
+                                                    </Typography>
+                                                    <Typography variant="body2">
+                                                        {currentFileData.preparado_pau || '-'}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                                                 <Paper sx={{
                                                     p: 2,
                                                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
@@ -1105,7 +1205,98 @@ export const BitrixIntegration = () => {
                                                     </Typography>
                                                 </Paper>
                                             </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Responsable UNAU
+                                                    </Typography>
+                                                    <Typography variant="body2">
+                                                        {currentFileData.responsable_unau || 'N/A'}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Responsable UNVA
+                                                    </Typography>
+                                                    <Typography variant="body2">
+                                                        {currentFileData.responsable_unva || 'N/A'}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Responsable UNAI
+                                                    </Typography>
+                                                    <Typography variant="body2">
+                                                        {currentFileData.responsable_unai || 'N/A'}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Responsable UNAP
+                                                    </Typography>
+                                                    <Typography variant="body2">
+                                                        {currentFileData.responsable_unap || 'N/A'}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Responsable UNEPC
+                                                    </Typography>
+                                                    <Typography variant="body2">
+                                                        {currentFileData.responsable_unepc || 'N/A'}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Responsable PIC
+                                                    </Typography>
+                                                    <Typography variant="body2">
+                                                        {currentFileData.responsable_pic || 'N/A'}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                <Paper sx={{
+                                                    p: 2,
+                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Responsable PAU
+                                                    </Typography>
+                                                    <Typography variant="body2">
+                                                        {currentFileData.responsable_pau || 'N/A'}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                                                 <Paper sx={{
                                                     p: 2,
                                                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
@@ -1118,7 +1309,8 @@ export const BitrixIntegration = () => {
                                                     </Typography>
                                                 </Paper>
                                             </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+
+                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                                                 <Paper sx={{
                                                     p: 2,
                                                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
@@ -1155,7 +1347,7 @@ export const BitrixIntegration = () => {
                                                     p: 2,
                                                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
                                                 }}>
-                                                    <FormControl fullWidth>
+                                                    <FormControl fullWidth size='small'>
                                                         <InputLabel>Probabilidad</InputLabel>
                                                         <Select
                                                             label="Probabilidad"

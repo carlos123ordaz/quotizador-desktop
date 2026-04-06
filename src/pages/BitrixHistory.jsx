@@ -657,6 +657,16 @@ export const BitrixHistory = () => {
                                                                                 <strong>Preparado UNAI:</strong> {item.preparado_unai}
                                                                             </Typography>
                                                                         )}
+                                                                        {item.preparado_unap && (
+                                                                            <Typography variant="body2">
+                                                                                <strong>Preparado UNAP:</strong> {item.preparado_unap}
+                                                                            </Typography>
+                                                                        )}
+                                                                        {item.preparado_unepc && (
+                                                                            <Typography variant="body2">
+                                                                                <strong>Preparado UNEPC:</strong> {item.preparado_unepc}
+                                                                            </Typography>
+                                                                        )}
                                                                         <Typography variant="body2">
                                                                             <strong>Responsable:</strong> {item.responsable}
                                                                         </Typography>

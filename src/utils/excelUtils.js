@@ -22,14 +22,26 @@ export const processExcelFile = (file, listaProductos) => {
                     reject(new Error('No se encontraron todas las hojas necesarias'));
                     return;
                 }
-                let numDeal, costoAuma = 0, costoMsa = 0, costoValmet = 0, preparado, preparado_unva, preparado_unai, responsable, vistoBueno;
+                let numDeal, costoAuma = 0, costoMsa = 0, costoValmet = 0, preparado, preparado_unau, preparado_unva, preparado_unai, preparado_unap, preparado_unepc, preparado_pic, preparado_pau, responsable, responsable_unau, responsable_unva, responsable_unai, responsable_unap, responsable_unepc, responsable_pic, responsable_pau, vistoBueno;
                 if (getCellValue(ofertaSheet, 352, 113)) {
                     numDeal = getCellValue(ofertaSheet, 352, 113);
-                    preparado = getCellValue(datosSheet, 10, 5);
-                    preparado_unva = getCellValue(datosSheet, 11, 5);
-                    preparado_unai = getCellValue(datosSheet, 12, 5);
-                    responsable = getCellValue(datosSheet, 13, 5);
-                    vistoBueno = getCellValue(datosSheet, 14, 5);
+                    preparado = getCellValue(datosSheet, 10, 10);
+                    responsable = getCellValue(datosSheet, 15, 11);
+                    vistoBueno = getCellValue(datosSheet, 23, 12);
+                    preparado_unau = getCellValue(datosSheet, 11, 24);
+                    preparado_unva = getCellValue(datosSheet, 11, 25);
+                    preparado_unai = getCellValue(datosSheet, 12, 26);
+                    preparado_unap = getCellValue(datosSheet, 13, 27);
+                    preparado_unepc = getCellValue(datosSheet, 14, 28);
+                    preparado_pic = getCellValue(datosSheet, 14, 29);
+                    preparado_pau = getCellValue(datosSheet, 14, 30);
+                    responsable_unau = getCellValue(datosSheet, 16, 31);
+                    responsable_unva = getCellValue(datosSheet, 17, 32);
+                    responsable_unai = getCellValue(datosSheet, 18, 33);
+                    responsable_unap = getCellValue(datosSheet, 19, 34);
+                    responsable_unepc = getCellValue(datosSheet, 20, 35);
+                    responsable_pic = getCellValue(datosSheet, 21, 36);
+                    responsable_pau = getCellValue(datosSheet, 22, 37);
                 } else {
                     numDeal = getCellValue(ofertaSheet, 235, 113)
                     preparado = getCellValue(datosSheet, 10, 5);
@@ -38,11 +50,18 @@ export const processExcelFile = (file, listaProductos) => {
                 }
 
                 if (!preparado) {
-                    preparado = preparado_unva || preparado_unai;
+                    preparado = preparado_unva || preparado_unai || preparado_unap || preparado_unepc || preparado_pic || preparado_pau || preparado_apoyo_vi || 'D.Rejas';
+                }
+                if (!responsable) {
+                    responsable = responsable_unau || responsable_unva || responsable_unai || responsable_unap || responsable_unepc || responsable_pic || responsable_pau || 'D.Rejas';
                 }
                 if (!preparado || preparado.includes('N.Ingresante')) {
                     preparado = 'D.Rejas';
                 }
+                if (!responsable || responsable.includes('N.Ingresante')) {
+                    responsable = 'D.Rejas';
+                }
+
                 const productos = extractProductos(resumenSheet, listaProductos);
                 for (let i = 0; i < 20; i++) {
                     const nombre = getCellValue(resumenSheet, 2, 5 + i);
@@ -59,9 +78,21 @@ export const processExcelFile = (file, listaProductos) => {
                     numDeal: numDeal || 'N/A',
                     name: file.name.slice(0, -5),
                     preparado,
+                    preparado_unau,
                     preparado_unva,
                     preparado_unai,
+                    preparado_unap,
+                    preparado_unepc,
+                    preparado_pic,
+                    preparado_pau,
                     responsable,
+                    responsable_unau,
+                    responsable_unva,
+                    responsable_unai,
+                    responsable_unap,
+                    responsable_unepc,
+                    responsable_pic,
+                    responsable_pau,
                     vistoBueno,
                     rubrica: getCellValue(resumenSheet, 24, 12),
                     utilidad: getCellValue(resumenSheet, 30, 5),
