@@ -48,6 +48,7 @@ import {
     Close as CloseIcon,
     CheckCircle as CheckCircleIcon,
     Cancel as CancelIcon,
+    Sync as SyncIcon,
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import axios from 'axios';
@@ -76,6 +77,9 @@ const EmployeesPage = () => {
         activos: 0,
         inactivos: 0,
     });
+    const [syncing, setSyncing] = useState(false);
+    const [syncResult, setSyncResult] = useState(null);
+    const [syncDialogOpen, setSyncDialogOpen] = useState(false);
 
     const { control, handleSubmit, reset, formState: { errors } } = useForm({
         defaultValues: {
@@ -232,6 +236,24 @@ const EmployeesPage = () => {
 
     const handleExport = () => {
         showSnackbar('Exportando a Excel...', 'info');
+    };
+
+    const handleSync = async () => {
+        try {
+            setSyncing(true);
+            const response = await axios.post(`${CONFIG.uri}/employees/sync-bitrix`);
+            setSyncResult(response.data);
+            setSyncDialogOpen(true);
+            if (response.data.insertados > 0) {
+                loadEmployees();
+                loadStats();
+            }
+        } catch (error) {
+            const errorMessage = error.response?.data?.detail || 'Error al sincronizar con Bitrix24';
+            showSnackbar(errorMessage, 'error');
+        } finally {
+            setSyncing(false);
+        }
     };
     const renderSkeletonRows = () => {
         return Array.from(new Array(rowsPerPage)).map((_, index) => (
@@ -484,6 +506,15 @@ const EmployeesPage = () => {
                         >
                             <RefreshIcon />
                         </IconButton>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={syncing ? <CircularProgress size={14} /> : <SyncIcon />}
+                            onClick={handleSync}
+                            disabled={syncing || loading}
+                        >
+                            Sincronizar
+                        </Button>
                         {
                             user && user.es_lider && (
                                 <Button
@@ -788,6 +819,71 @@ const EmployeesPage = () => {
             >
                 <CircularProgress color="inherit" />
             </Backdrop>
+
+            {/* Dialog resultado de sincronización */}
+            <Dialog
+                open={syncDialogOpen}
+                onClose={() => setSyncDialogOpen(false)}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle sx={{ pb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Typography variant="h6" fontWeight={400}>
+                            Resultado de Sincronización
+                        </Typography>
+                        <IconButton onClick={() => setSyncDialogOpen(false)} size="small">
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
+                </DialogTitle>
+                <Divider />
+                <DialogContent sx={{ pt: 2 }}>
+                    {syncResult && (
+                        <Stack spacing={1.5}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="body2" color="text.secondary">Usuarios en Bitrix24:</Typography>
+                                <Typography variant="body2" fontWeight={500}>{syncResult.total_bitrix}</Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="body2" color="text.secondary">Ya existían en BD:</Typography>
+                                <Typography variant="body2" fontWeight={500}>{syncResult.ya_existentes}</Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="body2" color="text.secondary">Nuevos insertados:</Typography>
+                                <Typography variant="body2" fontWeight={500} color={syncResult.insertados > 0 ? 'success.main' : 'text.primary'}>
+                                    {syncResult.insertados}
+                                </Typography>
+                            </Box>
+                            {syncResult.detalle && syncResult.detalle.length > 0 && (
+                                <Box sx={{ mt: 1 }}>
+                                    <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                                        Nuevos usuarios:
+                                    </Typography>
+                                    <Box sx={{ maxHeight: 180, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
+                                        {syncResult.detalle.map((u) => (
+                                            <Typography key={u.codigo} variant="caption" display="block" sx={{ py: 0.25 }}>
+                                                {u.codigo} — {u.nombre}
+                                            </Typography>
+                                        ))}
+                                    </Box>
+                                </Box>
+                            )}
+                            {syncResult.insertados === 0 && (
+                                <Alert severity="info" sx={{ mt: 1 }}>
+                                    No hay usuarios nuevos por agregar.
+                                </Alert>
+                            )}
+                        </Stack>
+                    )}
+                </DialogContent>
+                <Divider />
+                <DialogActions sx={{ px: 3, py: 2 }}>
+                    <Button onClick={() => setSyncDialogOpen(false)} variant="outlined" size="small">
+                        Cerrar
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Snackbar de notificaciones */}
             <Snackbar
