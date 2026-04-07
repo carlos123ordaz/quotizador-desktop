@@ -261,6 +261,7 @@ const EmployeesPage = () => {
                 <TableCell><Skeleton variant="text" /></TableCell>
                 <TableCell><Skeleton variant="text" /></TableCell>
                 <TableCell><Skeleton variant="text" /></TableCell>
+                <TableCell><Skeleton variant="text" /></TableCell>
             </TableRow>
         ));
     };
@@ -562,9 +563,10 @@ const EmployeesPage = () => {
                     <Table stickyHeader size="small" sx={{ tableLayout: 'fixed' }}>
                         <TableHead>
                             <TableRow>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '20%', py: 1 }}>ID</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '60%', py: 1 }}>Nombre</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '20%', py: 1 }}>Estado</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '15%', py: 1 }}>ID</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '40%', py: 1 }}>Nombre</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '30%', py: 1 }}>Departamentos</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '15%', py: 1 }}>Estado</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -572,7 +574,7 @@ const EmployeesPage = () => {
                                 renderSkeletonRows()
                             ) : employees.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={3} align="center" sx={{ py: 8 }}>
+                                    <TableCell colSpan={4} align="center" sx={{ py: 8 }}>
                                         <PersonIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
                                         <Typography variant="h6" color="text.secondary" gutterBottom>
                                             {searchTerm || filterActivo !== 'all'
@@ -611,6 +613,23 @@ const EmployeesPage = () => {
                                             <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
                                                 {employee.nombre}
                                             </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            {employee.departamentos && employee.departamentos.length > 0 ? (
+                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                    {employee.departamentos.map((dep) => (
+                                                        <Chip
+                                                            key={dep}
+                                                            label={dep}
+                                                            size="small"
+                                                            variant="outlined"
+                                                            sx={{ height: 20, fontSize: '0.7rem' }}
+                                                        />
+                                                    ))}
+                                                </Box>
+                                            ) : (
+                                                <Typography variant="body2" color="text.disabled" sx={{ fontSize: '0.8125rem' }}>—</Typography>
+                                            )}
                                         </TableCell>
                                         <TableCell>
                                             <Chip

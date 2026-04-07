@@ -33,7 +33,7 @@ export const lista_area = (products, area, tipo = 0, listaProductos) => {
     if (listado.length === 0 && values[area] && values[area][tipo]) {
         listado.push(values[area][tipo]);
     }
-
+    console.log('listado: ', listado)
     return listado;
 };
 

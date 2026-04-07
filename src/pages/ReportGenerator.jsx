@@ -30,10 +30,7 @@ import {
     FolderOpen as FolderOpenIcon,
     Close as CloseIcon,
     OpenInNew as OpenInNewIcon,
-    Info as InfoIcon,
-    Timer as TimerIcon,
 } from '@mui/icons-material';
-import { useForm } from 'react-hook-form';
 import moment from 'moment';
 import axios from 'axios';
 import { save } from '@tauri-apps/plugin-dialog';
@@ -549,7 +546,7 @@ const ReportGenerator = () => {
                                         textTransform: 'none',
                                     }}
                                 >
-                                    {processing ? `${progress < 100 ? 'Subiendo..' : 'Procesando..'}... ${progress < 100 && progress || formatTime(elapsedTime)} ${progress < 100 ? '%' : 's'}` : 'Procesar Archivos'}
+                                    {processing ? `${progress < 100 ? 'Subiendo..' : 'Procesando..'}... ${progress < 100 ? progress : formatTime(elapsedTime)} ${progress < 100 ? '%' : 's'}` : 'Procesar Archivos'}
                                 </Button>
                                 <Button
                                     variant="outlined"

@@ -277,6 +277,7 @@ export const BitrixIntegration = () => {
             fechaEnvio: moment().format('YYYY-MM-DD'),
             fechaCierre: moment().format('YYYY-MM-DD'),
             cambiarFechaCierre: false,
+            codeMaterial: '',
         });
         setErrors({});
     };
@@ -287,9 +288,9 @@ export const BitrixIntegration = () => {
 
         if (index === selectedFileIndex) {
             if (newFiles.length > 0) {
-                const index = newFiles.length - 1;
-                setSelectedFileIndex(index);
-                setCurrentFileData(newFiles[index].data);
+                const newIndex = newFiles.length - 1;
+                setSelectedFileIndex(newIndex);
+                setCurrentFileData(newFiles[newIndex].data);
             } else {
                 setSelectedFileIndex(null);
                 setCurrentFileData(null);
@@ -333,7 +334,7 @@ export const BitrixIntegration = () => {
             newErrors.preparado = 'Vendedor no encontrado, la persona tiene que estar registrado en el Bitrix y el Quotizador';
         }
         setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        return newErrors;
     };
 
     const buildDealPayload = () => {
@@ -594,9 +595,10 @@ export const BitrixIntegration = () => {
             setErrorMessage('Espera a que se cargue la información del deal');
             return;
         }
-        if (!validateForm()) {
-            const key = Object.keys(errors)[0];
-            setErrorMessage(errors[key]);
+        const formErrors = validateForm();
+        if (Object.keys(formErrors).length > 0) {
+            const key = Object.keys(formErrors)[0];
+            setErrorMessage(formErrors[key]);
             return;
         }
         if (!dealData) {
@@ -632,7 +634,7 @@ export const BitrixIntegration = () => {
 
             const dealParams = buildDealPayload();
             await axios.post(`${webhook}/crm.deal.update`, dealParams);
-
+            return;
             if (createQuote) {
                 const quoteParams = buildQuotePayload(dealData, null, formData.codeMaterial);
                 const quoteResponse = await axios.post(`${webhook}/crm.quote.add`, quoteParams);
@@ -731,6 +733,7 @@ export const BitrixIntegration = () => {
             }, 1000);
 
         } catch (error) {
+            return;
             const errorMsg = error.response?.data?.error_description || error.message;
             setErrorMessage('Error al enviar datos a Bitrix24: ' + errorMsg);
 
@@ -819,7 +822,7 @@ export const BitrixIntegration = () => {
         if (currentFileData && currentFileData.numDeal) {
             fetchQuotes(currentFileData.numDeal);
         }
-    }, [currentFileData, formData.webhook]);
+    }, [currentFileData]);
 
 
     if (!listaProductos || !empleados) {
