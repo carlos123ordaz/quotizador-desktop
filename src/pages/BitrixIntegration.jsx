@@ -396,6 +396,22 @@ export const BitrixIntegration = () => {
                 "ASSIGNED_BY_ID": getEmpleadoId(currentFileData.responsable, empleados),
                 "PROBABILITY": dealData['PROBABILITY'],
                 "UF_CRM_5716A1B6E160D": currentFileData.name,
+                // Preparado Por (por unidad de negocio)
+                "UF_CRM_1774976550": getEmpleadoId(currentFileData.preparado_unau, empleados),
+                "UF_CRM_1774976578": getEmpleadoId(currentFileData.preparado_unva, empleados),
+                "UF_CRM_1774976594": getEmpleadoId(currentFileData.preparado_unai, empleados),
+                "UF_CRM_1774976612": getEmpleadoId(currentFileData.preparado_unap, empleados),
+                "UF_CRM_1774976637": getEmpleadoId(currentFileData.preparado_unepc, empleados),
+                "UF_CRM_1775065436": getEmpleadoId(currentFileData.preparado_pic, empleados),
+                "UF_CRM_1775076171": getEmpleadoId(currentFileData.preparado_pau, empleados),
+                // Responsable (por unidad de negocio)
+                "UF_CRM_1713160059": getEmpleadoId(currentFileData.responsable_unau, empleados),
+                "UF_CRM_1713160085": getEmpleadoId(currentFileData.responsable_unai, empleados),
+                "UF_CRM_1713160139": getEmpleadoId(currentFileData.responsable_unva, empleados),
+                "UF_CRM_1774503714": getEmpleadoId(currentFileData.responsable_unap, empleados),
+                "UF_CRM_1774851221": getEmpleadoId(currentFileData.responsable_unepc, empleados),
+                "UF_CRM_1775065357": getEmpleadoId(currentFileData.responsable_pic, empleados),
+                "UF_CRM_1775076149": getEmpleadoId(currentFileData.responsable_pau, empleados),
             }
         };
 
