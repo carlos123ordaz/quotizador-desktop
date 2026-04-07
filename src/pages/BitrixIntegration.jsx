@@ -333,6 +333,43 @@ export const BitrixIntegration = () => {
         if (!getEmpleadoId(currentFileData.preparado, empleados)) {
             newErrors.preparado = 'Vendedor no encontrado, la persona tiene que estar registrado en el Bitrix y el Quotizador';
         }
+
+        // Validar que preparado y responsable correspondan a las unidades de negocio de los productos
+        const unitFieldMap = {
+            'UNAU': { preparadoKey: 'preparado_unau', responsableKey: 'responsable_unau', label: 'UNAU' },
+            'UNAI': { preparadoKey: 'preparado_unai', responsableKey: 'responsable_unai', label: 'UNAI' },
+            'UNVA': { preparadoKey: 'preparado_unva', responsableKey: 'responsable_unva', label: 'UNVA' },
+            'UNAP': { preparadoKey: 'preparado_unap', responsableKey: 'responsable_unap', label: 'UNAP' },
+            'UNEPC': { preparadoKey: 'preparado_unepc', responsableKey: 'responsable_unepc', label: 'UNEPC' },
+            'PIC': { preparadoKey: 'preparado_pic', responsableKey: 'responsable_pic', label: 'PIC' },
+            'PAU': { preparadoKey: 'preparado_pau', responsableKey: 'responsable_pau', label: 'PAU' },
+        };
+
+        const unidadesEnProductos = new Set(
+            (currentFileData.productos || []).map(p => p.unidadNegocio)
+        );
+
+        const missingPreparado = [];
+        const missingResponsable = [];
+
+        for (const [unidad, fields] of Object.entries(unitFieldMap)) {
+            if (unidadesEnProductos.has(unidad)) {
+                if (!currentFileData[fields.preparadoKey]) {
+                    missingPreparado.push(fields.label);
+                }
+                if (!currentFileData[fields.responsableKey]) {
+                    missingResponsable.push(fields.label);
+                }
+            }
+        }
+
+        if (missingPreparado.length > 0) {
+            newErrors.preparadoUnidades = `Falta "Preparado por" en el Excel para: ${missingPreparado.join(', ')}`;
+        }
+        if (missingResponsable.length > 0) {
+            newErrors.responsableUnidades = `Falta "Responsable" en el Excel para: ${missingResponsable.join(', ')}`;
+        }
+
         setErrors(newErrors);
         return newErrors;
     };
@@ -597,8 +634,7 @@ export const BitrixIntegration = () => {
         }
         const formErrors = validateForm();
         if (Object.keys(formErrors).length > 0) {
-            const key = Object.keys(formErrors)[0];
-            setErrorMessage(formErrors[key]);
+            setErrorMessage(Object.values(formErrors).join(' | '));
             return;
         }
         if (!dealData) {
@@ -634,7 +670,6 @@ export const BitrixIntegration = () => {
 
             const dealParams = buildDealPayload();
             await axios.post(`${webhook}/crm.deal.update`, dealParams);
-            return;
             if (createQuote) {
                 const quoteParams = buildQuotePayload(dealData, null, formData.codeMaterial);
                 const quoteResponse = await axios.post(`${webhook}/crm.quote.add`, quoteParams);
@@ -733,7 +768,6 @@ export const BitrixIntegration = () => {
             }, 1000);
 
         } catch (error) {
-            return;
             const errorMsg = error.response?.data?.error_description || error.message;
             setErrorMessage('Error al enviar datos a Bitrix24: ' + errorMsg);
 
