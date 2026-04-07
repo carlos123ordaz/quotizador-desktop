@@ -37,6 +37,7 @@ import {
     MenuItem,
     Backdrop,
     Chip,
+    Tooltip,
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -279,168 +280,182 @@ const EmployeesPage = () => {
                     }}
                 />
             )}
-            <Box sx={{ mb: 2, flexShrink: 0 }}>
-                <Typography variant="body2" color="text.secondary">
-                    {totalEmployees} vendedores • Administra el personal de la empresa
-                </Typography>
-            </Box>
+
             <Grid container spacing={1.5} sx={{ mb: 2, flexShrink: 0 }}>
                 <Grid size={{ xs: 12, sm: 4 }}>
-                    <Card
-                        elevation={0}
-                        sx={{
-                            border: '1px solid',
-                            borderColor: 'divider',
-                            borderRadius: 1,
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                                boxShadow: 1,
-                            }
-                        }}
-                    >
-                        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                            {initialLoading ? (
-                                <Skeleton variant="rectangular" height={50} />
-                            ) : (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                    <Avatar
-                                        sx={{
-                                            bgcolor: 'primary.main',
-                                            width: 40,
-                                            height: 40
-                                        }}
-                                    >
-                                        <PersonIcon fontSize="small" />
-                                    </Avatar>
-                                    <Box sx={{ flexGrow: 1 }}>
-                                        <Typography
-                                            variant="h5"
+                    <Tooltip title="Ver todos los vendedores" placement="top" arrow>
+                        <Card
+                            elevation={0}
+                            onClick={() => { setFilterActivo('all'); setPage(0); }}
+                            sx={{
+                                border: '1px solid',
+                                borderColor: filterActivo === 'all' ? 'primary.main' : 'divider',
+                                borderRadius: 1,
+                                transition: 'all 0.2s',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                    boxShadow: 2,
+                                    borderColor: 'primary.main',
+                                }
+                            }}
+                        >
+                            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                                {initialLoading ? (
+                                    <Skeleton variant="rectangular" height={50} />
+                                ) : (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                        <Avatar
                                             sx={{
-                                                fontWeight: 300,
-                                                fontSize: '1.5rem',
-                                                lineHeight: 1.2
+                                                bgcolor: filterActivo === 'all' ? 'primary.main' : 'action.selected',
+                                                width: 40,
+                                                height: 40,
+                                                transition: 'background-color 0.2s',
                                             }}
                                         >
-                                            {stats.total}
-                                        </Typography>
-                                        <Typography
-                                            variant="caption"
-                                            color="text.secondary"
-                                            sx={{ mt: 0.25 }}
-                                        >
-                                            Total de Vendedores
-                                        </Typography>
+                                            <PersonIcon fontSize="small" />
+                                        </Avatar>
+                                        <Box sx={{ flexGrow: 1 }}>
+                                            <Typography
+                                                variant="h5"
+                                                sx={{
+                                                    fontWeight: 300,
+                                                    fontSize: '1.5rem',
+                                                    lineHeight: 1.2
+                                                }}
+                                            >
+                                                {stats.total}
+                                            </Typography>
+                                            <Typography
+                                                variant="caption"
+                                                color="text.secondary"
+                                                sx={{ mt: 0.25 }}
+                                            >
+                                                Total de Vendedores
+                                            </Typography>
+                                        </Box>
                                     </Box>
-                                </Box>
-                            )}
-                        </CardContent>
-                    </Card>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </Tooltip>
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 4 }}>
-                    <Card
-                        elevation={0}
-                        sx={{
-                            border: '1px solid',
-                            borderColor: 'divider',
-                            borderRadius: 1,
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                                boxShadow: 1,
-                            }
-                        }}
-                    >
-                        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                            {initialLoading ? (
-                                <Skeleton variant="rectangular" height={50} />
-                            ) : (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                    <Avatar
-                                        sx={{
-                                            bgcolor: 'success.main',
-                                            width: 40,
-                                            height: 40
-                                        }}
-                                    >
-                                        <CheckCircleIcon fontSize="small" />
-                                    </Avatar>
-                                    <Box sx={{ flexGrow: 1 }}>
-                                        <Typography
-                                            variant="h5"
+                    <Tooltip title="Filtrar por activos" placement="top" arrow>
+                        <Card
+                            elevation={0}
+                            onClick={() => { setFilterActivo('active'); setPage(0); }}
+                            sx={{
+                                border: '1px solid',
+                                borderColor: filterActivo === 'active' ? 'success.main' : 'divider',
+                                borderRadius: 1,
+                                transition: 'all 0.2s',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                    boxShadow: 2,
+                                    borderColor: 'success.main',
+                                }
+                            }}
+                        >
+                            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                                {initialLoading ? (
+                                    <Skeleton variant="rectangular" height={50} />
+                                ) : (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                        <Avatar
                                             sx={{
-                                                fontWeight: 300,
-                                                fontSize: '1.5rem',
-                                                lineHeight: 1.2,
-                                                color: 'success.main'
+                                                bgcolor: filterActivo === 'active' ? 'success.main' : 'action.selected',
+                                                width: 40,
+                                                height: 40,
+                                                transition: 'background-color 0.2s',
                                             }}
                                         >
-                                            {stats.activos}
-                                        </Typography>
-                                        <Typography
-                                            variant="caption"
-                                            color="text.secondary"
-                                            sx={{ mt: 0.25 }}
-                                        >
-                                            Vendedores Activos
-                                        </Typography>
+                                            <CheckCircleIcon fontSize="small" />
+                                        </Avatar>
+                                        <Box sx={{ flexGrow: 1 }}>
+                                            <Typography
+                                                variant="h5"
+                                                sx={{
+                                                    fontWeight: 300,
+                                                    fontSize: '1.5rem',
+                                                    lineHeight: 1.2,
+                                                    color: 'success.main'
+                                                }}
+                                            >
+                                                {stats.activos}
+                                            </Typography>
+                                            <Typography
+                                                variant="caption"
+                                                color="text.secondary"
+                                                sx={{ mt: 0.25 }}
+                                            >
+                                                Vendedores Activos
+                                            </Typography>
+                                        </Box>
                                     </Box>
-                                </Box>
-                            )}
-                        </CardContent>
-                    </Card>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </Tooltip>
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 4 }}>
-                    <Card
-                        elevation={0}
-                        sx={{
-                            border: '1px solid',
-                            borderColor: 'divider',
-                            borderRadius: 1,
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                                boxShadow: 1,
-                            }
-                        }}
-                    >
-                        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                            {initialLoading ? (
-                                <Skeleton variant="rectangular" height={50} />
-                            ) : (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                    <Avatar
-                                        sx={{
-                                            bgcolor: 'warning.main',
-                                            width: 40,
-                                            height: 40
-                                        }}
-                                    >
-                                        <CancelIcon fontSize="small" />
-                                    </Avatar>
-                                    <Box sx={{ flexGrow: 1 }}>
-                                        <Typography
-                                            variant="h5"
+                    <Tooltip title="Filtrar por inactivos" placement="top" arrow>
+                        <Card
+                            elevation={0}
+                            onClick={() => { setFilterActivo('inactive'); setPage(0); }}
+                            sx={{
+                                border: '1px solid',
+                                borderColor: filterActivo === 'inactive' ? 'warning.main' : 'divider',
+                                borderRadius: 1,
+                                transition: 'all 0.2s',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                    boxShadow: 2,
+                                    borderColor: 'warning.main',
+                                }
+                            }}
+                        >
+                            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                                {initialLoading ? (
+                                    <Skeleton variant="rectangular" height={50} />
+                                ) : (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                        <Avatar
                                             sx={{
-                                                fontWeight: 300,
-                                                fontSize: '1.5rem',
-                                                lineHeight: 1.2,
-                                                color: 'warning.main'
+                                                bgcolor: filterActivo === 'inactive' ? 'warning.main' : 'action.selected',
+                                                width: 40,
+                                                height: 40,
+                                                transition: 'background-color 0.2s',
                                             }}
                                         >
-                                            {stats.inactivos}
-                                        </Typography>
-                                        <Typography
-                                            variant="caption"
-                                            color="text.secondary"
-                                            sx={{ mt: 0.25 }}
-                                        >
-                                            Vendedores Inactivos
-                                        </Typography>
+                                            <CancelIcon fontSize="small" />
+                                        </Avatar>
+                                        <Box sx={{ flexGrow: 1 }}>
+                                            <Typography
+                                                variant="h5"
+                                                sx={{
+                                                    fontWeight: 300,
+                                                    fontSize: '1.5rem',
+                                                    lineHeight: 1.2,
+                                                    color: 'warning.main'
+                                                }}
+                                            >
+                                                {stats.inactivos}
+                                            </Typography>
+                                            <Typography
+                                                variant="caption"
+                                                color="text.secondary"
+                                                sx={{ mt: 0.25 }}
+                                            >
+                                                Vendedores Inactivos
+                                            </Typography>
+                                        </Box>
                                     </Box>
-                                </Box>
-                            )}
-                        </CardContent>
-                    </Card>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </Tooltip>
                 </Grid>
             </Grid>
             <Paper
@@ -473,6 +488,17 @@ const EmployeesPage = () => {
                                     <SearchIcon color="action" />
                                 </InputAdornment>
                             ),
+                            endAdornment: searchInput ? (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => { setSearchInput(''); setSearchTerm(''); setPage(0); }}
+                                        edge="end"
+                                    >
+                                        <CloseIcon fontSize="small" />
+                                    </IconButton>
+                                </InputAdornment>
+                            ) : null,
                         }}
                     />
 
@@ -495,18 +521,22 @@ const EmployeesPage = () => {
                     <Box sx={{ flexGrow: 1 }} />
 
                     <Stack direction="row" spacing={1}>
-                        <IconButton
-                            onClick={handleRefresh}
-                            disabled={loading}
-                            size="small"
-                            sx={{
-                                border: '1px solid',
-                                borderColor: 'divider',
-                                borderRadius: 1
-                            }}
-                        >
-                            <RefreshIcon />
-                        </IconButton>
+                        <Tooltip title="Actualizar lista" arrow>
+                            <span>
+                                <IconButton
+                                    onClick={handleRefresh}
+                                    disabled={loading}
+                                    size="small"
+                                    sx={{
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        borderRadius: 1
+                                    }}
+                                >
+                                    <RefreshIcon />
+                                </IconButton>
+                            </span>
+                        </Tooltip>
                         <Button
                             variant="outlined"
                             size="small"

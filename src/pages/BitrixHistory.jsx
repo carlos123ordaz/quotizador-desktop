@@ -80,7 +80,7 @@ export const BitrixHistory = () => {
     const [filterTipo, setFilterTipo] = useState('all');
     const [filterEstado, setFilterEstado] = useState('all');
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(15);
 
     // Estados de estadísticas
     const [stats, setStats] = useState({
@@ -224,15 +224,6 @@ export const BitrixHistory = () => {
                     }}
                 />
             )}
-
-            {/* Header */}
-            <Box sx={{ mb: 2, flexShrink: 0 }}>
-                <Typography variant="body2" color="text.secondary">
-                    {totalHistory} registros • Historial de envíos a Bitrix24
-                </Typography>
-            </Box>
-
-            {/* Tarjetas de estadísticas */}
             <Grid container spacing={1.5} sx={{ mb: 2, flexShrink: 0 }}>
                 <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
                     <Card
@@ -780,7 +771,7 @@ export const BitrixHistory = () => {
                 <Divider sx={{ flexShrink: 0 }} />
 
                 <TablePagination
-                    rowsPerPageOptions={[5, 10, 25, 50]}
+                    rowsPerPageOptions={[15, 25, 50, 100]}
                     component="div"
                     count={totalHistory}
                     rowsPerPage={rowsPerPage}

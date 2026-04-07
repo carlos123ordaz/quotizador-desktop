@@ -80,6 +80,7 @@ export const BitrixIntegration = () => {
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [loadingDealData, setLoadingDealData] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
     const handleDroppedFiles = useCallback(async (filePaths) => {
         if (!listaProductos || Object.keys(listaProductos).length === 0) {
             setErrorMessage('Los productos aún no se han cargado. Por favor, espera un momento e intenta de nuevo.');
@@ -148,7 +149,12 @@ export const BitrixIntegration = () => {
             const appWindow = getCurrentWebviewWindow();
             const unlisten = await appWindow.onDragDropEvent(async (event) => {
                 if (!isSubscribed) return;
-                if (event.payload.type === 'drop') {
+                if (event.payload.type === 'drag-over') {
+                    setIsDragging(true);
+                } else if (event.payload.type === 'drag-leave' || event.payload.type === 'cancelled') {
+                    setIsDragging(false);
+                } else if (event.payload.type === 'drop') {
+                    setIsDragging(false);
                     const paths = event.payload.paths;
                     await handleDroppedFiles(paths);
                 }
@@ -875,6 +881,8 @@ export const BitrixIntegration = () => {
     }, [currentFileData]);
 
 
+    const activeUnits = new Set((currentFileData?.productos || []).map(p => p.unidadNegocio));
+
     if (!listaProductos || !empleados) {
         return (
             <Box
@@ -984,7 +992,11 @@ export const BitrixIntegration = () => {
 
                 {errorMessage && (
                     <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorMessage('')}>
-                        {errorMessage}
+                        {errorMessage.includes(' | ') ? (
+                            <ul style={{ margin: 0, paddingLeft: 20 }}>
+                                {errorMessage.split(' | ').map((msg, i) => <li key={i}>{msg}</li>)}
+                            </ul>
+                        ) : errorMessage}
                     </Alert>
                 )}
 
@@ -1022,6 +1034,27 @@ export const BitrixIntegration = () => {
                                         onChange={handleFileUpload}
                                     />
                                 </Button>
+
+                                <Box
+                                    sx={{
+                                        border: '2px dashed',
+                                        borderColor: isDragging ? 'primary.main' : 'divider',
+                                        borderRadius: 2,
+                                        p: 2,
+                                        mb: 2,
+                                        textAlign: 'center',
+                                        bgcolor: isDragging
+                                            ? (theme.palette.mode === 'dark' ? 'rgba(144,202,249,0.12)' : 'rgba(25,118,210,0.06)')
+                                            : 'transparent',
+                                        transition: 'all 0.2s ease',
+                                        pointerEvents: 'none',
+                                    }}
+                                >
+                                    <CloudUpload sx={{ fontSize: 28, color: isDragging ? 'primary.main' : 'text.disabled', mb: 0.5 }} />
+                                    <Typography variant="caption" color={isDragging ? 'primary.main' : 'text.disabled'} display="block">
+                                        {isDragging ? 'Suelta los archivos aquí' : 'O arrastra archivos .xlsx aquí'}
+                                    </Typography>
+                                </Box>
 
                                 {loading && <LinearProgress sx={{ mb: 2 }} />}
 
@@ -1141,110 +1174,62 @@ export const BitrixIntegration = () => {
                                                     </Typography>
                                                 </Paper>
                                             </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Preparado UNAU
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.preparado_unau || '-'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Preparado UNAI
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.preparado_unai || '-'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Preparado UNVA
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.preparado_unva || '-'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Preparado UNAI
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.preparado_unai || '-'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Preparado UNAP
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.preparado_unap || '-'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Preparado UNEPC
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.preparado_unepc || '-'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Preparado PIC
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.preparado_pic || '-'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Preparado PAU
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.preparado_pau || '-'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
+                                            {activeUnits.has('UNAU') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Preparado UNAU</Typography>
+                                                        <Typography variant="body2">{currentFileData.preparado_unau || '-'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
+                                            {activeUnits.has('UNAI') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Preparado UNAI</Typography>
+                                                        <Typography variant="body2">{currentFileData.preparado_unai || '-'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
+                                            {activeUnits.has('UNVA') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Preparado UNVA</Typography>
+                                                        <Typography variant="body2">{currentFileData.preparado_unva || '-'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
+                                            {activeUnits.has('UNAP') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Preparado UNAP</Typography>
+                                                        <Typography variant="body2">{currentFileData.preparado_unap || '-'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
+                                            {activeUnits.has('UNEPC') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Preparado UNEPC</Typography>
+                                                        <Typography variant="body2">{currentFileData.preparado_unepc || '-'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
+                                            {activeUnits.has('PIC') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Preparado PIC</Typography>
+                                                        <Typography variant="body2">{currentFileData.preparado_pic || '-'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
+                                            {activeUnits.has('PAU') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Preparado PAU</Typography>
+                                                        <Typography variant="body2">{currentFileData.preparado_pau || '-'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
                                             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                                                 <Paper sx={{
                                                     p: 2,
@@ -1258,97 +1243,62 @@ export const BitrixIntegration = () => {
                                                     </Typography>
                                                 </Paper>
                                             </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Responsable UNAU
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.responsable_unau || 'N/A'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Responsable UNVA
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.responsable_unva || 'N/A'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Responsable UNAI
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.responsable_unai || 'N/A'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Responsable UNAP
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.responsable_unap || 'N/A'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Responsable UNEPC
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.responsable_unepc || 'N/A'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Responsable PIC
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.responsable_pic || 'N/A'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Responsable PAU
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.responsable_pau || 'N/A'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
+                                            {activeUnits.has('UNAU') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Responsable UNAU</Typography>
+                                                        <Typography variant="body2">{currentFileData.responsable_unau || 'N/A'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
+                                            {activeUnits.has('UNAI') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Responsable UNAI</Typography>
+                                                        <Typography variant="body2">{currentFileData.responsable_unai || 'N/A'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
+                                            {activeUnits.has('UNVA') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Responsable UNVA</Typography>
+                                                        <Typography variant="body2">{currentFileData.responsable_unva || 'N/A'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
+                                            {activeUnits.has('UNAP') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Responsable UNAP</Typography>
+                                                        <Typography variant="body2">{currentFileData.responsable_unap || 'N/A'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
+                                            {activeUnits.has('UNEPC') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Responsable UNEPC</Typography>
+                                                        <Typography variant="body2">{currentFileData.responsable_unepc || 'N/A'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
+                                            {activeUnits.has('PIC') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Responsable PIC</Typography>
+                                                        <Typography variant="body2">{currentFileData.responsable_pic || 'N/A'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
+                                            {activeUnits.has('PAU') && (
+                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
+                                                        <Typography variant="caption" color="text.secondary">Responsable PAU</Typography>
+                                                        <Typography variant="body2">{currentFileData.responsable_pau || 'N/A'}</Typography>
+                                                    </Paper>
+                                                </Grid>
+                                            )}
                                             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                                                 <Paper sx={{
                                                     p: 2,
@@ -1594,7 +1544,7 @@ export const BitrixIntegration = () => {
                                             </Button>
                                             <Button
                                                 variant="contained"
-                                                startIcon={processing ? null : <Send />}
+                                                startIcon={processing ? <CircularProgress size={16} color="inherit" /> : <Send />}
                                                 onClick={handleSubmit}
                                                 disabled={processing || !dealData || loadingDealData}
                                                 sx={{
