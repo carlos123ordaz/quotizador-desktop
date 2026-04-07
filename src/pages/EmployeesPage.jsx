@@ -70,7 +70,7 @@ const EmployeesPage = () => {
     const [searchInput, setSearchInput] = useState('');
     const [filterActivo, setFilterActivo] = useState('all');
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(15);
     const { user } = useContext(MainContext);
     const [stats, setStats] = useState({
         total: 0,
@@ -649,7 +649,7 @@ const EmployeesPage = () => {
                 <Divider sx={{ flexShrink: 0 }} />
 
                 <TablePagination
-                    rowsPerPageOptions={[5, 10, 25, 50, 100]}
+                    rowsPerPageOptions={[15, 25, 50, 100]}
                     component="div"
                     count={totalEmployees}
                     rowsPerPage={rowsPerPage}

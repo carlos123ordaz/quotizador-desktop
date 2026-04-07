@@ -15,7 +15,6 @@ import {
     ListItemText,
     useTheme,
     useMediaQuery,
-    Collapse,
     Tooltip,
     Avatar,
     Menu,
@@ -26,10 +25,6 @@ import {
     Menu as MenuIcon,
     ChevronLeft as ChevronLeftIcon,
     ChevronRight as ChevronRightIcon,
-    Description as DescriptionIcon,
-    IntegrationInstructions as IntegrationIcon,
-    ExpandLess,
-    ExpandMore,
     Article as ArticleIcon,
     Send as SendIcon,
     History as HistoryIcon,
@@ -56,8 +51,6 @@ const MainLayout = () => {
     const { user, setUser, mode, toggleTheme } = useContext(MainContext);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [desktopOpen, setDesktopOpen] = useState(true);
-    const [reportsOpen, setReportsOpen] = useState(true);
-    const [bitrixOpen, setBitrixOpen] = useState(true);
     const [anchorEl, setAnchorEl] = useState(null);
 
     const handleDrawerToggle = () => {
@@ -100,54 +93,36 @@ const MainLayout = () => {
     const menuItems = [
         ...(user?.es_lider ? [
             {
-                title: 'Reportes Excel',
-                icon: <DescriptionIcon />,
-                type: 'group',
-                open: reportsOpen,
-                setOpen: setReportsOpen,
-                items: [
-                    {
-                        title: 'Generar Reporte',
-                        icon: <ArticleIcon />,
-                        path: '/reports/generate',
-                    },
-                    {
-                        title: 'Historial',
-                        icon: <HistoryIcon />,
-                        path: '/reports/history',
-                    },
-                ],
+                title: 'Generar Reporte',
+                icon: <ArticleIcon />,
+                path: '/reports/generate',
+            },
+            {
+                title: 'Historial Reportes',
+                icon: <HistoryIcon />,
+                path: '/reports/history',
             },
         ] : []),
         {
-            title: 'Integración Bitrix',
-            icon: <IntegrationIcon />,
-            type: 'group',
-            open: bitrixOpen,
-            setOpen: setBitrixOpen,
-            items: [
-                {
-                    title: 'Enviar a Bitrix',
-                    icon: <SendIcon />,
-                    path: '/bitrix/send',
-                },
-                {
-                    title: 'Historial',
-                    icon: <HistoryIcon />,
-                    path: '/bitrix/history',
-                },
-                {
-                    title: 'Productos',
-                    icon: <ProductionQuantityLimits />,
-                    path: '/products',
-                },
-                {
-                    title: 'Usuarios',
-                    icon: <People />,
-                    path: '/users',
-                },
-            ],
-        }
+            title: 'Enviar a Bitrix',
+            icon: <SendIcon />,
+            path: '/bitrix/send',
+        },
+        {
+            title: 'Historial Bitrix',
+            icon: <HistoryIcon />,
+            path: '/bitrix/history',
+        },
+        {
+            title: 'Productos',
+            icon: <ProductionQuantityLimits />,
+            path: '/products',
+        },
+        {
+            title: 'Usuarios',
+            icon: <People />,
+            path: '/users',
+        },
     ];
 
     useEffect(() => {
@@ -204,102 +179,48 @@ const MainLayout = () => {
 
             <Divider />
             <List sx={{ px: 1, py: 2, flexGrow: 1 }}>
-                {menuItems.map((item) => {
-                    if (item.type === 'group') {
-                        return (
-                            <Box key={item.title}>
-                                <ListItem disablePadding sx={{ mb: 0.5 }}>
-                                    <ListItemButton
-                                        onClick={() => item.setOpen(!item.open)}
-                                        sx={{
-                                            borderRadius: 2,
-                                            justifyContent: desktopOpen ? 'initial' : 'center',
-                                            px: desktopOpen ? 2 : 2.5,
-                                            '&:hover': {
-                                                backgroundColor: theme.palette.action.hover,
-                                            },
+                {menuItems.map((item) => (
+                    <Tooltip key={item.title} title={!desktopOpen ? item.title : ''} placement="right">
+                        <ListItem disablePadding sx={{ mb: 0.5 }}>
+                            <ListItemButton
+                                onClick={() => handleNavigate(item.path)}
+                                selected={isActive(item.path)}
+                                sx={{
+                                    borderRadius: 2,
+                                    justifyContent: desktopOpen ? 'initial' : 'center',
+                                    px: desktopOpen ? 2 : 2.5,
+                                    '&.Mui-selected': {
+                                        backgroundColor: theme.palette.primary.main,
+                                        color: 'white',
+                                        '&:hover': { backgroundColor: theme.palette.primary.dark },
+                                        '& .MuiListItemIcon-root': { color: 'white' },
+                                    },
+                                    '&:hover': { backgroundColor: theme.palette.action.hover },
+                                }}
+                            >
+                                <ListItemIcon
+                                    sx={{
+                                        minWidth: desktopOpen ? 40 : 0,
+                                        mr: desktopOpen ? 2 : 0,
+                                        justifyContent: 'center',
+                                        color: isActive(item.path) ? 'white' : theme.palette.text.secondary,
+                                    }}
+                                >
+                                    {item.icon}
+                                </ListItemIcon>
+                                {desktopOpen && (
+                                    <ListItemText
+                                        primary={item.title}
+                                        primaryTypographyProps={{
+                                            fontSize: 14,
+                                            fontWeight: isActive(item.path) ? 600 : 500,
                                         }}
-                                    >
-                                        <ListItemIcon
-                                            sx={{
-                                                minWidth: desktopOpen ? 40 : 0,
-                                                mr: desktopOpen ? 2 : 0,
-                                                justifyContent: 'center',
-                                                color: theme.palette.text.secondary,
-                                            }}
-                                        >
-                                            {item.icon}
-                                        </ListItemIcon>
-                                        {desktopOpen && (
-                                            <>
-                                                <ListItemText
-                                                    primary={item.title}
-                                                    primaryTypographyProps={{
-                                                        fontSize: 14,
-                                                        fontWeight: 600,
-                                                    }}
-                                                />
-                                                {item.open ? <ExpandLess /> : <ExpandMore />}
-                                            </>
-                                        )}
-                                    </ListItemButton>
-                                </ListItem>
-
-                                <Collapse in={item.open && desktopOpen} timeout="auto" unmountOnExit>
-                                    <List component="div" disablePadding>
-                                        {item.items.map((subItem) => (
-                                            <ListItem
-                                                key={subItem.title}
-                                                disablePadding
-                                                sx={{ pl: 2 }}
-                                            >
-                                                <ListItemButton
-                                                    onClick={() => handleNavigate(subItem.path)}
-                                                    selected={isActive(subItem.path)}
-                                                    sx={{
-                                                        borderRadius: 2,
-                                                        '&.Mui-selected': {
-                                                            backgroundColor: theme.palette.primary.main,
-                                                            color: 'white',
-                                                            '&:hover': {
-                                                                backgroundColor: theme.palette.primary.dark,
-                                                            },
-                                                            '& .MuiListItemIcon-root': {
-                                                                color: 'white',
-                                                            },
-                                                        },
-                                                        '&:hover': {
-                                                            backgroundColor: theme.palette.action.hover,
-                                                        },
-                                                    }}
-                                                >
-                                                    <ListItemIcon
-                                                        sx={{
-                                                            minWidth: 36,
-                                                            color: isActive(subItem.path)
-                                                                ? 'white'
-                                                                : theme.palette.text.secondary,
-                                                        }}
-                                                    >
-                                                        {subItem.icon}
-                                                    </ListItemIcon>
-                                                    <ListItemText
-                                                        primary={subItem.title}
-                                                        primaryTypographyProps={{
-                                                            fontSize: 13,
-                                                            fontWeight: isActive(subItem.path) ? 600 : 400,
-                                                        }}
-                                                    />
-                                                </ListItemButton>
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                                </Collapse>
-                            </Box>
-                        );
-                    }
-                    return null;
-                })}
+                                    />
+                                )}
+                            </ListItemButton>
+                        </ListItem>
+                    </Tooltip>
+                ))}
             </List>
             <Divider />
             <Box sx={{ p: 2, pt: 2 }}>
@@ -337,96 +258,42 @@ const MainLayout = () => {
 
             <Divider />
             <List sx={{ px: 1, py: 2, flexGrow: 1 }}>
-                {menuItems.map((item) => {
-                    if (item.type === 'group') {
-                        return (
-                            <Box key={item.title}>
-                                <ListItem disablePadding sx={{ mb: 0.5 }}>
-                                    <ListItemButton
-                                        onClick={() => item.setOpen(!item.open)}
-                                        sx={{
-                                            borderRadius: 2,
-                                            px: 2,
-                                            '&:hover': {
-                                                backgroundColor: theme.palette.action.hover,
-                                            },
-                                        }}
-                                    >
-                                        <ListItemIcon
-                                            sx={{
-                                                minWidth: 40,
-                                                mr: 2,
-                                                color: theme.palette.text.secondary,
-                                            }}
-                                        >
-                                            {item.icon}
-                                        </ListItemIcon>
-                                        <ListItemText
-                                            primary={item.title}
-                                            primaryTypographyProps={{
-                                                fontSize: 14,
-                                                fontWeight: 600,
-                                            }}
-                                        />
-                                        {item.open ? <ExpandLess /> : <ExpandMore />}
-                                    </ListItemButton>
-                                </ListItem>
-
-                                <Collapse in={item.open} timeout="auto" unmountOnExit>
-                                    <List component="div" disablePadding>
-                                        {item.items.map((subItem) => (
-                                            <ListItem
-                                                key={subItem.title}
-                                                disablePadding
-                                                sx={{ pl: 2 }}
-                                            >
-                                                <ListItemButton
-                                                    onClick={() => handleNavigate(subItem.path)}
-                                                    selected={isActive(subItem.path)}
-                                                    sx={{
-                                                        borderRadius: 2,
-                                                        '&.Mui-selected': {
-                                                            backgroundColor: theme.palette.primary.main,
-                                                            color: 'white',
-                                                            '&:hover': {
-                                                                backgroundColor: theme.palette.primary.dark,
-                                                            },
-                                                            '& .MuiListItemIcon-root': {
-                                                                color: 'white',
-                                                            },
-                                                        },
-                                                        '&:hover': {
-                                                            backgroundColor: theme.palette.action.hover,
-                                                        },
-                                                    }}
-                                                >
-                                                    <ListItemIcon
-                                                        sx={{
-                                                            minWidth: 36,
-                                                            color: isActive(subItem.path)
-                                                                ? 'white'
-                                                                : theme.palette.text.secondary,
-                                                        }}
-                                                    >
-                                                        {subItem.icon}
-                                                    </ListItemIcon>
-                                                    <ListItemText
-                                                        primary={subItem.title}
-                                                        primaryTypographyProps={{
-                                                            fontSize: 13,
-                                                            fontWeight: isActive(subItem.path) ? 600 : 400,
-                                                        }}
-                                                    />
-                                                </ListItemButton>
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                                </Collapse>
-                            </Box>
-                        );
-                    }
-                    return null;
-                })}
+                {menuItems.map((item) => (
+                    <ListItem key={item.title} disablePadding sx={{ mb: 0.5 }}>
+                        <ListItemButton
+                            onClick={() => handleNavigate(item.path)}
+                            selected={isActive(item.path)}
+                            sx={{
+                                borderRadius: 2,
+                                px: 2,
+                                '&.Mui-selected': {
+                                    backgroundColor: theme.palette.primary.main,
+                                    color: 'white',
+                                    '&:hover': { backgroundColor: theme.palette.primary.dark },
+                                    '& .MuiListItemIcon-root': { color: 'white' },
+                                },
+                                '&:hover': { backgroundColor: theme.palette.action.hover },
+                            }}
+                        >
+                            <ListItemIcon
+                                sx={{
+                                    minWidth: 40,
+                                    mr: 2,
+                                    color: isActive(item.path) ? 'white' : theme.palette.text.secondary,
+                                }}
+                            >
+                                {item.icon}
+                            </ListItemIcon>
+                            <ListItemText
+                                primary={item.title}
+                                primaryTypographyProps={{
+                                    fontSize: 14,
+                                    fontWeight: isActive(item.path) ? 600 : 500,
+                                }}
+                            />
+                        </ListItemButton>
+                    </ListItem>
+                ))}
             </List>
         </Box>
     );
