@@ -22,14 +22,11 @@ import {
     InputAdornment,
     Stack,
     Grid,
-    Card,
-    CardContent,
     Avatar,
     CircularProgress,
     Skeleton,
     Fade,
     LinearProgress,
-    Toolbar,
     Divider,
     FormControl,
     InputLabel,
@@ -39,24 +36,153 @@ import {
     Chip,
     Tooltip,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
     Add as AddIcon,
     Delete as DeleteIcon,
     Search as SearchIcon,
     Person as PersonIcon,
     Refresh as RefreshIcon,
-    Download as DownloadIcon,
     Close as CloseIcon,
     CheckCircle as CheckCircleIcon,
     Cancel as CancelIcon,
     Sync as SyncIcon,
+    Edit as EditIcon,
+    PeopleAlt as PeopleAltIcon,
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import axios from 'axios';
 import { MainContext } from '../contexts/MainContext';
 import { CONFIG } from '../config';
 
+// ─── Helpers visuales ─────────────────────────────────────────────────────────
+
+const HEADER_CELL_SX = {
+    fontWeight: 600,
+    fontSize: '0.7rem',
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    color: 'text.secondary',
+    borderBottom: '2px solid',
+    borderBottomColor: 'divider',
+    py: 1.5,
+    px: 2,
+    whiteSpace: 'nowrap',
+};
+
+const DEP_PALETTES = [
+    { backgroundColor: '#EFF6FF', color: '#1D4ED8' },
+    { backgroundColor: '#F0FDF4', color: '#15803D' },
+    { backgroundColor: '#FFF7ED', color: '#C2410C' },
+    { backgroundColor: '#F5F3FF', color: '#7C3AED' },
+    { backgroundColor: '#FFFBEB', color: '#B45309' },
+    { backgroundColor: '#F0F9FF', color: '#0369A1' },
+];
+
+const getDepChipStyle = (value) => {
+    if (!value) return {};
+    let hash = 0;
+    for (let i = 0; i < value.length; i++) hash = (hash + value.charCodeAt(i)) % DEP_PALETTES.length;
+    return DEP_PALETTES[hash];
+};
+
+const getInitials = (nombre) => {
+    if (!nombre) return '?';
+    const parts = nombre.trim().split(' ').filter(Boolean);
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
+const AVATAR_COLORS = [
+    '#334155', '#475569', '#1E3A5F', '#36506C',
+    '#4B5563', '#3F4C5A', '#2F4858', '#5B6470',
+];
+
+const getAvatarColor = (nombre) => {
+    if (!nombre) return AVATAR_COLORS[0];
+    let hash = 0;
+    for (let i = 0; i < nombre.length; i++) hash = (hash + nombre.charCodeAt(i)) % AVATAR_COLORS.length;
+    return AVATAR_COLORS[hash];
+};
+
+// ─── Tarjeta de métrica ────────────────────────────────────────────────────────
+
+const StatCard = ({ label, value, icon, accentColor, active, onClick, loading }) => {
+    const theme = useTheme();
+    return (
+        <Tooltip title={`Filtrar: ${label}`} placement="top" arrow>
+            <Paper
+                elevation={0}
+                onClick={onClick}
+                sx={{
+                    border: '1px solid',
+                    borderColor: active ? accentColor : 'divider',
+                    borderLeft: `3px solid ${active ? accentColor : theme.palette.divider}`,
+                    borderRadius: 2,
+                    p: 2,
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease',
+                    bgcolor: active ? alpha(accentColor, 0.04) : 'background.paper',
+                    '&:hover': {
+                        borderColor: accentColor,
+                        borderLeftColor: accentColor,
+                        bgcolor: alpha(accentColor, 0.04),
+                        boxShadow: `0 2px 8px ${alpha(accentColor, 0.15)}`,
+                    },
+                    userSelect: 'none',
+                }}
+            >
+                {loading ? (
+                    <Box>
+                        <Skeleton variant="text" width="40%" height={36} />
+                        <Skeleton variant="text" width="60%" height={18} sx={{ mt: 0.5 }} />
+                    </Box>
+                ) : (
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                        <Box>
+                            <Typography
+                                variant="h4"
+                                fontWeight={700}
+                                sx={{
+                                    lineHeight: 1,
+                                    color: active ? accentColor : 'text.primary',
+                                    fontVariantNumeric: 'tabular-nums',
+                                    letterSpacing: '-0.02em',
+                                }}
+                            >
+                                {value ?? '—'}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75, fontWeight: 500 }}>
+                                {label}
+                            </Typography>
+                        </Box>
+                        <Box
+                            sx={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: 1.5,
+                                bgcolor: active ? alpha(accentColor, 0.12) : alpha(accentColor, 0.07),
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: accentColor,
+                                transition: 'all 0.18s ease',
+                                flexShrink: 0,
+                            }}
+                        >
+                            {icon}
+                        </Box>
+                    </Box>
+                )}
+            </Paper>
+        </Tooltip>
+    );
+};
+
+// ─── Componente principal ──────────────────────────────────────────────────────
+
 const EmployeesPage = () => {
+    const theme = useTheme();
 
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -73,53 +199,34 @@ const EmployeesPage = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(15);
     const { user } = useContext(MainContext);
-    const [stats, setStats] = useState({
-        total: 0,
-        activos: 0,
-        inactivos: 0,
-    });
+    const [stats, setStats] = useState({ total: 0, activos: 0, inactivos: 0 });
     const [syncing, setSyncing] = useState(false);
     const [syncResult, setSyncResult] = useState(null);
     const [syncDialogOpen, setSyncDialogOpen] = useState(false);
 
     const { control, handleSubmit, reset, formState: { errors } } = useForm({
-        defaultValues: {
-            codigo: '',
-            nombre: '',
-            activo: true,
-        },
+        defaultValues: { codigo: '', nombre: '', activo: true },
     });
-    useEffect(() => {
-        loadEmployees();
-    }, [page, rowsPerPage, searchTerm, filterActivo]);
-    useEffect(() => {
-        loadStats();
-    }, []);
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setSearchTerm(searchInput);
-            setPage(0);
-        }, 500);
 
+    useEffect(() => { loadEmployees(); }, [page, rowsPerPage, searchTerm, filterActivo]);
+    useEffect(() => { loadStats(); }, []);
+    useEffect(() => {
+        const timer = setTimeout(() => { setSearchTerm(searchInput); setPage(0); }, 500);
         return () => clearTimeout(timer);
     }, [searchInput]);
 
     const loadEmployees = async () => {
         try {
             setLoading(true);
-
             const params = {
                 skip: page * rowsPerPage,
                 limit: rowsPerPage,
                 ...(searchTerm && { search: searchTerm }),
                 ...(filterActivo !== 'all' && { activo: filterActivo === 'active' }),
             };
-
             const response = await axios.get(`${CONFIG.uri}/employees`, { params });
-
             setEmployees(response.data.empleados || []);
             setTotalEmployees(response.data.total || 0);
-
         } catch (error) {
             console.error('Error al cargar empleados:', error);
             showSnackbar('Error al cargar los empleados', 'error');
@@ -144,62 +251,45 @@ const EmployeesPage = () => {
         if (!(user && user.es_lider)) return;
         if (employee) {
             setEditingEmployee(employee);
-            reset({
-                codigo: employee.codigo || '',
-                nombre: employee.nombre || '',
-                activo: employee.activo !== false,
-            });
+            reset({ codigo: employee.codigo || '', nombre: employee.nombre || '', activo: employee.activo !== false });
         } else {
             setEditingEmployee(null);
-            reset({
-                codigo: '',
-                nombre: '',
-                activo: true,
-            });
+            reset({ codigo: '', nombre: '', activo: true });
         }
         setOpenDialog(true);
     };
 
-    const handleCloseDialog = () => {
-        setOpenDialog(false);
-        setEditingEmployee(null);
-        reset();
-    };
+    const handleCloseDialog = () => { setOpenDialog(false); setEditingEmployee(null); reset(); };
 
     const onSubmit = async (data) => {
         try {
             setLoading(true);
             if (editingEmployee) {
                 await axios.put(`${CONFIG.uri}/employees/${editingEmployee._id}`, data);
-                showSnackbar('Empleado actualizado exitosamente', 'success');
+                showSnackbar('Vendedor actualizado exitosamente', 'success');
             } else {
                 await axios.post(`${CONFIG.uri}/employees`, data);
-                showSnackbar('Empleado creado exitosamente', 'success');
+                showSnackbar('Vendedor creado exitosamente', 'success');
             }
             handleCloseDialog();
             loadEmployees();
             loadStats();
         } catch (error) {
             console.error('Error al guardar empleado:', error);
-            const errorMessage = error.response?.data?.detail || 'Error al guardar el empleado';
-            showSnackbar(errorMessage, 'error');
+            showSnackbar(error.response?.data?.detail || 'Error al guardar el vendedor', 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleOpenDeleteDialog = (employee) => {
-        setEmployeeToDelete(employee);
-        setDeleteDialogOpen(true);
-    };
+    const handleOpenDeleteDialog = (employee) => { setEmployeeToDelete(employee); setDeleteDialogOpen(true); };
 
     const handleDelete = async () => {
         try {
             setLoading(true);
-
             if (employeeToDelete) {
                 await axios.delete(`${CONFIG.uri}/employees/${employeeToDelete._id}`);
-                showSnackbar('Empleado eliminado exitosamente', 'success');
+                showSnackbar('Vendedor eliminado exitosamente', 'success');
                 setDeleteDialogOpen(false);
                 setEmployeeToDelete(null);
                 loadEmployees();
@@ -207,37 +297,17 @@ const EmployeesPage = () => {
             }
         } catch (error) {
             console.error('Error al eliminar empleado:', error);
-            showSnackbar('Error al eliminar el empleado', 'error');
+            showSnackbar('Error al eliminar el vendedor', 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-
-    const showSnackbar = (message, severity = 'success') => {
-        setSnackbar({ open: true, message, severity });
-    };
-
-    const handleCloseSnackbar = () => {
-        setSnackbar({ ...snackbar, open: false });
-    };
-
-    const handleRefresh = () => {
-        loadEmployees();
-        loadStats();
-    };
-
-    const handleExport = () => {
-        showSnackbar('Exportando a Excel...', 'info');
-    };
+    const handleChangePage = (_, newPage) => setPage(newPage);
+    const handleChangeRowsPerPage = (e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); };
+    const showSnackbar = (message, severity = 'success') => setSnackbar({ open: true, message, severity });
+    const handleCloseSnackbar = () => setSnackbar((s) => ({ ...s, open: false }));
+    const handleRefresh = () => { loadEmployees(); loadStats(); };
 
     const handleSync = async () => {
         try {
@@ -245,274 +315,284 @@ const EmployeesPage = () => {
             const response = await axios.post(`${CONFIG.uri}/employees/sync-bitrix`);
             setSyncResult(response.data);
             setSyncDialogOpen(true);
-            if (response.data.insertados > 0) {
-                loadEmployees();
-                loadStats();
-            }
+            if (response.data.insertados > 0) { loadEmployees(); loadStats(); }
         } catch (error) {
-            const errorMessage = error.response?.data?.detail || 'Error al sincronizar con Bitrix24';
-            showSnackbar(errorMessage, 'error');
+            showSnackbar(error.response?.data?.detail || 'Error al sincronizar con Bitrix24', 'error');
         } finally {
             setSyncing(false);
         }
     };
-    const renderSkeletonRows = () => {
-        return Array.from(new Array(rowsPerPage)).map((_, index) => (
-            <TableRow key={index}>
-                <TableCell><Skeleton variant="text" /></TableCell>
-                <TableCell><Skeleton variant="text" /></TableCell>
-                <TableCell><Skeleton variant="text" /></TableCell>
-                <TableCell><Skeleton variant="text" /></TableCell>
+
+    // ─── Sub-renders ────────────────────────────────────────────────────────────
+
+    const colSpan = user?.es_lider ? 5 : 4;
+    const skeletonCount = Math.min(rowsPerPage, 12);
+
+    const renderSkeletonRows = () =>
+        Array.from({ length: skeletonCount }).map((_, i) => (
+            <TableRow key={i} sx={{ '& .MuiTableCell-root': { py: 1.5, px: 2 } }}>
+                <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Skeleton variant="circular" width={32} height={32} />
+                        <Box sx={{ flexGrow: 1 }}>
+                            <Skeleton variant="text" width="70%" height={18} />
+                            <Skeleton variant="text" width="40%" height={14} />
+                        </Box>
+                    </Box>
+                </TableCell>
+                <TableCell><Skeleton variant="text" width="45%" /></TableCell>
+                <TableCell>
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <Skeleton variant="rounded" width={64} height={20} />
+                        <Skeleton variant="rounded" width={48} height={20} />
+                    </Box>
+                </TableCell>
+                <TableCell><Skeleton variant="rounded" width={60} height={22} /></TableCell>
+                {user?.es_lider && <TableCell />}
             </TableRow>
         ));
+
+    const renderEmptyState = () => {
+        const isFiltered = searchTerm || filterActivo !== 'all';
+        return (
+            <TableRow>
+                <TableCell colSpan={colSpan} sx={{ border: 'none', p: 0 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 10, px: 3 }}>
+                        <Box sx={{
+                            width: 60, height: 60, borderRadius: '50%',
+                            bgcolor: alpha(theme.palette.primary.main, 0.06),
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2,
+                        }}>
+                            <PersonIcon sx={{ fontSize: 28, color: 'text.disabled' }} />
+                        </Box>
+                        <Typography variant="subtitle1" fontWeight={600} color="text.primary" gutterBottom>
+                            {isFiltered ? 'Sin resultados' : 'Sin vendedores registrados'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" align="center" sx={{ maxWidth: 360, lineHeight: 1.6 }}>
+                            {isFiltered
+                                ? 'No encontramos vendedores con esos criterios. Prueba ajustando la búsqueda o los filtros.'
+                                : 'Aún no hay vendedores registrados. Puedes crearlos manualmente o sincronizar desde Bitrix24.'}
+                        </Typography>
+                        {!isFiltered && (
+                            <Stack direction="row" spacing={1.5} sx={{ mt: 3 }}>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={syncing ? <CircularProgress size={14} /> : <SyncIcon />}
+                                    onClick={handleSync}
+                                    disabled={syncing}
+                                    sx={{ borderRadius: 1.5 }}
+                                >
+                                    Sincronizar con Bitrix
+                                </Button>
+                                {user?.es_lider && (
+                                    <Button
+                                        variant="contained"
+                                        startIcon={<AddIcon />}
+                                        onClick={() => handleOpenDialog()}
+                                        disableElevation
+                                        sx={{ borderRadius: 1.5, fontWeight: 600 }}
+                                    >
+                                        Crear vendedor
+                                    </Button>
+                                )}
+                            </Stack>
+                        )}
+                    </Box>
+                </TableCell>
+            </TableRow>
+        );
     };
 
+    // ─── JSX ────────────────────────────────────────────────────────────────────
+
     return (
-        <Box sx={{ height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', padding: 1.5, overflow: 'hidden', boxSizing: 'border-box' }}>
+        <Box
+            sx={{
+                height: 'calc(100vh - 64px)',
+                display: 'flex',
+                flexDirection: 'column',
+                p: { xs: 2, md: 3 },
+                gap: 2.5,
+                overflow: 'hidden',
+                boxSizing: 'border-box',
+            }}
+        >
             {loading && !initialLoading && (
-                <LinearProgress
-                    sx={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        zIndex: 9999
-                    }}
-                />
+                <LinearProgress sx={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, height: 2 }} />
             )}
 
-            <Grid container spacing={1.5} sx={{ mb: 2, flexShrink: 0 }}>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                    <Tooltip title="Ver todos los vendedores" placement="top" arrow>
-                        <Card
-                            elevation={0}
-                            onClick={() => { setFilterActivo('all'); setPage(0); }}
-                            sx={{
-                                border: '1px solid',
-                                borderColor: filterActivo === 'all' ? 'primary.main' : 'divider',
-                                borderRadius: 1,
-                                transition: 'all 0.2s',
-                                cursor: 'pointer',
-                                '&:hover': {
-                                    boxShadow: 2,
-                                    borderColor: 'primary.main',
-                                }
-                            }}
-                        >
-                            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                                {initialLoading ? (
-                                    <Skeleton variant="rectangular" height={50} />
-                                ) : (
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                        <Avatar
-                                            sx={{
-                                                bgcolor: filterActivo === 'all' ? 'primary.main' : 'action.selected',
-                                                width: 40,
-                                                height: 40,
-                                                transition: 'background-color 0.2s',
-                                            }}
-                                        >
-                                            <PersonIcon fontSize="small" />
-                                        </Avatar>
-                                        <Box sx={{ flexGrow: 1 }}>
-                                            <Typography
-                                                variant="h5"
-                                                sx={{
-                                                    fontWeight: 300,
-                                                    fontSize: '1.5rem',
-                                                    lineHeight: 1.2
-                                                }}
-                                            >
-                                                {stats.total}
-                                            </Typography>
-                                            <Typography
-                                                variant="caption"
-                                                color="text.secondary"
-                                                sx={{ mt: 0.25 }}
-                                            >
-                                                Total de Vendedores
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </Tooltip>
-                </Grid>
+            {/* ── Page Header ─────────────────────────────────────────────────── */}
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexShrink: 0, gap: 2 }}>
+                <Box>
+                    <Typography
+                        variant="h5"
+                        fontWeight={700}
+                        color="text.primary"
+                        sx={{ lineHeight: 1.2, letterSpacing: '-0.01em' }}
+                    >
+                        Gestión de Vendedores
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        Administra el equipo de ventas y sincroniza con Bitrix24
+                    </Typography>
+                </Box>
 
-                <Grid size={{ xs: 12, sm: 4 }}>
-                    <Tooltip title="Filtrar por activos" placement="top" arrow>
-                        <Card
-                            elevation={0}
-                            onClick={() => { setFilterActivo('active'); setPage(0); }}
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
+                    <Tooltip title="Recargar">
+                        <IconButton
+                            onClick={handleRefresh}
+                            disabled={loading}
+                            size="small"
                             sx={{
-                                border: '1px solid',
-                                borderColor: filterActivo === 'active' ? 'success.main' : 'divider',
-                                borderRadius: 1,
-                                transition: 'all 0.2s',
-                                cursor: 'pointer',
-                                '&:hover': {
-                                    boxShadow: 2,
-                                    borderColor: 'success.main',
-                                }
+                                border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 0.875,
+                                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.04) },
                             }}
                         >
-                            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                                {initialLoading ? (
-                                    <Skeleton variant="rectangular" height={50} />
-                                ) : (
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                        <Avatar
-                                            sx={{
-                                                bgcolor: filterActivo === 'active' ? 'success.main' : 'action.selected',
-                                                width: 40,
-                                                height: 40,
-                                                transition: 'background-color 0.2s',
-                                            }}
-                                        >
-                                            <CheckCircleIcon fontSize="small" />
-                                        </Avatar>
-                                        <Box sx={{ flexGrow: 1 }}>
-                                            <Typography
-                                                variant="h5"
-                                                sx={{
-                                                    fontWeight: 300,
-                                                    fontSize: '1.5rem',
-                                                    lineHeight: 1.2,
-                                                    color: 'success.main'
-                                                }}
-                                            >
-                                                {stats.activos}
-                                            </Typography>
-                                            <Typography
-                                                variant="caption"
-                                                color="text.secondary"
-                                                sx={{ mt: 0.25 }}
-                                            >
-                                                Vendedores Activos
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                )}
-                            </CardContent>
-                        </Card>
+                            <RefreshIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
                     </Tooltip>
-                </Grid>
 
-                <Grid size={{ xs: 12, sm: 4 }}>
-                    <Tooltip title="Filtrar por inactivos" placement="top" arrow>
-                        <Card
-                            elevation={0}
-                            onClick={() => { setFilterActivo('inactive'); setPage(0); }}
+                    <Button
+                        variant="outlined"
+                        startIcon={syncing ? <CircularProgress size={14} color="inherit" /> : <SyncIcon />}
+                        onClick={handleSync}
+                        disabled={syncing || loading}
+                        sx={{
+                            borderRadius: 1.5,
+                            fontWeight: 600,
+                            fontSize: '0.875rem',
+                            px: 1.75,
+                            borderColor: alpha(theme.palette.primary.main, 0.18),
+                            bgcolor: alpha(theme.palette.primary.main, 0.02),
+                            '&:hover': {
+                                borderColor: alpha(theme.palette.primary.main, 0.35),
+                                bgcolor: alpha(theme.palette.primary.main, 0.05),
+                            },
+                        }}
+                    >
+                        Sincronizar
+                    </Button>
+
+                    {user?.es_lider && (
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={() => handleOpenDialog()}
+                            disableElevation
                             sx={{
-                                border: '1px solid',
-                                borderColor: filterActivo === 'inactive' ? 'warning.main' : 'divider',
-                                borderRadius: 1,
-                                transition: 'all 0.2s',
-                                cursor: 'pointer',
-                                '&:hover': {
-                                    boxShadow: 2,
-                                    borderColor: 'warning.main',
-                                }
+                                borderRadius: 1.5,
+                                fontWeight: 600,
+                                px: 2.5,
+                                py: 0.875,
+                                fontSize: '0.875rem',
+                                boxShadow: 'none',
+                                '&:hover': { boxShadow: 'none' },
                             }}
                         >
-                            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                                {initialLoading ? (
-                                    <Skeleton variant="rectangular" height={50} />
-                                ) : (
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                        <Avatar
-                                            sx={{
-                                                bgcolor: filterActivo === 'inactive' ? 'warning.main' : 'action.selected',
-                                                width: 40,
-                                                height: 40,
-                                                transition: 'background-color 0.2s',
-                                            }}
-                                        >
-                                            <CancelIcon fontSize="small" />
-                                        </Avatar>
-                                        <Box sx={{ flexGrow: 1 }}>
-                                            <Typography
-                                                variant="h5"
-                                                sx={{
-                                                    fontWeight: 300,
-                                                    fontSize: '1.5rem',
-                                                    lineHeight: 1.2,
-                                                    color: 'warning.main'
-                                                }}
-                                            >
-                                                {stats.inactivos}
-                                            </Typography>
-                                            <Typography
-                                                variant="caption"
-                                                color="text.secondary"
-                                                sx={{ mt: 0.25 }}
-                                            >
-                                                Vendedores Inactivos
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </Tooltip>
+                            Crear vendedor
+                        </Button>
+                    )}
+                </Stack>
+            </Box>
+
+
+
+            {/* ── Barra de filtros ─────────────────────────────────────────────── */}
+            <Grid container spacing={2} flexShrink={0}>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                    <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2, background: `linear-gradient(180deg, ${alpha(theme.palette.primary.main, 0.06)} 0%, rgba(255,255,255,0) 100%)` }}>
+                        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+                            <Box>
+                                <Typography variant="caption" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary' }}>
+                                    Total
+                                </Typography>
+                                <Typography variant="h5" fontWeight={700} sx={{ mt: 1, color: 'primary.main' }}>
+                                    {(stats.total ?? 0).toLocaleString()}
+                                </Typography>
+                            </Box>
+                            <Box sx={{ width: 40, height: 40, borderRadius: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: alpha(theme.palette.primary.main, 0.1), color: 'primary.main' }}>
+                                <PeopleAltIcon fontSize="small" />
+                            </Box>
+                        </Box>
+                    </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                    <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2, background: `linear-gradient(180deg, ${alpha(theme.palette.success.main, 0.06)} 0%, rgba(255,255,255,0) 100%)` }}>
+                        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+                            <Box>
+                                <Typography variant="caption" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary' }}>
+                                    Activos
+                                </Typography>
+                                <Typography variant="h5" fontWeight={700} sx={{ mt: 1, color: 'success.main' }}>
+                                    {(stats.activos ?? 0).toLocaleString()}
+                                </Typography>
+                            </Box>
+                            <Box sx={{ width: 40, height: 40, borderRadius: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: alpha(theme.palette.success.main, 0.1), color: 'success.main' }}>
+                                <CheckCircleIcon fontSize="small" />
+                            </Box>
+                        </Box>
+                    </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                    <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2, background: `linear-gradient(180deg, ${alpha(theme.palette.grey[600], 0.08)} 0%, rgba(255,255,255,0) 100%)` }}>
+                        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+                            <Box>
+                                <Typography variant="caption" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary' }}>
+                                    Inactivos
+                                </Typography>
+                                <Typography variant="h5" fontWeight={700} sx={{ mt: 1, color: 'text.primary' }}>
+                                    {(stats.inactivos ?? 0).toLocaleString()}
+                                </Typography>
+                            </Box>
+                            <Box sx={{ width: 40, height: 40, borderRadius: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: alpha(theme.palette.grey[600], 0.12), color: 'text.secondary' }}>
+                                <CancelIcon fontSize="small" />
+                            </Box>
+                        </Box>
+                    </Paper>
                 </Grid>
             </Grid>
-            <Paper
-                elevation={0}
-                sx={{
-                    mb: 1.5,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    flexShrink: 0,
-                }}
-            >
-                <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 'auto', sm: 56 }, py: { xs: 1.5, sm: 0 } }}>
+
+            <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.75, flexShrink: 0 }}>
+                <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" gap={1.5}>
                     <TextField
-                        placeholder="Buscar vendedores..."
+                        placeholder="Buscar por nombre o código..."
                         size="small"
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                         sx={{
-                            flexGrow: 1,
-                            minWidth: 200,
-                            maxWidth: 400,
+                            flexGrow: 1, minWidth: 200, maxWidth: 440,
                             '& .MuiOutlinedInput-root': {
-                                bgcolor: 'background.paper'
-                            }
+                                borderRadius: 1.5,
+                                bgcolor: alpha(theme.palette.grey[500], 0.04),
+                                '&:hover': { bgcolor: 'background.paper' },
+                                '&.Mui-focused': { bgcolor: 'background.paper' },
+                            },
                         }}
                         InputProps={{
                             startAdornment: (
                                 <InputAdornment position="start">
-                                    <SearchIcon color="action" />
+                                    <SearchIcon sx={{ color: 'text.disabled', fontSize: 18 }} />
                                 </InputAdornment>
                             ),
                             endAdornment: searchInput ? (
                                 <InputAdornment position="end">
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => { setSearchInput(''); setSearchTerm(''); setPage(0); }}
-                                        edge="end"
-                                    >
-                                        <CloseIcon fontSize="small" />
+                                    <IconButton size="small" edge="end" onClick={() => { setSearchInput(''); setSearchTerm(''); setPage(0); }}>
+                                        <CloseIcon sx={{ fontSize: 16 }} />
                                     </IconButton>
                                 </InputAdornment>
                             ) : null,
                         }}
                     />
 
-                    <FormControl size="small" sx={{ minWidth: 140 }}>
+                    <FormControl size="small" sx={{ minWidth: 170 }}>
                         <InputLabel>Estado</InputLabel>
                         <Select
                             value={filterActivo}
                             label="Estado"
-                            onChange={(e) => {
-                                setFilterActivo(e.target.value);
-                                setPage(0);
-                            }}
+                            onChange={(e) => { setFilterActivo(e.target.value); setPage(0); }}
+                            sx={{ borderRadius: 1.5 }}
                         >
-                            <MenuItem value="all">Todos</MenuItem>
+                            <MenuItem value="all">Todos los estados</MenuItem>
                             <MenuItem value="active">Activos</MenuItem>
                             <MenuItem value="inactive">Inactivos</MenuItem>
                         </Select>
@@ -520,130 +600,109 @@ const EmployeesPage = () => {
 
                     <Box sx={{ flexGrow: 1 }} />
 
-                    <Stack direction="row" spacing={1}>
-                        <Tooltip title="Actualizar lista" arrow>
-                            <span>
-                                <IconButton
-                                    onClick={handleRefresh}
-                                    disabled={loading}
-                                    size="small"
-                                    sx={{
-                                        border: '1px solid',
-                                        borderColor: 'divider',
-                                        borderRadius: 1
-                                    }}
-                                >
-                                    <RefreshIcon />
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={syncing ? <CircularProgress size={14} /> : <SyncIcon />}
-                            onClick={handleSync}
-                            disabled={syncing || loading}
-                        >
-                            Sincronizar
-                        </Button>
-                        {
-                            user && user.es_lider && (
-                                <Button
-                                    variant="contained"
-                                    size="small"
-                                    startIcon={<AddIcon />}
-                                    onClick={() => handleOpenDialog()}
-                                    disableElevation
-                                >
-                                    Crear
-                                </Button>
-                            )
-                        }
-                    </Stack>
-                </Toolbar>
+                    {!initialLoading && (
+                        <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                            {totalEmployees.toLocaleString()} {totalEmployees === 1 ? 'vendedor' : 'vendedores'}
+                        </Typography>
+                    )}
+                </Stack>
             </Paper>
 
-            {/* Tabla de empleados - Estilo SAP Fiori */}
+            {/* ── Tabla ────────────────────────────────────────────────────────── */}
             <Paper
                 elevation={0}
                 sx={{
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    flexGrow: 1,
-                    minHeight: 0,
-                    maxHeight: '100%',
+                    border: '1px solid', borderColor: 'divider', borderRadius: 2,
+                    overflow: 'hidden', display: 'flex', flexDirection: 'column',
+                    flexGrow: 1, minHeight: 0,
                 }}
             >
                 <TableContainer sx={{
-                    flexGrow: 1,
-                    flexShrink: 1,
-                    overflow: 'auto',
-                    minHeight: 0,
-                    // Ocultar scrollbar
-                    '&::-webkit-scrollbar': {
-                        display: 'none',
-                    },
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none',
+                    flexGrow: 1, overflow: 'auto',
+                    '&::-webkit-scrollbar': { display: 'none' },
+                    scrollbarWidth: 'none', msOverflowStyle: 'none',
                 }}>
                     <Table stickyHeader size="small" sx={{ tableLayout: 'fixed' }}>
                         <TableHead>
                             <TableRow>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '15%', py: 1 }}>ID</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '40%', py: 1 }}>Nombre</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '30%', py: 1 }}>Departamentos</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '15%', py: 1 }}>Estado</TableCell>
+                                <TableCell sx={{ ...HEADER_CELL_SX, width: '35%' }}>Vendedor</TableCell>
+                                <TableCell sx={{ ...HEADER_CELL_SX, width: '13%' }}>Código</TableCell>
+                                <TableCell sx={{ ...HEADER_CELL_SX, width: '38%' }}>Departamentos</TableCell>
+                                <TableCell sx={{ ...HEADER_CELL_SX, width: '10%' }}>Estado</TableCell>
+                                {user?.es_lider && <TableCell sx={{ ...HEADER_CELL_SX, width: '8%' }} />}
                             </TableRow>
                         </TableHead>
+
                         <TableBody>
                             {initialLoading ? (
                                 renderSkeletonRows()
                             ) : employees.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={4} align="center" sx={{ py: 8 }}>
-                                        <PersonIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
-                                        <Typography variant="h6" color="text.secondary" gutterBottom>
-                                            {searchTerm || filterActivo !== 'all'
-                                                ? 'No se encontraron vendedores'
-                                                : 'No hay vendedores registrados'}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            {searchTerm || filterActivo !== 'all'
-                                                ? 'Intenta ajustar los filtros de búsqueda'
-                                                : 'Comienza creando un nuevo empleado'}
-                                        </Typography>
-                                    </TableCell>
-                                </TableRow>
+                                renderEmptyState()
                             ) : (
-                                employees.map((employee) => (
+                                employees.map((employee, index) => (
                                     <TableRow
                                         key={employee._id}
                                         hover
-                                        sx={{
-                                            cursor: 'pointer',
-                                            '&:hover': {
-                                                bgcolor: 'action.hover',
-                                            },
-                                            '& .MuiTableCell-root': {
-                                                py: 1.25
-                                            }
-                                        }}
                                         onClick={() => handleOpenDialog(employee)}
+                                        sx={{
+                                            cursor: user?.es_lider ? 'pointer' : 'default',
+                                            bgcolor: index % 2 !== 0 ? alpha(theme.palette.grey[500], 0.02) : 'transparent',
+                                            transition: 'background-color 0.18s ease',
+                                            '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.035) },
+                                            '& .MuiTableCell-root': {
+                                                py: 1.375, px: 2,
+                                                borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                                            },
+                                            '&:last-child .MuiTableCell-root': { borderBottom: 'none' },
+                                        }}
                                     >
+                                        {/* Vendedor (avatar + nombre) */}
                                         <TableCell>
-                                            <Typography variant="body2" fontWeight={500} sx={{ fontSize: '0.8125rem' }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                <Avatar
+                                                    sx={{
+                                                        width: 32, height: 32,
+                                                        fontSize: '0.75rem', fontWeight: 700,
+                                                        bgcolor: employee.activo
+                                                            ? getAvatarColor(employee.nombre)
+                                                            : alpha(theme.palette.grey[500], 0.3),
+                                                        color: employee.activo ? '#fff' : 'text.disabled',
+                                                        flexShrink: 0,
+                                                    }}
+                                                >
+                                                    {getInitials(employee.nombre)}
+                                                </Avatar>
+                                                <Typography
+                                                    variant="body2"
+                                                    fontWeight={500}
+                                                    noWrap
+                                                    sx={{
+                                                        fontSize: '0.8125rem',
+                                                        color: employee.activo ? 'text.primary' : 'text.secondary',
+                                                    }}
+                                                >
+                                                    {employee.nombre || '—'}
+                                                </Typography>
+                                            </Box>
+                                        </TableCell>
+
+                                        {/* Código */}
+                                        <TableCell>
+                                            <Typography
+                                                variant="body2"
+                                                fontWeight={600}
+                                                sx={{
+                                                    fontSize: '0.8rem',
+                                                    fontFamily: '"Roboto Mono", "Courier New", monospace',
+                                                    color: 'text.secondary',
+                                                    letterSpacing: '0.02em',
+                                                }}
+                                            >
                                                 {employee.codigo}
                                             </Typography>
                                         </TableCell>
-                                        <TableCell>
-                                            <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
-                                                {employee.nombre}
-                                            </Typography>
-                                        </TableCell>
+
+                                        {/* Departamentos */}
                                         <TableCell>
                                             {employee.departamentos && employee.departamentos.length > 0 ? (
                                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -652,23 +711,66 @@ const EmployeesPage = () => {
                                                             key={dep}
                                                             label={dep}
                                                             size="small"
-                                                            variant="outlined"
-                                                            sx={{ height: 20, fontSize: '0.7rem' }}
+                                                            sx={{
+                                                                height: 20,
+                                                                fontSize: '0.7rem',
+                                                                fontWeight: 500,
+                                                                borderRadius: 0.75,
+                                                                '& .MuiChip-label': { px: 0.875 },
+                                                                ...getDepChipStyle(dep),
+                                                            }}
                                                         />
                                                     ))}
                                                 </Box>
                                             ) : (
-                                                <Typography variant="body2" color="text.disabled" sx={{ fontSize: '0.8125rem' }}>—</Typography>
+                                                <Typography variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.disabled' }}>—</Typography>
                                             )}
                                         </TableCell>
+
+                                        {/* Estado */}
                                         <TableCell>
                                             <Chip
                                                 label={employee.activo ? 'Activo' : 'Inactivo'}
-                                                color={employee.activo ? 'success' : 'default'}
                                                 size="small"
-                                                sx={{ fontWeight: 500, height: 24, fontSize: '0.75rem' }}
+                                                sx={{
+                                                    height: 22,
+                                                    fontSize: '0.72rem',
+                                                    fontWeight: 600,
+                                                    borderRadius: 1,
+                                                    '& .MuiChip-label': { px: 1 },
+                                                    ...(employee.activo
+                                                        ? { backgroundColor: '#F0FDF4', color: '#15803D' }
+                                                        : { backgroundColor: alpha(theme.palette.grey[500], 0.1), color: 'text.secondary' }
+                                                    ),
+                                                }}
                                             />
                                         </TableCell>
+
+                                        {/* Acciones (solo líder) */}
+                                        {user?.es_lider && (
+                                            <TableCell align="right" onClick={(e) => e.stopPropagation()}>
+                                                <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                                                    <Tooltip title="Editar" placement="top">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={(e) => { e.stopPropagation(); handleOpenDialog(employee); }}
+                                                            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, color: 'text.secondary', '&:hover': { color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.08), borderColor: alpha(theme.palette.primary.main, 0.2) } }}
+                                                        >
+                                                            <EditIcon sx={{ fontSize: 15 }} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    <Tooltip title="Eliminar" placement="top">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={(e) => { e.stopPropagation(); handleOpenDeleteDialog(employee); }}
+                                                            sx={{ border: '1px solid', borderColor: alpha(theme.palette.error.main, 0.18), borderRadius: 1.5, color: 'text.secondary', '&:hover': { color: 'error.main', bgcolor: alpha(theme.palette.error.main, 0.08), borderColor: alpha(theme.palette.error.main, 0.26) } }}
+                                                        >
+                                                            <DeleteIcon sx={{ fontSize: 15 }} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Stack>
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 ))
                             )}
@@ -686,59 +788,82 @@ const EmployeesPage = () => {
                     page={page}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
-                    labelRowsPerPage="Filas por página"
+                    labelRowsPerPage="Filas por página:"
                     labelDisplayedRows={({ from, to, count }) =>
-                        `${from}–${to} de ${count !== -1 ? count : `más de ${to}`}`
+                        `${from}–${to} de ${count !== -1 ? count.toLocaleString() : `más de ${to}`}`
                     }
                     sx={{
-                        borderTop: 'none',
-                        flexShrink: 0,
-                        '.MuiTablePagination-toolbar': {
-                            minHeight: 48,
-                            py: 0.5,
-                        }
+                        flexShrink: 0, borderTop: 'none',
+                        '.MuiTablePagination-toolbar': { minHeight: 52, px: 2 },
+                        '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': { fontSize: '0.8125rem', color: 'text.secondary' },
                     }}
                 />
             </Paper>
 
-            {/* Diálogo de crear/editar empleado */}
+            {/* ── Diálogo crear / editar ───────────────────────────────────────── */}
             <Dialog
                 open={openDialog}
                 onClose={handleCloseDialog}
                 maxWidth="sm"
                 fullWidth
                 TransitionComponent={Fade}
+                PaperProps={{ sx: { borderRadius: 2.5 } }}
             >
-                <DialogTitle sx={{ pb: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography variant="h6" fontWeight={400}>
-                            {editingEmployee ? 'Editar Empleado' : 'Nuevo Empleado'}
-                        </Typography>
-                        <IconButton onClick={handleCloseDialog} size="small">
-                            <CloseIcon />
+                <DialogTitle sx={{ pb: 0, pt: 3, px: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                        <Box>
+                            <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.2 }}>
+                                {editingEmployee ? 'Editar vendedor' : 'Nuevo vendedor'}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                {editingEmployee
+                                    ? `Modificando: ${editingEmployee.nombre}`
+                                    : 'Completa los campos para registrar un vendedor'}
+                            </Typography>
+                        </Box>
+                        <IconButton onClick={handleCloseDialog} size="small" sx={{ mt: -0.5, color: 'text.secondary' }}>
+                            <CloseIcon fontSize="small" />
                         </IconButton>
                     </Box>
                 </DialogTitle>
-                <Divider />
+
+                <Divider sx={{ mt: 2.5 }} />
+
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <DialogContent sx={{ pt: 3 }}>
-                        <Grid container spacing={2}>
-                            <Grid size={{ xs: 12 }}>
+                    <DialogContent sx={{ pt: 3, px: 3, pb: 2 }}>
+                        <Grid container spacing={2.5}>
+                            <Grid size={{ xs: 12 }} sm={5}>
                                 <Controller
                                     name="codigo"
                                     control={control}
-                                    rules={{ required: 'El ID es requerido' }}
+                                    rules={{ required: 'El código es requerido' }}
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
-                                            label="ID"
+                                            label="Código"
                                             fullWidth
                                             size="small"
+                                            placeholder="Ej: EMP001"
                                             error={!!errors.codigo}
                                             helperText={errors.codigo?.message}
                                             disabled={!!editingEmployee}
-                                            placeholder="Ej: EMP001"
+                                            InputProps={{ sx: { fontFamily: '"Roboto Mono", "Courier New", monospace', fontSize: '0.875rem' } }}
                                         />
+                                    )}
+                                />
+                            </Grid>
+                            <Grid size={{ xs: 12 }} sm={7}>
+                                <Controller
+                                    name="activo"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <FormControl fullWidth size="small">
+                                            <InputLabel>Estado</InputLabel>
+                                            <Select {...field} label="Estado">
+                                                <MenuItem value={true}>Activo</MenuItem>
+                                                <MenuItem value={false}>Inactivo</MenuItem>
+                                            </Select>
+                                        </FormControl>
                                     )}
                                 />
                             </Grid>
@@ -750,57 +875,39 @@ const EmployeesPage = () => {
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
-                                            label="Nombre Completo"
+                                            label="Nombre completo"
                                             fullWidth
                                             size="small"
+                                            placeholder="Ej: Juan Pérez García"
                                             error={!!errors.nombre}
                                             helperText={errors.nombre?.message}
-                                            placeholder="Ej: Juan Pérez García"
                                         />
-                                    )}
-                                />
-                            </Grid>
-                            <Grid size={{ xs: 12 }}>
-                                <Controller
-                                    name="activo"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            label="Estado"
-                                            fullWidth
-                                            size="small"
-                                            select
-                                        >
-                                            <MenuItem value={true}>Activo</MenuItem>
-                                            <MenuItem value={false}>Inactivo</MenuItem>
-                                        </TextField>
                                     )}
                                 />
                             </Grid>
                         </Grid>
                     </DialogContent>
+
                     <Divider />
+
                     <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between' }}>
                         <Box>
                             {editingEmployee && (
                                 <Button
-                                    onClick={() => {
-                                        handleCloseDialog();
-                                        handleOpenDeleteDialog(editingEmployee);
-                                    }}
+                                    onClick={() => { handleCloseDialog(); handleOpenDeleteDialog(editingEmployee); }}
                                     variant="outlined"
                                     color="error"
                                     size="small"
                                     startIcon={<DeleteIcon />}
                                     disabled={loading}
+                                    sx={{ borderRadius: 1.5 }}
                                 >
                                     Eliminar
                                 </Button>
                             )}
                         </Box>
                         <Stack direction="row" spacing={1}>
-                            <Button onClick={handleCloseDialog} variant="outlined" size="small">
+                            <Button onClick={handleCloseDialog} variant="outlined" size="small" sx={{ borderRadius: 1.5 }}>
                                 Cancelar
                             </Button>
                             <Button
@@ -809,6 +916,7 @@ const EmployeesPage = () => {
                                 size="small"
                                 disableElevation
                                 disabled={loading}
+                                sx={{ borderRadius: 1.5, fontWeight: 600, minWidth: 90 }}
                             >
                                 {editingEmployee ? 'Actualizar' : 'Crear'}
                             </Button>
@@ -817,35 +925,36 @@ const EmployeesPage = () => {
                 </form>
             </Dialog>
 
-            {/* Diálogo de confirmación de eliminación */}
+            {/* ── Diálogo confirmar eliminación ────────────────────────────────── */}
             <Dialog
                 open={deleteDialogOpen}
                 onClose={() => setDeleteDialogOpen(false)}
                 maxWidth="xs"
                 fullWidth
+                PaperProps={{ sx: { borderRadius: 2.5 } }}
             >
-                <DialogTitle sx={{ pb: 1 }}>
-                    <Typography variant="h6" fontWeight={400}>
-                        Confirmar Eliminación
-                    </Typography>
+                <DialogTitle sx={{ pb: 0, pt: 3, px: 3 }}>
+                    <Typography variant="h6" fontWeight={700}>Eliminar vendedor</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Esta acción no se puede deshacer</Typography>
                 </DialogTitle>
-                <Divider />
-                <DialogContent sx={{ pt: 3 }}>
-                    <Alert severity="warning" sx={{ mb: 2 }}>
-                        Esta acción no se puede deshacer
+
+                <Divider sx={{ mt: 2.5 }} />
+
+                <DialogContent sx={{ pt: 2.5, px: 3 }}>
+                    <Alert severity="warning" variant="outlined" sx={{ mb: 2, borderRadius: 1.5, fontSize: '0.8125rem' }}>
+                        Se eliminará permanentemente este vendedor del sistema.
                     </Alert>
-                    <Typography variant="body2">
-                        ¿Estás seguro de que deseas eliminar al empleado{' '}
-                        <strong>{employeeToDelete?.nombre}</strong> (ID: {employeeToDelete?.codigo})?
+                    <Typography variant="body2" color="text.secondary">
+                        ¿Confirmas que deseas eliminar a{' '}
+                        <Box component="span" fontWeight={700} color="text.primary">{employeeToDelete?.nombre}</Box>
+                        {' '}(código: <Box component="span" fontWeight={600} sx={{ fontFamily: 'monospace' }}>{employeeToDelete?.codigo}</Box>)?
                     </Typography>
                 </DialogContent>
+
                 <Divider />
+
                 <DialogActions sx={{ px: 3, py: 2 }}>
-                    <Button
-                        onClick={() => setDeleteDialogOpen(false)}
-                        variant="outlined"
-                        size="small"
-                    >
+                    <Button onClick={() => setDeleteDialogOpen(false)} variant="outlined" size="small" sx={{ borderRadius: 1.5 }}>
                         Cancelar
                     </Button>
                     <Button
@@ -855,99 +964,142 @@ const EmployeesPage = () => {
                         size="small"
                         disableElevation
                         disabled={loading}
+                        sx={{ borderRadius: 1.5, fontWeight: 600, minWidth: 90 }}
                     >
                         Eliminar
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            {/* Backdrop de carga */}
-            <Backdrop
-                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-                open={loading && openDialog}
-            >
-                <CircularProgress color="inherit" />
-            </Backdrop>
-
-            {/* Dialog resultado de sincronización */}
+            {/* ── Diálogo resultado de sincronización ─────────────────────────── */}
             <Dialog
                 open={syncDialogOpen}
                 onClose={() => setSyncDialogOpen(false)}
                 maxWidth="xs"
                 fullWidth
+                PaperProps={{ sx: { borderRadius: 2.5 } }}
             >
-                <DialogTitle sx={{ pb: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography variant="h6" fontWeight={400}>
-                            Resultado de Sincronización
-                        </Typography>
-                        <IconButton onClick={() => setSyncDialogOpen(false)} size="small">
-                            <CloseIcon />
+                <DialogTitle sx={{ pb: 0, pt: 3, px: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                        <Box>
+                            <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.2 }}>
+                                Sincronización completada
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                Resultado de la sincronización con Bitrix24
+                            </Typography>
+                        </Box>
+                        <IconButton onClick={() => setSyncDialogOpen(false)} size="small" sx={{ mt: -0.5, color: 'text.secondary' }}>
+                            <CloseIcon fontSize="small" />
                         </IconButton>
                     </Box>
                 </DialogTitle>
-                <Divider />
-                <DialogContent sx={{ pt: 2 }}>
+
+                <Divider sx={{ mt: 2.5 }} />
+
+                <DialogContent sx={{ pt: 2.5, px: 3, pb: 2 }}>
                     {syncResult && (
-                        <Stack spacing={1.5}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2" color="text.secondary">Usuarios en Bitrix24:</Typography>
-                                <Typography variant="body2" fontWeight={500}>{syncResult.total_bitrix}</Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2" color="text.secondary">Ya existían en BD:</Typography>
-                                <Typography variant="body2" fontWeight={500}>{syncResult.ya_existentes}</Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2" color="text.secondary">Nuevos insertados:</Typography>
-                                <Typography variant="body2" fontWeight={500} color={syncResult.insertados > 0 ? 'success.main' : 'text.primary'}>
-                                    {syncResult.insertados}
-                                </Typography>
-                            </Box>
-                            {syncResult.detalle && syncResult.detalle.length > 0 && (
-                                <Box sx={{ mt: 1 }}>
-                                    <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-                                        Nuevos usuarios:
+                        <Stack spacing={0}>
+                            {[
+                                { label: 'Usuarios en Bitrix24', value: syncResult.total_bitrix },
+                                { label: 'Ya existían en sistema', value: syncResult.ya_existentes },
+                                { label: 'Nuevos insertados', value: syncResult.insertados, highlight: syncResult.insertados > 0 },
+                            ].map(({ label, value, highlight }) => (
+                                <Box
+                                    key={label}
+                                    sx={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        py: 1.25,
+                                        borderBottom: '1px solid',
+                                        borderColor: alpha(theme.palette.divider, 0.6),
+                                        '&:last-of-type': { borderBottom: 'none' },
+                                    }}
+                                >
+                                    <Typography variant="body2" color="text.secondary">{label}</Typography>
+                                    <Typography
+                                        variant="body2"
+                                        fontWeight={700}
+                                        color={highlight ? 'success.main' : 'text.primary'}
+                                        sx={{ fontVariantNumeric: 'tabular-nums' }}
+                                    >
+                                        {value}
                                     </Typography>
-                                    <Box sx={{ maxHeight: 180, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
-                                        {syncResult.detalle.map((u) => (
-                                            <Typography key={u.codigo} variant="caption" display="block" sx={{ py: 0.25 }}>
-                                                {u.codigo} — {u.nombre}
-                                            </Typography>
+                                </Box>
+                            ))}
+
+                            {syncResult.detalle && syncResult.detalle.length > 0 && (
+                                <Box sx={{ mt: 2 }}>
+                                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        Nuevos usuarios ({syncResult.detalle.length})
+                                    </Typography>
+                                    <Box
+                                        sx={{
+                                            maxHeight: 160,
+                                            overflowY: 'auto',
+                                            border: '1px solid',
+                                            borderColor: 'divider',
+                                            borderRadius: 1.5,
+                                            bgcolor: alpha(theme.palette.grey[500], 0.03),
+                                        }}
+                                    >
+                                        {syncResult.detalle.map((u, i) => (
+                                            <Box
+                                                key={u.codigo}
+                                                sx={{
+                                                    display: 'flex',
+                                                    gap: 1.5,
+                                                    px: 1.5,
+                                                    py: 0.875,
+                                                    borderBottom: i < syncResult.detalle.length - 1 ? '1px solid' : 'none',
+                                                    borderColor: alpha(theme.palette.divider, 0.5),
+                                                    alignItems: 'center',
+                                                }}
+                                            >
+                                                <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 600, color: 'text.secondary', flexShrink: 0 }}>
+                                                    {u.codigo}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.primary" noWrap>
+                                                    {u.nombre}
+                                                </Typography>
+                                            </Box>
                                         ))}
                                     </Box>
                                 </Box>
                             )}
+
                             {syncResult.insertados === 0 && (
-                                <Alert severity="info" sx={{ mt: 1 }}>
-                                    No hay usuarios nuevos por agregar.
+                                <Alert severity="info" variant="outlined" sx={{ mt: 2, borderRadius: 1.5, fontSize: '0.8125rem' }}>
+                                    No hay usuarios nuevos por agregar. El sistema ya está actualizado.
                                 </Alert>
                             )}
                         </Stack>
                     )}
                 </DialogContent>
+
                 <Divider />
+
                 <DialogActions sx={{ px: 3, py: 2 }}>
-                    <Button onClick={() => setSyncDialogOpen(false)} variant="outlined" size="small">
+                    <Button onClick={() => setSyncDialogOpen(false)} variant="contained" size="small" disableElevation sx={{ borderRadius: 1.5, fontWeight: 600 }}>
                         Cerrar
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            {/* Snackbar de notificaciones */}
+            {/* Backdrop de carga en dialog */}
+            <Backdrop sx={{ color: '#fff', zIndex: (t) => t.zIndex.drawer + 1 }} open={loading && openDialog}>
+                <CircularProgress color="inherit" size={32} />
+            </Backdrop>
+
+            {/* Snackbar */}
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={4000}
                 onClose={handleCloseSnackbar}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-                <Alert
-                    onClose={handleCloseSnackbar}
-                    severity={snackbar.severity}
-                    variant="filled"
-                    sx={{ width: '100%' }}
-                    elevation={6}
-                >
+                <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant="filled" sx={{ width: '100%', borderRadius: 1.5 }} elevation={6}>
                     {snackbar.message}
                 </Alert>
             </Snackbar>

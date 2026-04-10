@@ -22,39 +22,72 @@ import {
     InputAdornment,
     Stack,
     Grid,
-    Card,
-    CardContent,
-    Avatar,
     CircularProgress,
     Skeleton,
     Fade,
     LinearProgress,
-    Toolbar,
     Divider,
     FormControl,
     InputLabel,
     Select,
     MenuItem,
     Backdrop,
+    Chip,
+    Tooltip,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
     Add as AddIcon,
     Edit as EditIcon,
     Delete as DeleteIcon,
     Search as SearchIcon,
     Inventory as InventoryIcon,
-    Download as DownloadIcon,
-    Upload as UploadIcon,
     Close as CloseIcon,
     Refresh as RefreshIcon,
-    FilterList as FilterListIcon,
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import axios from 'axios';
 import { MainContext } from '../contexts/MainContext';
 import { CONFIG } from '../config';
 
+// ─── Helpers visuales ─────────────────────────────────────────────────────────
+
+const HEADER_CELL_SX = {
+    fontWeight: 600,
+    fontSize: '0.7rem',
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    color: 'text.secondary',
+    borderBottom: '2px solid',
+    borderBottomColor: 'divider',
+    py: 1.5,
+    px: 2,
+    whiteSpace: 'nowrap',
+};
+
+const UN_PALETTES = [
+    { backgroundColor: '#EFF6FF', color: '#1D4ED8' },
+    { backgroundColor: '#F0FDF4', color: '#15803D' },
+    { backgroundColor: '#FFF7ED', color: '#C2410C' },
+    { backgroundColor: '#F5F3FF', color: '#7C3AED' },
+    { backgroundColor: '#FFFBEB', color: '#B45309' },
+    { backgroundColor: '#FFF1F2', color: '#BE123C' },
+    { backgroundColor: '#F0F9FF', color: '#0369A1' },
+    { backgroundColor: '#FDF4FF', color: '#9333EA' },
+];
+
+const getUNChipStyle = (value) => {
+    if (!value) return {};
+    let hash = 0;
+    for (let i = 0; i < value.length; i++) hash = (hash + value.charCodeAt(i)) % UN_PALETTES.length;
+    return UN_PALETTES[hash];
+};
+
+// ─── Componente principal ──────────────────────────────────────────────────────
+
 const ProductsPage = () => {
+    const theme = useTheme();
+
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
@@ -70,6 +103,7 @@ const ProductsPage = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(15);
     const { user } = useContext(MainContext);
+
     const { control, handleSubmit, reset, formState: { errors } } = useForm({
         defaultValues: {
             code: '',
@@ -80,36 +114,31 @@ const ProductsPage = () => {
             area2: '',
         },
     });
+
     useEffect(() => {
         loadProducts();
     }, [page, rowsPerPage, searchTerm, filterActivo]);
 
-    // Debounce para búsqueda
     useEffect(() => {
         const timer = setTimeout(() => {
             setSearchTerm(searchInput);
-            setPage(0); // Reset a la primera página al buscar
+            setPage(0);
         }, 500);
-
         return () => clearTimeout(timer);
     }, [searchInput]);
 
     const loadProducts = async () => {
         try {
             setLoading(true);
-
             const params = {
                 skip: page * rowsPerPage,
                 limit: rowsPerPage,
                 ...(searchTerm && { search: searchTerm }),
                 ...(filterActivo !== 'all' && { activo: filterActivo === 'active' }),
             };
-
             const response = await axios.get(`${CONFIG.uri}/products`, { params });
-
             setProducts(response.data.productos || []);
             setTotalProducts(response.data.total || 0);
-
         } catch (error) {
             console.error('Error al cargar productos:', error);
             showSnackbar('Error al cargar los productos', 'error');
@@ -120,6 +149,7 @@ const ProductsPage = () => {
             setInitialLoading(false);
         }
     };
+
     const handleOpenDialog = (product = null) => {
         if (!(user && user.es_lider)) return;
         if (product) {
@@ -134,14 +164,7 @@ const ProductsPage = () => {
             });
         } else {
             setEditingProduct(null);
-            reset({
-                code: '',
-                name_excel: '',
-                name_bitrix: '',
-                unidad_negocio: '',
-                area1: '',
-                area2: '',
-            });
+            reset({ code: '', name_excel: '', name_bitrix: '', unidad_negocio: '', area1: '', area2: '' });
         }
         setOpenDialog(true);
     };
@@ -155,20 +178,15 @@ const ProductsPage = () => {
     const onSubmit = async (data) => {
         try {
             setLoading(true);
-
             if (editingProduct) {
-                // Actualizar producto existente
                 await axios.put(`${CONFIG.uri}/products/${editingProduct._id}`, data);
                 showSnackbar('Producto actualizado exitosamente', 'success');
             } else {
-                // Crear nuevo producto
                 await axios.post(`${CONFIG.uri}/products`, data);
                 showSnackbar('Producto creado exitosamente', 'success');
             }
-
             handleCloseDialog();
             loadProducts();
-
         } catch (error) {
             console.error('Error al guardar producto:', error);
             showSnackbar('Error al guardar el producto', 'error');
@@ -185,7 +203,6 @@ const ProductsPage = () => {
     const handleDelete = async () => {
         try {
             setLoading(true);
-
             if (productToDelete) {
                 await axios.delete(`${CONFIG.uri}/products/${productToDelete._id}`);
                 showSnackbar('Producto eliminado exitosamente', 'success');
@@ -201,111 +218,137 @@ const ProductsPage = () => {
         }
     };
 
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
+    const handleChangePage = (event, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
+    const showSnackbar = (message, severity = 'success') => setSnackbar({ open: true, message, severity });
+    const handleCloseSnackbar = () => setSnackbar((s) => ({ ...s, open: false }));
+    const handleRefresh = () => loadProducts();
 
-    const showSnackbar = (message, severity = 'success') => {
-        setSnackbar({ open: true, message, severity });
-    };
+    // ─── Sub-renders ────────────────────────────────────────────────────────────
 
-    const handleCloseSnackbar = () => {
-        setSnackbar({ ...snackbar, open: false });
-    };
+    const skeletonCount = Math.min(rowsPerPage, 12);
+    const colSpan = user?.es_lider ? 7 : 6;
 
-    const handleRefresh = () => {
-        loadProducts();
-
-    };
-    const renderSkeletonRows = () => {
-        return Array.from(new Array(rowsPerPage)).map((_, index) => (
-            <TableRow key={index}>
-                <TableCell><Skeleton variant="text" /></TableCell>
-                <TableCell><Skeleton variant="text" /></TableCell>
-                <TableCell><Skeleton variant="text" /></TableCell>
-                <TableCell><Skeleton variant="text" /></TableCell>
-                <TableCell><Skeleton variant="text" /></TableCell>
-                <TableCell><Skeleton variant="text" /></TableCell>
+    const renderSkeletonRows = () =>
+        Array.from({ length: skeletonCount }).map((_, i) => (
+            <TableRow key={i} sx={{ '& .MuiTableCell-root': { py: 1.5, px: 2 } }}>
+                <TableCell><Skeleton variant="text" width="55%" sx={{ borderRadius: 0.5 }} /></TableCell>
+                <TableCell><Skeleton variant="text" width="80%" sx={{ borderRadius: 0.5 }} /></TableCell>
+                <TableCell><Skeleton variant="text" width="75%" sx={{ borderRadius: 0.5 }} /></TableCell>
+                <TableCell><Skeleton variant="rounded" width={84} height={22} sx={{ borderRadius: 1 }} /></TableCell>
+                <TableCell><Skeleton variant="text" width="50%" sx={{ borderRadius: 0.5 }} /></TableCell>
+                <TableCell><Skeleton variant="text" width="50%" sx={{ borderRadius: 0.5 }} /></TableCell>
+                {user?.es_lider && <TableCell />}
             </TableRow>
         ));
-    };
 
-    return (
-        <Box sx={{ height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', padding: 1.5, overflow: 'hidden', boxSizing: 'border-box' }}>
-            {/* Indicador de carga global */}
-            {loading && !initialLoading && (
-                <LinearProgress
-                    sx={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        zIndex: 9999
-                    }}
-                />
-            )}
-
-
-
-
-            {/* Toolbar de acciones - Estilo SAP Fiori */}
-            <Paper
-                elevation={0}
-                sx={{
-                    mb: 1.5,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    flexShrink: 0,
-                }}
-            >
-                <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 'auto', sm: 56 }, py: { xs: 1.5, sm: 0 } }}>
-                    <TextField
-                        placeholder="Buscar productos..."
-                        size="small"
-                        value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
+    const renderEmptyState = () => {
+        const isFiltered = searchTerm || filterActivo !== 'all';
+        return (
+            <TableRow>
+                <TableCell colSpan={colSpan} sx={{ border: 'none', p: 0 }}>
+                    <Box
                         sx={{
-                            flexGrow: 1,
-                            minWidth: 200,
-                            maxWidth: 400,
-                            '& .MuiOutlinedInput-root': {
-                                bgcolor: 'background.paper'
-                            }
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            py: 10,
+                            px: 3,
                         }}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon color="action" />
-                                </InputAdornment>
-                            ),
-                        }}
-                    />
-
-                    <FormControl size="small" sx={{ minWidth: 140 }}>
-                        <InputLabel>Estado</InputLabel>
-                        <Select
-                            value={filterActivo}
-                            label="Estado"
-                            onChange={(e) => {
-                                setFilterActivo(e.target.value);
-                                setPage(0);
+                    >
+                        <Box
+                            sx={{
+                                width: 60,
+                                height: 60,
+                                borderRadius: '50%',
+                                bgcolor: alpha(theme.palette.primary.main, 0.06),
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                mb: 2,
                             }}
                         >
-                            <MenuItem value="all">Todos</MenuItem>
-                            <MenuItem value="active">Activos</MenuItem>
-                            <MenuItem value="inactive">Inactivos</MenuItem>
-                        </Select>
-                    </FormControl>
+                            <InventoryIcon sx={{ fontSize: 28, color: 'text.disabled' }} />
+                        </Box>
+                        <Typography variant="subtitle1" fontWeight={600} color="text.primary" gutterBottom>
+                            {isFiltered ? 'Sin resultados' : 'Sin productos registrados'}
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            align="center"
+                            sx={{ maxWidth: 360, lineHeight: 1.6 }}
+                        >
+                            {isFiltered
+                                ? 'No encontramos productos con esos criterios. Prueba ajustando la búsqueda o los filtros.'
+                                : 'Aún no hay productos registrados en el sistema. Crea el primero para comenzar.'}
+                        </Typography>
+                        {!isFiltered && user?.es_lider && (
+                            <Button
+                                variant="contained"
+                                startIcon={<AddIcon />}
+                                onClick={() => handleOpenDialog()}
+                                disableElevation
+                                sx={{ mt: 3, borderRadius: 1.5, fontWeight: 600, px: 3 }}
+                            >
+                                Crear producto
+                            </Button>
+                        )}
+                    </Box>
+                </TableCell>
+            </TableRow>
+        );
+    };
 
-                    <Box sx={{ flexGrow: 1 }} />
+    // ─── JSX ────────────────────────────────────────────────────────────────────
 
-                    <Stack direction="row" spacing={1}>
+    return (
+        <Box
+            sx={{
+                height: 'calc(100vh - 64px)',
+                display: 'flex',
+                flexDirection: 'column',
+                p: { xs: 2, md: 3 },
+                gap: 2.5,
+                overflow: 'hidden',
+                boxSizing: 'border-box',
+            }}
+        >
+            {/* Indicador de carga global */}
+            {loading && !initialLoading && (
+                <LinearProgress sx={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, height: 2 }} />
+            )}
+
+            {/* ── Page Header ─────────────────────────────────────────────────── */}
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    flexShrink: 0,
+                    gap: 2,
+                }}
+            >
+                <Box>
+                    <Typography
+                        variant="h5"
+                        fontWeight={700}
+                        color="text.primary"
+                        sx={{ lineHeight: 1.2, letterSpacing: '-0.01em' }}
+                    >
+                        Gestión de Productos
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        Administra, busca y organiza los productos del sistema
+                    </Typography>
+                </Box>
+
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
+                    <Tooltip title="Recargar">
                         <IconButton
                             onClick={handleRefresh}
                             disabled={loading}
@@ -313,131 +356,312 @@ const ProductsPage = () => {
                             sx={{
                                 border: '1px solid',
                                 borderColor: 'divider',
-                                borderRadius: 1
+                                borderRadius: 1.5,
+                                p: 0.875,
+                                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.04) },
                             }}
                         >
-                            <RefreshIcon />
+                            <RefreshIcon sx={{ fontSize: 18 }} />
                         </IconButton>
-                        {
-                            user && user.es_lider && (
-                                <Button
-                                    variant="contained"
-                                    size="small"
-                                    startIcon={<AddIcon />}
-                                    onClick={() => handleOpenDialog()}
-                                    disableElevation
-                                >
-                                    Crear
-                                </Button>
-                            )
-                        }
-                    </Stack>
-                </Toolbar>
-            </Paper>
+                    </Tooltip>
 
-            {/* Tabla de productos - Estilo SAP Fiori */}
+                    {user?.es_lider && (
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={() => handleOpenDialog()}
+                            disableElevation
+                            sx={{
+                                borderRadius: 1.5,
+                                fontWeight: 600,
+                                px: 2.5,
+                                py: 0.875,
+                                fontSize: '0.875rem',
+                                boxShadow: `0 1px 3px ${alpha(theme.palette.primary.main, 0.3)}`,
+                                '&:hover': {
+                                    boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.4)}`,
+                                },
+                            }}
+                        >
+                            Crear producto
+                        </Button>
+                    )}
+                </Stack>
+            </Box>
+
+            {/* ── Barra de filtros ─────────────────────────────────────────────── */}
             <Paper
                 elevation={0}
                 sx={{
                     border: '1px solid',
                     borderColor: 'divider',
-                    borderRadius: 1,
+                    borderRadius: 2,
+                    p: 1.75,
+                    flexShrink: 0,
+                }}
+            >
+                <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" gap={1.5}>
+                    <TextField
+                        placeholder="Buscar por nombre o código..."
+                        size="small"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        sx={{
+                            flexGrow: 1,
+                            minWidth: 200,
+                            maxWidth: 440,
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 1.5,
+                                bgcolor: alpha(theme.palette.grey[500], 0.04),
+                                '&:hover': { bgcolor: 'background.paper' },
+                                '&.Mui-focused': { bgcolor: 'background.paper' },
+                            },
+                        }}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon sx={{ color: 'text.disabled', fontSize: 18 }} />
+                                </InputAdornment>
+                            ),
+                        }}
+                    />
+
+                    <FormControl size="small" sx={{ minWidth: 170 }}>
+                        <InputLabel>Estado</InputLabel>
+                        <Select
+                            value={filterActivo}
+                            label="Estado"
+                            onChange={(e) => { setFilterActivo(e.target.value); setPage(0); }}
+                            sx={{ borderRadius: 1.5 }}
+                        >
+                            <MenuItem value="all">Todos los estados</MenuItem>
+                            <MenuItem value="active">Activos</MenuItem>
+                            <MenuItem value="inactive">Inactivos</MenuItem>
+                        </Select>
+                    </FormControl>
+
+                    <Box sx={{ flexGrow: 1 }} />
+
+                    {!initialLoading && (
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            {totalProducts.toLocaleString()}{' '}
+                            {totalProducts === 1 ? 'producto' : 'productos'}
+                        </Typography>
+                    )}
+                </Stack>
+            </Paper>
+
+            {/* ── Tabla ────────────────────────────────────────────────────────── */}
+            <Paper
+                elevation={0}
+                sx={{
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
                     overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
                     flexGrow: 1,
                     minHeight: 0,
-                    maxHeight: '100%',
                 }}
             >
-                <TableContainer sx={{
-                    flexGrow: 1,
-                    flexShrink: 1,
-                    overflow: 'auto',
-                    minHeight: 0,
-                    // Ocultar scrollbar
-                    '&::-webkit-scrollbar': {
-                        display: 'none',
-                    },
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none',
-                }}>
+                <TableContainer
+                    sx={{
+                        flexGrow: 1,
+                        overflow: 'auto',
+                        '&::-webkit-scrollbar': { display: 'none' },
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none',
+                    }}
+                >
                     <Table stickyHeader size="small" sx={{ tableLayout: 'fixed' }}>
                         <TableHead>
                             <TableRow>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '12%', py: 1 }}>ID</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '25%', py: 1 }}>Nombre Excel</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '25%', py: 1 }}>Nombre Bitrix</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '20%', py: 1 }}>Unidad de Negocio</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '12%', py: 1 }}>Fab. Deal</TableCell>
-                                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', width: '12%', py: 1 }}>Fab. Cot</TableCell>
+                                <TableCell sx={{ ...HEADER_CELL_SX, width: '11%' }}>Código</TableCell>
+                                <TableCell sx={{ ...HEADER_CELL_SX, width: '24%' }}>Nombre Excel</TableCell>
+                                <TableCell sx={{ ...HEADER_CELL_SX, width: '24%' }}>Nombre Bitrix</TableCell>
+                                <TableCell sx={{ ...HEADER_CELL_SX, width: '18%' }}>Unidad de Negocio</TableCell>
+                                <TableCell sx={{ ...HEADER_CELL_SX, width: '10%' }}>Fab. Deal</TableCell>
+                                <TableCell sx={{ ...HEADER_CELL_SX, width: '10%' }}>Fab. Cot</TableCell>
+                                {user?.es_lider && (
+                                    <TableCell sx={{ ...HEADER_CELL_SX, width: '7%' }} />
+                                )}
                             </TableRow>
                         </TableHead>
+
                         <TableBody>
                             {initialLoading ? (
                                 renderSkeletonRows()
                             ) : products.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
-                                        <InventoryIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
-                                        <Typography variant="h6" color="text.secondary" gutterBottom>
-                                            {searchTerm || filterActivo !== 'all'
-                                                ? 'No se encontraron productos'
-                                                : 'No hay productos registrados'}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            {searchTerm || filterActivo !== 'all'
-                                                ? 'Intenta ajustar los filtros de búsqueda'
-                                                : 'Comienza creando un nuevo producto'}
-                                        </Typography>
-                                    </TableCell>
-                                </TableRow>
+                                renderEmptyState()
                             ) : (
-                                products.map((product) => (
+                                products.map((product, index) => (
                                     <TableRow
                                         key={product._id}
                                         hover
+                                        onClick={() => handleOpenDialog(product)}
                                         sx={{
-                                            cursor: 'pointer',
+                                            cursor: user?.es_lider ? 'pointer' : 'default',
+                                            bgcolor:
+                                                index % 2 !== 0
+                                                    ? alpha(theme.palette.grey[500], 0.025)
+                                                    : 'transparent',
                                             '&:hover': {
-                                                bgcolor: 'action.hover',
+                                                bgcolor: alpha(theme.palette.primary.main, 0.04),
                                             },
                                             '& .MuiTableCell-root': {
-                                                py: 1.25
-                                            }
+                                                py: 1.375,
+                                                px: 2,
+                                                borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                                            },
+                                            '&:last-child .MuiTableCell-root': {
+                                                borderBottom: 'none',
+                                            },
                                         }}
-                                        onClick={() => handleOpenDialog(product)}
                                     >
+                                        {/* Código */}
                                         <TableCell>
-                                            <Typography variant="body2" fontWeight={500} sx={{ fontSize: '0.8125rem' }}>
+                                            <Typography
+                                                variant="body2"
+                                                fontWeight={600}
+                                                sx={{
+                                                    fontSize: '0.8rem',
+                                                    fontFamily: '"Roboto Mono", "Courier New", monospace',
+                                                    color: 'text.primary',
+                                                    letterSpacing: '0.02em',
+                                                }}
+                                            >
                                                 {product.code}
                                             </Typography>
                                         </TableCell>
+
+                                        {/* Nombre Excel */}
                                         <TableCell>
-                                            <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
-                                                {product.name_excel || '-'}
+                                            <Typography
+                                                variant="body2"
+                                                noWrap
+                                                sx={{
+                                                    fontSize: '0.8125rem',
+                                                    color: product.name_excel ? 'text.primary' : 'text.disabled',
+                                                    fontStyle: product.name_excel ? 'normal' : 'italic',
+                                                }}
+                                            >
+                                                {product.name_excel || 'Sin nombre'}
                                             </Typography>
                                         </TableCell>
+
+                                        {/* Nombre Bitrix */}
                                         <TableCell>
-                                            <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
-                                                {product.name_bitrix || '-'}
+                                            <Typography
+                                                variant="body2"
+                                                noWrap
+                                                sx={{
+                                                    fontSize: '0.8125rem',
+                                                    color: product.name_bitrix ? 'text.primary' : 'text.disabled',
+                                                    fontStyle: product.name_bitrix ? 'normal' : 'italic',
+                                                }}
+                                            >
+                                                {product.name_bitrix || 'Sin nombre'}
                                             </Typography>
                                         </TableCell>
+
+                                        {/* Unidad de Negocio */}
                                         <TableCell>
-                                            <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
-                                                {product.unidad_negocio || '-'}
+                                            {product.unidad_negocio ? (
+                                                <Chip
+                                                    label={product.unidad_negocio}
+                                                    size="small"
+                                                    sx={{
+                                                        height: 22,
+                                                        fontSize: '0.72rem',
+                                                        fontWeight: 600,
+                                                        borderRadius: 1,
+                                                        maxWidth: '100%',
+                                                        '& .MuiChip-label': { px: 1 },
+                                                        ...getUNChipStyle(product.unidad_negocio),
+                                                    }}
+                                                />
+                                            ) : (
+                                                <Typography
+                                                    variant="body2"
+                                                    sx={{ fontSize: '0.8125rem', color: 'text.disabled' }}
+                                                >
+                                                    —
+                                                </Typography>
+                                            )}
+                                        </TableCell>
+
+                                        {/* Fab. Deal */}
+                                        <TableCell>
+                                            <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    fontSize: '0.8125rem',
+                                                    color: product.area1 ? 'text.primary' : 'text.disabled',
+                                                }}
+                                            >
+                                                {product.area1 || '—'}
                                             </Typography>
                                         </TableCell>
+
+                                        {/* Fab. Cot */}
                                         <TableCell>
-                                            <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
-                                                {product.area1 || '-'}
+                                            <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    fontSize: '0.8125rem',
+                                                    color: product.area2 ? 'text.primary' : 'text.disabled',
+                                                }}
+                                            >
+                                                {product.area2 || '—'}
                                             </Typography>
                                         </TableCell>
-                                        <TableCell>
-                                            <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>
-                                                {product.area2 || '-'}
-                                            </Typography>
-                                        </TableCell>
+
+                                        {/* Acciones (solo líder) */}
+                                        {user?.es_lider && (
+                                            <TableCell
+                                                align="right"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <Stack
+                                                    direction="row"
+                                                    spacing={0.25}
+                                                    justifyContent="flex-end"
+                                                    sx={{ opacity: 0, '.MuiTableRow-root:hover &': { opacity: 1 } }}
+                                                >
+                                                    <Tooltip title="Editar" placement="top">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={(e) => { e.stopPropagation(); handleOpenDialog(product); }}
+                                                            sx={{
+                                                                p: 0.5,
+                                                                color: 'text.secondary',
+                                                                '&:hover': { color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.08) },
+                                                            }}
+                                                        >
+                                                            <EditIcon sx={{ fontSize: 15 }} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    <Tooltip title="Eliminar" placement="top">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={(e) => { e.stopPropagation(); handleOpenDeleteDialog(product); }}
+                                                            sx={{
+                                                                p: 0.5,
+                                                                color: 'text.secondary',
+                                                                '&:hover': { color: 'error.main', bgcolor: alpha(theme.palette.error.main, 0.08) },
+                                                            }}
+                                                        >
+                                                            <DeleteIcon sx={{ fontSize: 15 }} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Stack>
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 ))
                             )}
@@ -455,62 +679,88 @@ const ProductsPage = () => {
                     page={page}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
-                    labelRowsPerPage="Filas por página"
+                    labelRowsPerPage="Filas por página:"
                     labelDisplayedRows={({ from, to, count }) =>
-                        `${from}–${to} de ${count !== -1 ? count : `más de ${to}`}`
+                        `${from}–${to} de ${count !== -1 ? count.toLocaleString() : `más de ${to}`}`
                     }
                     sx={{
-                        borderTop: 'none',
                         flexShrink: 0,
-                        '.MuiTablePagination-toolbar': {
-                            minHeight: 48,
-                            py: 0.5,
-                        }
+                        borderTop: 'none',
+                        '.MuiTablePagination-toolbar': { minHeight: 52, px: 2 },
+                        '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+                            fontSize: '0.8125rem',
+                            color: 'text.secondary',
+                        },
                     }}
                 />
             </Paper>
 
-            {/* Diálogo de crear/editar producto */}
+            {/* ── Diálogo crear / editar ───────────────────────────────────────── */}
             <Dialog
                 open={openDialog}
                 onClose={handleCloseDialog}
                 maxWidth="md"
                 fullWidth
                 TransitionComponent={Fade}
+                PaperProps={{ sx: { borderRadius: 2.5 } }}
             >
-                <DialogTitle sx={{ pb: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography variant="h6" fontWeight={400}>
-                            {editingProduct ? 'Editar Producto' : 'Nuevo Producto'}
-                        </Typography>
-                        <IconButton onClick={handleCloseDialog} size="small">
-                            <CloseIcon />
+                <DialogTitle sx={{ pb: 0, pt: 3, px: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                        <Box>
+                            <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.2 }}>
+                                {editingProduct ? 'Editar producto' : 'Nuevo producto'}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                {editingProduct
+                                    ? `Modificando el producto ${editingProduct.code}`
+                                    : 'Completa los campos para registrar un nuevo producto'}
+                            </Typography>
+                        </Box>
+                        <IconButton
+                            onClick={handleCloseDialog}
+                            size="small"
+                            sx={{
+                                mt: -0.5,
+                                color: 'text.secondary',
+                                '&:hover': { color: 'text.primary' },
+                            }}
+                        >
+                            <CloseIcon fontSize="small" />
                         </IconButton>
                     </Box>
                 </DialogTitle>
-                <Divider />
+
+                <Divider sx={{ mt: 2.5 }} />
+
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <DialogContent sx={{ pt: 3 }}>
-                        <Grid container spacing={2}>
-                            <Grid size={{ xs: 12 }} sm={6}>
+                    <DialogContent sx={{ pt: 3, px: 3, pb: 2 }}>
+                        <Grid container spacing={2.5}>
+                            {/* Fila 1: Código + Unidad de Negocio */}
+                            <Grid size={{ xs: 12 }} sm={5}>
                                 <Controller
                                     name="code"
                                     control={control}
-                                    rules={{ required: 'El ID es requerido' }}
+                                    rules={{ required: 'El código es requerido' }}
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
-                                            label="ID"
+                                            label="Código"
                                             fullWidth
                                             size="small"
                                             error={!!errors.code}
                                             helperText={errors.code?.message}
                                             disabled={!!editingProduct}
+                                            InputProps={{
+                                                sx: {
+                                                    fontFamily: '"Roboto Mono", "Courier New", monospace',
+                                                    fontSize: '0.875rem',
+                                                },
+                                            }}
                                         />
                                     )}
                                 />
                             </Grid>
-                            <Grid size={{ xs: 12 }} sm={6}>
+                            <Grid size={{ xs: 12 }} sm={7}>
                                 <Controller
                                     name="unidad_negocio"
                                     control={control}
@@ -527,6 +777,8 @@ const ProductsPage = () => {
                                     )}
                                 />
                             </Grid>
+
+                            {/* Fila 2: Nombre Excel (ancho completo) */}
                             <Grid size={{ xs: 12 }}>
                                 <Controller
                                     name="name_excel"
@@ -544,6 +796,8 @@ const ProductsPage = () => {
                                     )}
                                 />
                             </Grid>
+
+                            {/* Fila 3: Nombre Bitrix (ancho completo) */}
                             <Grid size={{ xs: 12 }}>
                                 <Controller
                                     name="name_bitrix"
@@ -560,6 +814,8 @@ const ProductsPage = () => {
                                     )}
                                 />
                             </Grid>
+
+                            {/* Fila 4: Fab. Deal + Fab. Cot */}
                             <Grid size={{ xs: 12 }} sm={6}>
                                 <Controller
                                     name="area1"
@@ -594,27 +850,32 @@ const ProductsPage = () => {
                             </Grid>
                         </Grid>
                     </DialogContent>
+
                     <Divider />
+
                     <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between' }}>
                         <Box>
                             {editingProduct && (
                                 <Button
-                                    onClick={() => {
-                                        handleCloseDialog();
-                                        handleOpenDeleteDialog(editingProduct);
-                                    }}
+                                    onClick={() => { handleCloseDialog(); handleOpenDeleteDialog(editingProduct); }}
                                     variant="outlined"
                                     color="error"
                                     size="small"
                                     startIcon={<DeleteIcon />}
                                     disabled={loading}
+                                    sx={{ borderRadius: 1.5 }}
                                 >
                                     Eliminar
                                 </Button>
                             )}
                         </Box>
                         <Stack direction="row" spacing={1}>
-                            <Button onClick={handleCloseDialog} variant="outlined" size="small">
+                            <Button
+                                onClick={handleCloseDialog}
+                                variant="outlined"
+                                size="small"
+                                sx={{ borderRadius: 1.5 }}
+                            >
                                 Cancelar
                             </Button>
                             <Button
@@ -623,6 +884,7 @@ const ProductsPage = () => {
                                 size="small"
                                 disableElevation
                                 disabled={loading}
+                                sx={{ borderRadius: 1.5, fontWeight: 600, minWidth: 90 }}
                             >
                                 {editingProduct ? 'Actualizar' : 'Crear'}
                             </Button>
@@ -631,34 +893,50 @@ const ProductsPage = () => {
                 </form>
             </Dialog>
 
-            {/* Diálogo de confirmación de eliminación */}
+            {/* ── Diálogo confirmar eliminación ────────────────────────────────── */}
             <Dialog
                 open={deleteDialogOpen}
                 onClose={() => setDeleteDialogOpen(false)}
                 maxWidth="xs"
                 fullWidth
+                PaperProps={{ sx: { borderRadius: 2.5 } }}
             >
-                <DialogTitle sx={{ pb: 1 }}>
-                    <Typography variant="h6" fontWeight={400}>
-                        Confirmar Eliminación
+                <DialogTitle sx={{ pb: 0, pt: 3, px: 3 }}>
+                    <Typography variant="h6" fontWeight={700}>
+                        Eliminar producto
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        Esta acción no se puede deshacer
                     </Typography>
                 </DialogTitle>
-                <Divider />
-                <DialogContent sx={{ pt: 3 }}>
-                    <Alert severity="warning" sx={{ mb: 2 }}>
-                        Esta acción no se puede deshacer
+
+                <Divider sx={{ mt: 2.5 }} />
+
+                <DialogContent sx={{ pt: 2.5, px: 3 }}>
+                    <Alert
+                        severity="warning"
+                        variant="outlined"
+                        sx={{ mb: 2, borderRadius: 1.5, fontSize: '0.8125rem' }}
+                    >
+                        Se eliminará permanentemente este producto del sistema.
                     </Alert>
-                    <Typography variant="body2">
-                        ¿Estás seguro de que deseas eliminar el producto{' '}
-                        <strong>{productToDelete?.code}</strong>?
+                    <Typography variant="body2" color="text.secondary">
+                        ¿Confirmas que deseas eliminar el producto{' '}
+                        <Box component="span" fontWeight={700} color="text.primary">
+                            {productToDelete?.code}
+                        </Box>
+                        ?
                     </Typography>
                 </DialogContent>
+
                 <Divider />
+
                 <DialogActions sx={{ px: 3, py: 2 }}>
                     <Button
                         onClick={() => setDeleteDialogOpen(false)}
                         variant="outlined"
                         size="small"
+                        sx={{ borderRadius: 1.5 }}
                     >
                         Cancelar
                     </Button>
@@ -669,18 +947,19 @@ const ProductsPage = () => {
                         size="small"
                         disableElevation
                         disabled={loading}
+                        sx={{ borderRadius: 1.5, fontWeight: 600, minWidth: 90 }}
                     >
                         Eliminar
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            {/* Backdrop de carga */}
+            {/* Backdrop de carga en dialog */}
             <Backdrop
                 sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
                 open={loading && openDialog}
             >
-                <CircularProgress color="inherit" />
+                <CircularProgress color="inherit" size={32} />
             </Backdrop>
 
             {/* Snackbar de notificaciones */}
@@ -694,7 +973,7 @@ const ProductsPage = () => {
                     onClose={handleCloseSnackbar}
                     severity={snackbar.severity}
                     variant="filled"
-                    sx={{ width: '100%' }}
+                    sx={{ width: '100%', borderRadius: 1.5 }}
                     elevation={6}
                 >
                     {snackbar.message}

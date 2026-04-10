@@ -7,6 +7,7 @@ import { MainContextApp } from './contexts/MainContext'
 import LoginScreen from './pages/LoginScreen'
 import ReportHistory from './pages/ReportHistory'
 import { BitrixHistory } from './pages/BitrixHistory'
+import { BitrixDashboard } from './pages/BitrixDashboard'
 import { BitrixIntegration } from './pages/BitrixIntegration'
 import EmployeesPage from './pages/EmployeesPage'
 import ProductsPage from './pages/ProductsPage'
@@ -23,6 +24,7 @@ function App() {
           <Route element={<MainLayout />}>
             <Route path="/" element={<BitrixIntegration />} />
             <Route path="/bitrix/history" element={<BitrixHistory />} />
+            <Route path="/bitrix/dashboard" element={<BitrixDashboard />} />
             <Route path="/bitrix/send" element={<BitrixIntegration />} />
             <Route path="/reports/generate" element={<ReportGenerator />} />
             <Route path="/reports/history" element={<ReportHistory />} />

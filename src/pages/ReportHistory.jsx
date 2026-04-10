@@ -1,51 +1,52 @@
 import { useState, useEffect, useContext } from 'react';
 import {
-    Box,
-    Paper,
-    Typography,
-    Button,
-    TextField,
-    Chip,
     Alert,
+    Box,
+    Button,
+    Chip,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Divider,
+    FormControl,
+    Grid,
+    IconButton,
+    InputAdornment,
+    InputLabel,
+    LinearProgress,
+    MenuItem,
+    Paper,
+    Select,
+    Skeleton,
+    Stack,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
-    TableRow,
     TablePagination,
-    InputAdornment,
-    Stack,
-    Grid,
-    IconButton,
-    Menu,
-    MenuItem,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
+    TableRow,
+    TextField,
     Tooltip,
-    Divider,
-    Container,
-    CircularProgress,
+    Typography,
     useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
+    Assessment as AssessmentIcon,
+    CheckCircle as CheckCircleIcon,
+    CloudDownload as CloudDownloadIcon,
+    Delete as DeleteIcon,
+    Error as ErrorIcon,
+    FolderOpen as FolderOpenIcon,
+    History as HistoryIcon,
+    InsertDriveFile as FileIcon,
+    OpenInNew as OpenInNewIcon,
+    Refresh as RefreshIcon,
     Search as SearchIcon,
     Visibility as VisibilityIcon,
-    Delete as DeleteIcon,
-    MoreVert as MoreVertIcon,
-    Description as DescriptionIcon,
-    CheckCircle as CheckCircleIcon,
-    Error as ErrorIcon,
-    FilterList as FilterListIcon,
-    Refresh as RefreshIcon,
-    Assessment as AssessmentIcon,
-    CloudDownload as CloudDownloadIcon,
-    Close as CloseIcon,
-    InsertDriveFile as FileIcon,
-    FolderOpen as FolderOpenIcon,
-    OpenInNew as OpenInNewIcon,
+    WarningAmber as WarningAmberIcon,
 } from '@mui/icons-material';
 import moment from 'moment';
 import axios from 'axios';
@@ -56,136 +57,270 @@ import { openPath, revealItemInDir } from '@tauri-apps/plugin-opener';
 import { MainContext } from '../contexts/MainContext';
 import { CONFIG } from '../config';
 
+const HEADER_CELL_SX = {
+    fontWeight: 600,
+    fontSize: '0.7rem',
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    color: 'text.secondary',
+    borderBottom: '2px solid',
+    borderBottomColor: 'divider',
+    py: 1.5,
+    px: 2,
+    whiteSpace: 'nowrap',
+};
+
+const StatCard = ({ label, value, icon, color, tone }) => (
+    <Paper
+        elevation={0}
+        sx={{
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 2,
+            p: 2,
+            height: '100%',
+            background: `linear-gradient(180deg, ${tone} 0%, rgba(255,255,255,0) 100%)`,
+        }}
+    >
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+            <Box>
+                <Typography
+                    variant="caption"
+                    fontWeight={700}
+                    sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary' }}
+                >
+                    {label}
+                </Typography>
+                <Typography variant="h5" fontWeight={700} sx={{ mt: 1, color }}>
+                    {value.toLocaleString()}
+                </Typography>
+            </Box>
+            <Box
+                sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 1.5,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: alpha(color, 0.1),
+                    color,
+                }}
+            >
+                {icon}
+            </Box>
+        </Box>
+    </Paper>
+);
+
+const SectionPanel = ({ title, children }) => {
+    const theme = useTheme();
+
+    return (
+        <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, overflow: 'hidden' }}>
+            <Box
+                sx={{
+                    px: 2,
+                    py: 1.25,
+                    bgcolor: alpha(theme.palette.grey[500], 0.04),
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                }}
+            >
+                <Typography
+                    variant="caption"
+                    fontWeight={700}
+                    sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary' }}
+                >
+                    {title}
+                </Typography>
+            </Box>
+            <Box sx={{ p: 2 }}>{children}</Box>
+        </Box>
+    );
+};
+
+const DataRow = ({ label, value, mono = false }) => {
+    const theme = useTheme();
+
+    if (!value && value !== 0) return null;
+
+    return (
+        <Box
+            sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+                gap: 2,
+                py: 0.85,
+                borderBottom: '1px solid',
+                borderColor: alpha(theme.palette.divider, 0.5),
+                '&:last-child': { borderBottom: 'none', pb: 0 },
+            }}
+        >
+            <Typography variant="body2" color="text.secondary">
+                {label}
+            </Typography>
+            <Typography
+                variant="body2"
+                fontWeight={600}
+                align="right"
+                sx={{
+                    color: 'text.primary',
+                    fontFamily: mono ? '"Roboto Mono", monospace' : 'inherit',
+                    fontSize: mono ? '0.8rem' : '0.8125rem',
+                    wordBreak: 'break-word',
+                }}
+            >
+                {value}
+            </Typography>
+        </Box>
+    );
+};
+
 const ReportHistory = () => {
     const theme = useTheme();
+    const { user } = useContext(MainContext);
+
     const [reports, setReports] = useState([]);
-    const [filteredReports, setFilteredReports] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [loading, setLoading] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
     const [totalReports, setTotalReports] = useState(0);
-    const [anchorEl, setAnchorEl] = useState(null);
+    const [stats, setStats] = useState({ total: 0, success: 0, partial: 0, errors: 0 });
+
+    const [searchInput, setSearchInput] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterStatus, setFilterStatus] = useState('all');
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(15);
+
     const [selectedReport, setSelectedReport] = useState(null);
     const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [reportToDelete, setReportToDelete] = useState(null);
-    const [filterStatus, setFilterStatus] = useState('all');
-    const [filterAnchorEl, setFilterAnchorEl] = useState(null);
-    const { user } = useContext(MainContext);
-    const [stats, setStats] = useState({
-        total: 0,
-        success: 0,
-        errors: 0,
-        totalFiles: 0,
-    });
-    const [loading, setLoading] = useState(false);
+    const [downloadDialog, setDownloadDialog] = useState({ open: false, filename: '', savedPath: '' });
 
-    // Estado para el diálogo de descarga
-    const [downloadDialog, setDownloadDialog] = useState({
-        open: false,
-        filename: '',
-        savedPath: '',
-    });
-
-    // Cargar reportes cuando cambie la página o el límite de filas
     useEffect(() => {
         loadReports();
-    }, [page, rowsPerPage]);
+    }, [page, rowsPerPage, searchTerm, filterStatus]);
 
-    // Filtrado local (mantenerlo para búsqueda y filtro de estado)
     useEffect(() => {
-        let filtered = reports;
+        loadStats();
+    }, []);
 
-        if (filterStatus !== 'all') {
-            filtered = filtered.filter((report) => report.status === filterStatus);
-        }
-
-        if (searchTerm !== '') {
-            filtered = filtered.filter(
-                (report) =>
-                    report.filename?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    report._id?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-        setFilteredReports(filtered);
-    }, [searchTerm, filterStatus, reports]);
-
-    // Actualizar estadísticas
     useEffect(() => {
-        if (reports && reports.length > 0) {
-            setStats({
-                total: totalReports,
-                success: reports.filter((r) => r.status === 'success').length,
-                errors: reports.filter((r) => r.status === 'error').length,
-                totalFiles: reports.reduce((acc, r) => acc + (r.files_processed || 0), 0),
-            });
-        }
-    }, [reports, totalReports]);
+        const timer = setTimeout(() => {
+            setSearchTerm(searchInput.trim());
+            setPage(0);
+        }, 400);
+
+        return () => clearTimeout(timer);
+    }, [searchInput]);
 
     const loadReports = async () => {
         try {
             setLoading(true);
-            const skip = page * rowsPerPage;
-            const limit = rowsPerPage;
-
             const response = await axios.get(`${CONFIG.uri}/reports/history`, {
                 params: {
-                    skip,
-                    limit
-                }
+                    skip: page * rowsPerPage,
+                    limit: rowsPerPage,
+                    ...(searchTerm && { search: searchTerm }),
+                    ...(filterStatus !== 'all' && { status: filterStatus }),
+                },
             });
 
             setReports(response.data.reports || []);
-            setFilteredReports(response.data.reports || []);
             setTotalReports(response.data.total || 0);
         } catch (error) {
             console.error('Error al cargar reportes:', error);
             setReports([]);
-            setFilteredReports([]);
             setTotalReports(0);
         } finally {
             setLoading(false);
+            setInitialLoading(false);
         }
     };
 
-    // Función de descarga con Tauri
+    const loadStats = async () => {
+        try {
+            const response = await axios.get(`${CONFIG.uri}/reports/stats`);
+            setStats({
+                total: response.data.total || 0,
+                success: response.data.success || 0,
+                partial: response.data.partial || 0,
+                errors: response.data.errors || 0,
+            });
+        } catch (error) {
+            console.error('Error al cargar estadísticas:', error);
+        }
+    };
+
+    const handleRefresh = async () => {
+        await Promise.all([loadReports(), loadStats()]);
+    };
+
+    const handleChangePage = (_, newPage) => setPage(newPage);
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    const handleOpenDetails = (report) => {
+        setSelectedReport(report);
+        setDetailsDialogOpen(true);
+    };
+
+    const handleOpenDeleteDialog = (report) => {
+        setReportToDelete(report);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteReport = async () => {
+        if (!reportToDelete) return;
+
+        try {
+            await axios.delete(`${CONFIG.uri}/reports/${reportToDelete._id}`);
+            setDeleteDialogOpen(false);
+            setReportToDelete(null);
+
+            if (reports.length === 1 && page > 0) {
+                setPage((prev) => prev - 1);
+            } else {
+                await loadReports();
+            }
+
+            await loadStats();
+        } catch (error) {
+            console.error('Error eliminando reporte:', error);
+            alert(error.response?.data?.detail || 'Error al eliminar el reporte');
+        }
+    };
+
     const handleDownload = async (report) => {
         if (!report.download_url) {
             alert('No hay URL de descarga disponible');
-            handleCloseMenu();
             return;
         }
 
         try {
-            const downloadUrl = report.download_url;
-            const response = await tauriFetch(downloadUrl);
+            const response = await tauriFetch(report.download_url);
             const blob = await response.blob();
             const fileName = report.filename || 'reporte.xlsx';
-
             const filePath = await save({
                 defaultPath: fileName,
                 filters: [{ name: 'Excel', extensions: ['xlsx'] }],
             });
 
-            if (filePath) {
-                const buffer = await blob.arrayBuffer();
-                await writeFile(filePath, new Uint8Array(buffer));
-                setDownloadDialog({
-                    open: true,
-                    filename: fileName,
-                    savedPath: filePath,
-                });
-            }
+            if (!filePath) return;
+
+            const buffer = await blob.arrayBuffer();
+            await writeFile(filePath, new Uint8Array(buffer));
+            setDownloadDialog({ open: true, filename: fileName, savedPath: filePath });
         } catch (error) {
             console.error('Error descargando archivo:', error);
             alert('Error al descargar el archivo');
         }
-        handleCloseMenu();
-    };
-
-    // Funciones para el diálogo de descarga
-    const handleCloseDownloadDialog = () => {
-        setDownloadDialog({ open: false, filename: '', savedPath: '' });
     };
 
     const handleOpenFile = async () => {
@@ -204,1102 +339,706 @@ const ReportHistory = () => {
         }
     };
 
-    const handleViewDetails = (report) => {
-        setSelectedReport(report);
-        setDetailsDialogOpen(true);
-        handleCloseMenu();
+    const handleCloseDownloadDialog = () => {
+        setDownloadDialog({ open: false, filename: '', savedPath: '' });
     };
 
-    const handleOpenDeleteDialog = (report) => {
-        setReportToDelete(report);
-        setDeleteDialogOpen(true);
-        handleCloseMenu();
+    const formatFileSize = (mbValue) => {
+        if (!mbValue || mbValue <= 0) return '0 MB';
+        return `${Number(mbValue).toFixed(2)} MB`;
     };
 
-    const handleOpenMenu = (event, report) => {
-        setAnchorEl(event.currentTarget);
-        setSelectedReport(report);
+    const formatDuration = (seconds) => {
+        if (!seconds || seconds <= 0) return '-';
+        if (seconds < 1) return `${Math.round(seconds * 1000)} ms`;
+        return `${Number(seconds).toFixed(seconds < 10 ? 2 : 1)} s`;
     };
 
-    const handleCloseMenu = () => {
-        setAnchorEl(null);
-    };
-
-    const handleOpenFilterMenu = (event) => {
-        setFilterAnchorEl(event.currentTarget);
-    };
-
-    const handleCloseFilterMenu = () => {
-        setFilterAnchorEl(null);
-    };
-
-    const handleFilterChange = (status) => {
-        setFilterStatus(status);
-        handleCloseFilterMenu();
-        setPage(0);
-    };
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-
-    const handleRefresh = () => {
-        setPage(0);
-        loadReports();
-    };
-
-    const formatFileSize = (bytes) => {
-        if (!bytes || bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-    };
-
-    const formatRelativeDate = (date) => {
-        return moment(date).fromNow();
-    };
-
-    const getStatusBadge = (status) => {
+    const getStatusConfig = (status) => {
         if (status === 'success') {
-            return (
-                <Chip
-                    icon={<CheckCircleIcon />}
-                    label="Exitoso"
-                    size="small"
-                    sx={{
-                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(16, 126, 62, 0.2)' : '#D1E7DD',
-                        color: 'success.main',
-                        fontWeight: 600,
-                        '& .MuiChip-icon': {
-                            color: 'success.main',
-                        },
-                    }}
-                />
-            );
+            return {
+                label: 'Exitoso',
+                color: '#15803D',
+                backgroundColor: '#F0FDF4',
+                icon: <CheckCircleIcon sx={{ fontSize: 14 }} />,
+            };
         }
+
+        if (status === 'partial') {
+            return {
+                label: 'Parcial',
+                color: '#B45309',
+                backgroundColor: '#FFFBEB',
+                icon: <WarningAmberIcon sx={{ fontSize: 14 }} />,
+            };
+        }
+
+        return {
+            label: 'Error',
+            color: '#BE123C',
+            backgroundColor: '#FFF1F2',
+            icon: <ErrorIcon sx={{ fontSize: 14 }} />,
+        };
+    };
+
+    const renderStatusChip = (status) => {
+        const config = getStatusConfig(status);
+
         return (
             <Chip
-                icon={<ErrorIcon />}
-                label="Error"
+                icon={config.icon}
+                label={config.label}
                 size="small"
                 sx={{
-                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(179, 38, 30, 0.2)' : '#F8D7DA',
-                    color: 'error.main',
-                    fontWeight: 600,
-                    '& .MuiChip-icon': {
-                        color: 'error.main',
-                    },
+                    height: 24,
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    borderRadius: 1,
+                    color: config.color,
+                    bgcolor: config.backgroundColor,
+                    '& .MuiChip-icon': { color: config.color, ml: 0.75 },
+                    '& .MuiChip-label': { px: 1.25 },
                 }}
             />
         );
     };
 
+    const skeletonCount = Math.min(rowsPerPage, 12);
+
+    const renderSkeletonRows = () =>
+        Array.from({ length: skeletonCount }).map((_, index) => (
+            <TableRow key={index} sx={{ '& .MuiTableCell-root': { py: 1.5, px: 2 } }}>
+                <TableCell>
+                    <Skeleton variant="text" width="72%" height={20} />
+                    <Skeleton variant="text" width="46%" height={15} />
+                </TableCell>
+                <TableCell><Skeleton variant="rounded" width={88} height={24} /></TableCell>
+                <TableCell><Skeleton variant="text" width="48%" /></TableCell>
+                <TableCell><Skeleton variant="text" width="56%" /></TableCell>
+                <TableCell><Skeleton variant="text" width="44%" /></TableCell>
+                <TableCell>
+                    <Skeleton variant="text" width="58%" />
+                    <Skeleton variant="text" width="38%" />
+                </TableCell>
+                <TableCell align="right"><Skeleton variant="rounded" width={112} height={32} /></TableCell>
+            </TableRow>
+        ));
+
+    const renderEmptyState = () => {
+        const isFiltered = searchTerm || filterStatus !== 'all';
+
+        return (
+            <TableRow>
+                <TableCell colSpan={7} sx={{ border: 'none', p: 0 }}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            py: 10,
+                            px: 3,
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                width: 60,
+                                height: 60,
+                                borderRadius: '50%',
+                                bgcolor: alpha(theme.palette.primary.main, 0.06),
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                mb: 2,
+                            }}
+                        >
+                            <HistoryIcon sx={{ fontSize: 28, color: 'text.disabled' }} />
+                        </Box>
+                        <Typography variant="subtitle1" fontWeight={600} color="text.primary" gutterBottom>
+                            {isFiltered ? 'Sin resultados' : 'Sin reportes generados'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" align="center" sx={{ maxWidth: 420, lineHeight: 1.6 }}>
+                            {isFiltered
+                                ? 'No encontramos reportes con esos criterios. Ajusta la búsqueda o cambia el estado.'
+                                : 'Los reportes consolidados aparecerán aquí con su estado, métricas y accesos de descarga.'}
+                        </Typography>
+                    </Box>
+                </TableCell>
+            </TableRow>
+        );
+    };
+
     return (
-        <Box sx={{
-            minHeight: '100vh',
-            bgcolor: 'background.default',
-        }}>
-            <Container maxWidth="xl">
+        <Box
+            sx={{
+                height: 'calc(100vh - 64px)',
+                display: 'flex',
+                flexDirection: 'column',
+                p: { xs: 2, md: 3 },
+                gap: 2.5,
+                overflow: 'hidden',
+                boxSizing: 'border-box',
+            }}
+        >
+            {loading && !initialLoading && (
+                <LinearProgress sx={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, height: 2 }} />
+            )}
 
-                {/* Tarjetas de estadísticas */}
-                <Grid container spacing={2} sx={{ mb: 4, pt: 3 }}>
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: 2,
-                                border: 1,
-                                borderColor: 'divider',
-                                borderRadius: 2,
-                                bgcolor: 'background.paper',
-                            }}
-                        >
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Box>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: 'text.secondary',
-                                            display: 'block',
-                                            mb: 0.5,
-                                            fontWeight: 500,
-                                        }}
-                                    >
-                                        Total de Reportes
-                                    </Typography>
-                                    <Typography
-                                        variant="h6"
-                                        sx={{
-                                            fontWeight: 700,
-                                            color: 'primary.main',
-                                        }}
-                                    >
-                                        {stats.total}
-                                    </Typography>
-                                </Box>
-                                <AssessmentIcon
-                                    sx={{
-                                        fontSize: 40,
-                                        color: 'primary.main',
-                                        opacity: 0.1,
-                                    }}
-                                />
-                            </Box>
-                        </Paper>
-                    </Grid>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexShrink: 0 }}>
+                <Box>
+                    <Typography variant="h5" fontWeight={700} color="text.primary" sx={{ lineHeight: 1.2, letterSpacing: '-0.01em' }}>
+                        Historial reportes
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        Registro de reportes Excel generados desde el consolidador
+                    </Typography>
+                </Box>
 
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: 2,
-                                border: 1,
-                                borderColor: 'divider',
-                                borderRadius: 2,
-                                bgcolor: 'background.paper',
-                            }}
-                        >
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Box>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: 'text.secondary',
-                                            display: 'block',
-                                            mb: 0.5,
-                                            fontWeight: 500,
-                                        }}
-                                    >
-                                        Exitosos
-                                    </Typography>
-                                    <Typography
-                                        variant="h6"
-                                        sx={{
-                                            fontWeight: 700,
-                                            color: 'success.main',
-                                        }}
-                                    >
-                                        {stats.success}
-                                    </Typography>
-                                </Box>
-                                <CheckCircleIcon
-                                    sx={{
-                                        fontSize: 40,
-                                        color: 'success.main',
-                                        opacity: 0.1,
-                                    }}
-                                />
-                            </Box>
-                        </Paper>
-                    </Grid>
+                <Tooltip title="Recargar">
+                    <IconButton
+                        onClick={handleRefresh}
+                        disabled={loading}
+                        size="small"
+                        sx={{
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            borderRadius: 1.5,
+                            p: 0.875,
+                            '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.04) },
+                        }}
+                    >
+                        <RefreshIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+                </Tooltip>
+            </Box>
 
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: 2,
-                                border: 1,
-                                borderColor: 'divider',
-                                borderRadius: 2,
-                                bgcolor: 'background.paper',
-                            }}
-                        >
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Box>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: 'text.secondary',
-                                            display: 'block',
-                                            mb: 0.5,
-                                            fontWeight: 500,
-                                        }}
-                                    >
-                                        Con Errores
-                                    </Typography>
-                                    <Typography
-                                        variant="h6"
-                                        sx={{
-                                            fontWeight: 700,
-                                            color: 'error.main',
-                                        }}
-                                    >
-                                        {stats.errors}
-                                    </Typography>
-                                </Box>
-                                <ErrorIcon
-                                    sx={{
-                                        fontSize: 40,
-                                        color: 'error.main',
-                                        opacity: 0.1,
-                                    }}
-                                />
-                            </Box>
-                        </Paper>
-                    </Grid>
+            <Grid container spacing={2} flexShrink={0}>
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                    <StatCard
+                        label="Total"
+                        value={stats.total}
+                        icon={<AssessmentIcon fontSize="small" />}
+                        color={theme.palette.primary.main}
+                        tone={alpha(theme.palette.primary.main, 0.06)}
+                    />
                 </Grid>
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                    <StatCard
+                        label="Exitosos"
+                        value={stats.success}
+                        icon={<CheckCircleIcon fontSize="small" />}
+                        color={theme.palette.success.main}
+                        tone={alpha(theme.palette.success.main, 0.06)}
+                    />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                    <StatCard
+                        label="Parciales"
+                        value={stats.partial}
+                        icon={<WarningAmberIcon fontSize="small" />}
+                        color={theme.palette.warning.dark}
+                        tone={alpha(theme.palette.warning.main, 0.08)}
+                    />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                    <StatCard
+                        label="Con errores"
+                        value={stats.errors}
+                        icon={<ErrorIcon fontSize="small" />}
+                        color={theme.palette.error.main}
+                        tone={alpha(theme.palette.error.main, 0.06)}
+                    />
+                </Grid>
+            </Grid>
 
-                {/* Barra de búsqueda y filtros */}
-                <Paper
-                    elevation={0}
-                    sx={{
-                        p: 2.5,
-                        border: 1,
-                        borderColor: 'divider',
-                        borderRadius: 2,
-                        bgcolor: 'background.paper',
-                        mb: 3,
-                    }}
-                >
-                    <Grid container spacing={2} sx={{ alignItems: 'center' }}>
-                        <Grid size={{ xs: 12, md: 8 }}>
-                            <TextField
-                                placeholder="Buscar por nombre o ID..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                fullWidth
-                                size="small"
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <SearchIcon sx={{ color: 'text.secondary' }} />
-                                        </InputAdornment>
-                                    ),
-                                }}
-                                sx={{
-                                    '& .MuiOutlinedInput-root': {
-                                        borderRadius: 1.5,
-                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
-                                    },
-                                }}
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 4 }}>
-                            <Button
-                                variant="outlined"
-                                startIcon={<FilterListIcon />}
-                                onClick={handleOpenFilterMenu}
-                                fullWidth
-                                sx={{
-                                    fontWeight: 600,
-                                    fontSize: '14px',
-                                    textTransform: 'none',
-                                    color: filterStatus !== 'all' ? 'primary.main' : 'text.primary',
-                                }}
-                            >
-                                {filterStatus === 'all' ? 'Filtrar por Estado' : `Estado: ${filterStatus}`}
-                            </Button>
-                            <Menu
-                                anchorEl={filterAnchorEl}
-                                open={Boolean(filterAnchorEl)}
-                                onClose={handleCloseFilterMenu}
-                            >
-                                <MenuItem
-                                    onClick={() => handleFilterChange('all')}
-                                    selected={filterStatus === 'all'}
-                                >
-                                    Todos
-                                </MenuItem>
-                                <MenuItem
-                                    onClick={() => handleFilterChange('success')}
-                                    selected={filterStatus === 'success'}
-                                >
-                                    Exitosos
-                                </MenuItem>
-                                <MenuItem
-                                    onClick={() => handleFilterChange('error')}
-                                    selected={filterStatus === 'error'}
-                                >
-                                    Con Errores
-                                </MenuItem>
-                            </Menu>
-                        </Grid>
-                    </Grid>
-                </Paper>
+            <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.75, flexShrink: 0 }}>
+                <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" gap={1.5}>
+                    <TextField
+                        placeholder="Buscar por nombre de archivo o ID..."
+                        size="small"
+                        value={searchInput}
+                        onChange={(event) => setSearchInput(event.target.value)}
+                        sx={{
+                            flexGrow: 1,
+                            minWidth: 220,
+                            maxWidth: 420,
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 1.5,
+                                bgcolor: alpha(theme.palette.grey[500], 0.04),
+                                '&:hover': { bgcolor: 'background.paper' },
+                                '&.Mui-focused': { bgcolor: 'background.paper' },
+                            },
+                        }}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon sx={{ color: 'text.disabled', fontSize: 18 }} />
+                                </InputAdornment>
+                            ),
+                        }}
+                    />
 
-                {/* Tabla de reportes */}
-                <TableContainer
-                    component={Paper}
-                    elevation={0}
-                    sx={{
-                        border: 1,
-                        borderColor: 'divider',
-                        borderRadius: 2,
-                        bgcolor: 'background.paper',
-                    }}
-                >
-                    <Table>
+                    <FormControl size="small" sx={{ minWidth: 170 }}>
+                        <InputLabel>Estado</InputLabel>
+                        <Select
+                            value={filterStatus}
+                            label="Estado"
+                            onChange={(event) => {
+                                setFilterStatus(event.target.value);
+                                setPage(0);
+                            }}
+                            sx={{ borderRadius: 1.5 }}
+                        >
+                            <MenuItem value="all">Todos los estados</MenuItem>
+                            <MenuItem value="success">Exitosos</MenuItem>
+                            <MenuItem value="partial">Parciales</MenuItem>
+                            <MenuItem value="error">Con errores</MenuItem>
+                        </Select>
+                    </FormControl>
+
+                    <Box sx={{ flexGrow: 1 }} />
+
+                    {!initialLoading && (
+                        <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                            {totalReports.toLocaleString()} {totalReports === 1 ? 'reporte' : 'reportes'}
+                        </Typography>
+                    )}
+                </Stack>
+            </Paper>
+
+            <Paper
+                elevation={0}
+                sx={{
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flexGrow: 1,
+                    minHeight: 0,
+                }}
+            >
+                <TableContainer sx={{ flexGrow: 1, minHeight: 0 }}>
+                    <Table stickyHeader>
                         <TableHead>
-                            <TableRow sx={{
-                                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
-                                borderBottom: 2,
-                                borderColor: 'divider'
-                            }}>
-                                <TableCell
-                                    sx={{
-                                        fontWeight: 700,
-                                        color: 'text.primary',
-                                        fontSize: '13px',
-                                        py: 1.5,
-                                    }}
-                                >
-                                    Archivo
-                                </TableCell>
-                                <TableCell
-                                    align="center"
-                                    sx={{
-                                        fontWeight: 700,
-                                        color: 'text.primary',
-                                        fontSize: '13px',
-                                        py: 1.5,
-                                    }}
-                                >
-                                    Estado
-                                </TableCell>
-                                <TableCell
-                                    align="right"
-                                    sx={{
-                                        fontWeight: 700,
-                                        color: 'text.primary',
-                                        fontSize: '13px',
-                                        py: 1.5,
-                                    }}
-                                >
-                                    Archivos
-                                </TableCell>
-                                <TableCell
-                                    align="right"
-                                    sx={{
-                                        fontWeight: 700,
-                                        color: 'text.primary',
-                                        fontSize: '13px',
-                                        py: 1.5,
-                                    }}
-                                >
-                                    Registros
-                                </TableCell>
-                                <TableCell
-                                    align="center"
-                                    sx={{
-                                        fontWeight: 700,
-                                        color: 'text.primary',
-                                        fontSize: '13px',
-                                        py: 1.5,
-                                    }}
-                                >
-                                    Fecha
-                                </TableCell>
-                                <TableCell
-                                    align="center"
-                                    sx={{
-                                        fontWeight: 700,
-                                        color: 'text.primary',
-                                        fontSize: '13px',
-                                        py: 1.5,
-                                    }}
-                                >
-                                    Acciones
-                                </TableCell>
+                            <TableRow sx={{ '& .MuiTableCell-root': { bgcolor: 'background.paper' } }}>
+                                <TableCell sx={{ ...HEADER_CELL_SX, minWidth: 260 }}>Archivo</TableCell>
+                                <TableCell sx={HEADER_CELL_SX}>Estado</TableCell>
+                                <TableCell sx={HEADER_CELL_SX}>Archivos</TableCell>
+                                <TableCell sx={HEADER_CELL_SX}>Registros</TableCell>
+                                <TableCell sx={HEADER_CELL_SX}>Tamaño</TableCell>
+                                <TableCell sx={HEADER_CELL_SX}>Fecha</TableCell>
+                                <TableCell sx={{ ...HEADER_CELL_SX, textAlign: 'right', width: 160 }}>Acciones</TableCell>
                             </TableRow>
                         </TableHead>
+
                         <TableBody>
-                            {loading ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} sx={{ textAlign: 'center', py: 8 }}>
-                                        <CircularProgress size={40} sx={{ color: 'primary.main' }} />
-                                        <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
-                                            Cargando reportes...
-                                        </Typography>
-                                    </TableCell>
-                                </TableRow>
-                            ) : filteredReports.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} sx={{ textAlign: 'center', py: 8 }}>
-                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                            No se encontraron reportes
-                                        </Typography>
-                                    </TableCell>
-                                </TableRow>
+                            {initialLoading ? (
+                                renderSkeletonRows()
+                            ) : reports.length === 0 ? (
+                                renderEmptyState()
                             ) : (
-                                filteredReports.map((report) => (
+                                reports.map((report) => (
                                     <TableRow
                                         key={report._id}
+                                        hover
                                         sx={{
-                                            borderBottom: 1,
-                                            borderColor: 'divider',
-                                            '&:hover': {
-                                                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
+                                            '& .MuiTableCell-root': {
+                                                py: 1.375,
+                                                px: 2,
+                                                borderBottomColor: alpha(theme.palette.divider, 0.6),
                                             },
                                         }}
                                     >
-                                        <TableCell sx={{ py: 1.5 }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                <FileIcon
+                                        <TableCell>
+                                            <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                                                <Box
                                                     sx={{
+                                                        width: 34,
+                                                        height: 34,
+                                                        borderRadius: 1.5,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        bgcolor: alpha(theme.palette.primary.main, 0.08),
                                                         color: 'primary.main',
-                                                        mr: 1,
-                                                        fontSize: 20,
+                                                        flexShrink: 0,
+                                                        mt: 0.2,
                                                     }}
-                                                />
-                                                <Box>
-                                                    <Typography
-                                                        variant="body2"
-                                                        sx={{
-                                                            fontWeight: 600,
-                                                            color: 'text.primary',
-                                                        }}
-                                                    >
-                                                        {report.filename}
+                                                >
+                                                    <FileIcon sx={{ fontSize: 18 }} />
+                                                </Box>
+                                                <Box sx={{ minWidth: 0 }}>
+                                                    <Typography variant="body2" fontWeight={600} sx={{ color: 'text.primary' }} noWrap>
+                                                        {report.filename || 'Sin nombre'}
                                                     </Typography>
                                                     <Typography
                                                         variant="caption"
-                                                        sx={{
-                                                            color: 'text.secondary',
-                                                        }}
+                                                        color="text.secondary"
+                                                        sx={{ display: 'block', mt: 0.35, fontFamily: '"Roboto Mono", monospace' }}
                                                     >
-                                                        #{report._id}
+                                                        {report._id}
                                                     </Typography>
                                                 </Box>
-                                            </Box>
+                                            </Stack>
                                         </TableCell>
-                                        <TableCell align="center" sx={{ py: 1.5 }}>
-                                            {getStatusBadge(report.status)}
-                                        </TableCell>
-                                        <TableCell align="right" sx={{ py: 1.5 }}>
-                                            <Typography
-                                                variant="body2"
-                                                sx={{
-                                                    fontWeight: 600,
-                                                    color: 'text.primary',
-                                                }}
-                                            >
+
+                                        <TableCell>{renderStatusChip(report.status)}</TableCell>
+
+                                        <TableCell>
+                                            <Typography variant="body2" fontWeight={600}>
                                                 {report.files_processed || 0}
                                             </Typography>
-                                        </TableCell>
-                                        <TableCell align="right" sx={{ py: 1.5 }}>
-                                            <Typography
-                                                variant="body2"
-                                                sx={{
-                                                    fontWeight: 600,
-                                                    color: 'primary.main',
-                                                }}
-                                            >
-                                                {report.total_records?.toLocaleString() || '0'}
+                                            <Typography variant="caption" color="text.secondary">
+                                                {report.files_with_errors || 0} con error
                                             </Typography>
                                         </TableCell>
-                                        <TableCell align="center" sx={{ py: 1.5 }}>
-                                            <Box>
-                                                <Typography
-                                                    variant="body2"
-                                                    sx={{
-                                                        fontWeight: 600,
-                                                        color: 'text.primary',
-                                                    }}
-                                                >
-                                                    {moment.utc(report.created_at).local().format('DD/MM/YYYY HH:mm')}
-                                                </Typography>
-                                            </Box>
+
+                                        <TableCell>
+                                            <Typography variant="body2" fontWeight={600}>
+                                                {(report.total_records || 0).toLocaleString()}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                {formatDuration(report.processing_time)}
+                                            </Typography>
                                         </TableCell>
-                                        <TableCell align="center" sx={{ py: 1.5 }}>
-                                            <Tooltip title="Más opciones">
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => handleOpenMenu(e, report)}
-                                                    sx={{
-                                                        color: 'text.secondary',
-                                                        '&:hover': {
-                                                            bgcolor: 'action.hover',
-                                                            color: 'primary.main',
-                                                        },
-                                                    }}
-                                                >
-                                                    <MoreVertIcon fontSize="small" />
-                                                </IconButton>
+
+                                        <TableCell>
+                                            <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                                                {formatFileSize(report.file_size)}
+                                            </Typography>
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <Tooltip title={moment.utc(report.created_at).local().format('DD/MM/YYYY HH:mm:ss')} placement="left">
+                                                <Box>
+                                                    <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                                                        {moment.utc(report.created_at).local().format('DD/MM/YY')}
+                                                    </Typography>
+                                                    <Typography variant="caption" color="text.disabled">
+                                                        {moment.utc(report.created_at).local().format('HH:mm')}
+                                                    </Typography>
+                                                </Box>
                                             </Tooltip>
+                                        </TableCell>
+
+                                        <TableCell align="right">
+                                            <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                                                <Tooltip title="Ver detalles">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleOpenDetails(report)}
+                                                        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}
+                                                    >
+                                                        <VisibilityIcon sx={{ fontSize: 18 }} />
+                                                    </IconButton>
+                                                </Tooltip>
+
+                                                {user?.es_lider && report.status !== 'error' && report.download_url && (
+                                                    <Tooltip title="Descargar">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => handleDownload(report)}
+                                                            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}
+                                                        >
+                                                            <CloudDownloadIcon sx={{ fontSize: 18 }} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
+
+                                                {user?.es_lider && (
+                                                    <Tooltip title="Eliminar">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => handleOpenDeleteDialog(report)}
+                                                            sx={{
+                                                                border: '1px solid',
+                                                                borderColor: alpha(theme.palette.error.main, 0.2),
+                                                                borderRadius: 1.5,
+                                                                color: 'error.main',
+                                                            }}
+                                                        >
+                                                            <DeleteIcon sx={{ fontSize: 18 }} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
+                                            </Stack>
                                         </TableCell>
                                     </TableRow>
                                 ))
                             )}
                         </TableBody>
                     </Table>
-                    <TablePagination
-                        rowsPerPageOptions={[5, 10, 25, 50, 100]}
-                        component="div"
-                        count={totalReports}
-                        rowsPerPage={rowsPerPage}
-                        page={page}
-                        onPageChange={handleChangePage}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                        labelRowsPerPage="Filas por página:"
-                        labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`}
-                        sx={{
-                            borderTop: 1,
-                            borderColor: 'divider',
-                            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                                color: 'text.secondary',
-                                fontSize: '13px',
-                            },
-                        }}
-                    />
                 </TableContainer>
 
-                {/* Menú de acciones */}
-                <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleCloseMenu}
-                    PaperProps={{
-                        sx: {
-                            borderRadius: 2,
+                <Divider sx={{ flexShrink: 0 }} />
+
+                <TablePagination
+                    rowsPerPageOptions={[15, 25, 50, 100]}
+                    component="div"
+                    count={totalReports}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    labelRowsPerPage="Filas por página:"
+                    labelDisplayedRows={({ from, to, count }) =>
+                        `${from}-${to} de ${count !== -1 ? count.toLocaleString() : `más de ${to}`}`
+                    }
+                    sx={{
+                        flexShrink: 0,
+                        borderTop: 'none',
+                        '.MuiTablePagination-toolbar': { minHeight: 52, px: 2 },
+                        '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+                            fontSize: '0.8125rem',
+                            color: 'text.secondary',
                         },
                     }}
-                >
-                    <MenuItem
-                        onClick={() => handleViewDetails(selectedReport)}
-                        sx={{
-                            fontSize: '14px',
-                            fontWeight: 500,
-                            '& .MuiSvgIcon-root': {
-                                fontSize: 18,
-                                mr: 1,
-                            },
-                        }}
-                    >
-                        <VisibilityIcon fontSize="small" />
-                        Ver Detalles
-                    </MenuItem>
-                    {user && user.es_lider && selectedReport?.status === 'success' && (
-                        <MenuItem
-                            onClick={() => handleDownload(selectedReport)}
+                />
+            </Paper>
+
+            <Dialog
+                open={detailsDialogOpen}
+                onClose={() => setDetailsDialogOpen(false)}
+                maxWidth="md"
+                fullWidth
+                PaperProps={{ sx: { borderRadius: 2.5 } }}
+            >
+                <DialogTitle sx={{ pb: 0, pt: 3, px: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+                        <Box>
+                            <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.2 }}>
+                                Detalles del reporte
+                            </Typography>
+                            {selectedReport && (
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                    {selectedReport.filename}
+                                </Typography>
+                            )}
+                        </Box>
+                        {selectedReport && renderStatusChip(selectedReport.status)}
+                    </Box>
+                </DialogTitle>
+
+                <Divider sx={{ mt: 2.5 }} />
+
+                <DialogContent sx={{ pt: 3, px: 3 }}>
+                    {selectedReport && (
+                        <Stack spacing={2}>
+                            <Grid container spacing={2}>
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <SectionPanel title="Información general">
+                                        <DataRow label="ID" value={selectedReport._id} mono />
+                                        <DataRow label="Archivo" value={selectedReport.filename} />
+                                        <DataRow
+                                            label="Generado"
+                                            value={moment.utc(selectedReport.created_at).local().format('DD/MM/YYYY HH:mm:ss')}
+                                        />
+                                        <DataRow label="Tiempo de proceso" value={formatDuration(selectedReport.processing_time)} />
+                                        <DataRow label="Tamaño" value={formatFileSize(selectedReport.file_size)} />
+                                    </SectionPanel>
+                                </Grid>
+
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <SectionPanel title="Métricas de consolidación">
+                                        <DataRow label="Archivos procesados" value={selectedReport.files_processed || 0} />
+                                        <DataRow label="Archivos con error" value={selectedReport.files_with_errors || 0} />
+                                        <DataRow label="Total de registros" value={(selectedReport.total_records || 0).toLocaleString()} />
+                                        <DataRow label="Estado" value={getStatusConfig(selectedReport.status).label} />
+                                    </SectionPanel>
+                                </Grid>
+                            </Grid>
+
+                            {selectedReport.error_message && (
+                                <Alert severity="error" sx={{ borderRadius: 1.5 }}>
+                                    {selectedReport.error_message}
+                                </Alert>
+                            )}
+
+                            {selectedReport.errors?.length > 0 && (
+                                <SectionPanel title="Detalle de errores por archivo">
+                                    <Stack spacing={1.25}>
+                                        {selectedReport.errors.map((errorItem, index) => (
+                                            <Box
+                                                key={`${errorItem.file}-${index}`}
+                                                sx={{
+                                                    border: '1px solid',
+                                                    borderColor: alpha(theme.palette.error.main, 0.16),
+                                                    borderRadius: 1.5,
+                                                    p: 1.5,
+                                                    bgcolor: alpha(theme.palette.error.main, 0.03),
+                                                }}
+                                            >
+                                                <Typography variant="body2" fontWeight={700} sx={{ color: 'text.primary', mb: 0.5 }}>
+                                                    {errorItem.file}
+                                                </Typography>
+                                                <Typography
+                                                    variant="body2"
+                                                    color="text.secondary"
+                                                    sx={{ fontSize: '0.8125rem', lineHeight: 1.6 }}
+                                                >
+                                                    {errorItem.error}
+                                                </Typography>
+                                            </Box>
+                                        ))}
+                                    </Stack>
+                                </SectionPanel>
+                            )}
+                        </Stack>
+                    )}
+                </DialogContent>
+
+                <Divider />
+
+                <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
+                    <Button onClick={() => setDetailsDialogOpen(false)} variant="outlined" size="small" sx={{ borderRadius: 1.5 }}>
+                        Cerrar
+                    </Button>
+                    {user?.es_lider && selectedReport?.status !== 'error' && selectedReport?.download_url && (
+                        <Button
+                            variant="contained"
+                            startIcon={<CloudDownloadIcon />}
+                            onClick={() => {
+                                handleDownload(selectedReport);
+                                setDetailsDialogOpen(false);
+                            }}
+                            size="small"
+                            sx={{ borderRadius: 1.5 }}
+                        >
+                            Descargar
+                        </Button>
+                    )}
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={deleteDialogOpen}
+                onClose={() => setDeleteDialogOpen(false)}
+                maxWidth="xs"
+                fullWidth
+                PaperProps={{ sx: { borderRadius: 2.5 } }}
+            >
+                <DialogTitle sx={{ pt: 3, px: 3, pb: 1 }}>
+                    <Typography variant="h6" fontWeight={700}>
+                        Eliminar reporte
+                    </Typography>
+                </DialogTitle>
+                <DialogContent sx={{ px: 3, pb: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
+                        {reportToDelete
+                            ? `Se eliminará el reporte ${reportToDelete.filename}. Esta acción no se puede deshacer.`
+                            : 'Esta acción no se puede deshacer.'}
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
+                    <Button onClick={() => setDeleteDialogOpen(false)} variant="outlined" size="small" sx={{ borderRadius: 1.5 }}>
+                        Cancelar
+                    </Button>
+                    <Button onClick={handleDeleteReport} color="error" variant="contained" size="small" sx={{ borderRadius: 1.5 }}>
+                        Eliminar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={downloadDialog.open}
+                onClose={handleCloseDownloadDialog}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{ sx: { borderRadius: 2.5 } }}
+            >
+                <DialogTitle sx={{ p: 2.5, pb: 1.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <CheckCircleIcon sx={{ color: 'success.main', fontSize: 24 }} />
+                        <Box>
+                            <Typography variant="h6" fontWeight={700}>
+                                Archivo guardado
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                El reporte se descargó correctamente.
+                            </Typography>
+                        </Box>
+                    </Box>
+                </DialogTitle>
+
+                <Divider />
+
+                <DialogContent sx={{ p: 2.5 }}>
+                    <Stack spacing={2}>
+                        <Box
                             sx={{
-                                fontSize: '14px',
-                                fontWeight: 500,
-                                '& .MuiSvgIcon-root': {
-                                    fontSize: 18,
-                                    mr: 1,
-                                },
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                borderRadius: 1.5,
+                                p: 1.5,
+                                bgcolor: alpha(theme.palette.success.main, 0.03),
                             }}
                         >
-                            <CloudDownloadIcon fontSize="small" />
-                            Descargar
-                        </MenuItem>
-                    )}
-                </Menu>
-
-                {/* Diálogo de detalles */}
-                <Dialog
-                    open={detailsDialogOpen}
-                    onClose={() => setDetailsDialogOpen(false)}
-                    maxWidth="sm"
-                    fullWidth
-                    PaperProps={{
-                        sx: {
-                            borderRadius: 2,
-                        },
-                    }}
-                >
-                    <DialogTitle
-                        sx={{
-                            p: 2.5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            borderBottom: 1,
-                            borderColor: 'divider',
-                        }}
-                    >
-                        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                            Detalles del Reporte
-                        </Typography>
-                        <IconButton
-                            onClick={() => setDetailsDialogOpen(false)}
-                            size="small"
-                            sx={{ color: 'text.secondary' }}
-                        >
-                            <CloseIcon />
-                        </IconButton>
-                    </DialogTitle>
-
-                    <DialogContent sx={{ p: 2.5 }}>
-                        {selectedReport && (
-                            <Stack spacing={2}>
-                                {/* ID del Reporte */}
-                                <Box>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: 'text.secondary',
-                                            display: 'block',
-                                            mb: 0.5,
-                                            fontWeight: 500,
-                                        }}
-                                    >
-                                        ID del Reporte
+                            <Stack direction="row" spacing={1.5} alignItems="center">
+                                <FileIcon sx={{ color: 'success.main' }} />
+                                <Box sx={{ minWidth: 0 }}>
+                                    <Typography variant="body2" fontWeight={700} sx={{ wordBreak: 'break-all' }}>
+                                        {downloadDialog.filename}
                                     </Typography>
-                                    <Typography
-                                        variant="body2"
-                                        sx={{
-                                            fontWeight: 600,
-                                            color: 'text.primary',
-                                            fontFamily: 'monospace',
-                                            fontSize: '12px',
-                                        }}
-                                    >
-                                        {selectedReport._id}
-                                    </Typography>
-                                </Box>
-
-                                <Divider />
-
-                                {/* Nombre del Archivo */}
-                                <Box>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: 'text.secondary',
-                                            display: 'block',
-                                            mb: 0.5,
-                                            fontWeight: 500,
-                                        }}
-                                    >
-                                        Nombre del Archivo
-                                    </Typography>
-                                    <Box
-                                        sx={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            p: 1,
-                                            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
-                                            borderRadius: 1.5,
-                                            border: 1,
-                                            borderColor: 'divider',
-                                        }}
-                                    >
-                                        <FileIcon
-                                            sx={{
-                                                color: 'primary.main',
-                                                mr: 1,
-                                                fontSize: 18,
-                                            }}
-                                        />
-                                        <Typography
-                                            variant="body2"
-                                            sx={{
-                                                fontWeight: 600,
-                                                color: 'text.primary',
-                                                wordBreak: 'break-all',
-                                            }}
-                                        >
-                                            {selectedReport.filename}
-                                        </Typography>
-                                    </Box>
-                                </Box>
-
-                                <Divider />
-
-                                {/* Estado */}
-                                <Box>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: 'text.secondary',
-                                            display: 'block',
-                                            mb: 0.5,
-                                            fontWeight: 500,
-                                        }}
-                                    >
-                                        Estado
-                                    </Typography>
-                                    <Box sx={{ mb: 1 }}>
-                                        {getStatusBadge(selectedReport.status)}
-                                    </Box>
-                                    {selectedReport.errorMessage && (
-                                        <Alert severity="error" sx={{ fontSize: '13px' }}>
-                                            {selectedReport.errorMessage}
-                                        </Alert>
-                                    )}
-                                </Box>
-
-                                <Divider />
-
-                                {/* Estadísticas */}
-                                <Grid container spacing={2}>
-                                    <Grid size={{ xs: 6 }}>
-                                        <Box>
-                                            <Typography
-                                                variant="caption"
-                                                sx={{
-                                                    color: 'text.secondary',
-                                                    display: 'block',
-                                                    mb: 0.5,
-                                                    fontWeight: 500,
-                                                }}
-                                            >
-                                                Archivos Procesados
-                                            </Typography>
-                                            <Typography
-                                                variant="h6"
-                                                sx={{
-                                                    fontWeight: 700,
-                                                    color: 'primary.main',
-                                                }}
-                                            >
-                                                {selectedReport.files_processed || 0}
-                                            </Typography>
-                                        </Box>
-                                    </Grid>
-                                    <Grid size={{ xs: 6 }}>
-                                        <Box>
-                                            <Typography
-                                                variant="caption"
-                                                sx={{
-                                                    color: 'text.secondary',
-                                                    display: 'block',
-                                                    mb: 0.5,
-                                                    fontWeight: 500,
-                                                }}
-                                            >
-                                                Con Errores
-                                            </Typography>
-                                            <Typography
-                                                variant="h6"
-                                                sx={{
-                                                    fontWeight: 700,
-                                                    color: selectedReport.files_with_errors > 0
-                                                        ? 'error.main'
-                                                        : 'text.secondary',
-                                                }}
-                                            >
-                                                {selectedReport.files_with_errors || 0}
-                                            </Typography>
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-
-                                <Divider />
-
-                                {/* Total de Registros */}
-                                <Box>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: 'text.secondary',
-                                            display: 'block',
-                                            mb: 0.5,
-                                            fontWeight: 500,
-                                        }}
-                                    >
-                                        Total de Registros
-                                    </Typography>
-                                    <Typography
-                                        variant="h6"
-                                        sx={{
-                                            fontWeight: 700,
-                                            color: 'text.primary',
-                                        }}
-                                    >
-                                        {selectedReport.total_records?.toLocaleString() || '0'}
-                                    </Typography>
-                                </Box>
-
-                                <Divider />
-
-                                {/* Información técnica */}
-                                <Grid container spacing={2}>
-                                    <Grid size={{ xs: 6 }}>
-                                        <Box>
-                                            <Typography
-                                                variant="caption"
-                                                sx={{
-                                                    color: 'text.secondary',
-                                                    display: 'block',
-                                                    mb: 0.5,
-                                                    fontWeight: 500,
-                                                }}
-                                            >
-                                                Tamaño del Archivo
-                                            </Typography>
-                                            <Typography
-                                                variant="body2"
-                                                sx={{
-                                                    fontWeight: 600,
-                                                    color: 'text.primary',
-                                                }}
-                                            >
-                                                {selectedReport.file_size > 0 ? formatFileSize(selectedReport.file_size) : '-'}
-                                            </Typography>
-                                        </Box>
-                                    </Grid>
-                                    <Grid size={{ xs: 6 }}>
-                                        <Box>
-                                            <Typography
-                                                variant="caption"
-                                                sx={{
-                                                    color: 'text.secondary',
-                                                    display: 'block',
-                                                    mb: 0.5,
-                                                    fontWeight: 500,
-                                                }}
-                                            >
-                                                Tiempo de Procesamiento
-                                            </Typography>
-                                            <Typography
-                                                variant="body2"
-                                                sx={{
-                                                    fontWeight: 600,
-                                                    color: 'text.primary',
-                                                }}
-                                            >
-                                                {selectedReport.processing_time > 0 ? `${selectedReport.processing_time}s` : '-'}
-                                            </Typography>
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-
-                                <Divider />
-
-                                {/* Fecha de Generación */}
-                                <Box>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: 'text.secondary',
-                                            display: 'block',
-                                            mb: 0.5,
-                                            fontWeight: 500,
-                                        }}
-                                    >
-                                        Fecha de Generación
-                                    </Typography>
-                                    <Typography
-                                        variant="body2"
-                                        sx={{
-                                            fontWeight: 600,
-                                            color: 'text.primary',
-                                        }}
-                                    >
-                                        {moment(selectedReport.createdAt).format('DD/MM/YYYY HH:mm:ss')}
-                                    </Typography>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: 'text.secondary',
-                                            display: 'block',
-                                            mt: 0.5,
-                                        }}
-                                    >
-                                        ({formatRelativeDate(selectedReport.createdAt)})
+                                    <Typography variant="caption" color="text.secondary">
+                                        Archivo Excel
                                     </Typography>
                                 </Box>
                             </Stack>
-                        )}
-                    </DialogContent>
-
-                    <DialogActions
-                        sx={{
-                            p: 2.5,
-                            borderTop: 1,
-                            borderColor: 'divider',
-                            gap: 1,
-                        }}
-                    >
-                        <Button
-                            onClick={() => setDetailsDialogOpen(false)}
-                            variant="outlined"
-                            sx={{
-                                fontWeight: 600,
-                                fontSize: '14px',
-                                textTransform: 'none',
-                            }}
-                        >
-                            Cerrar
-                        </Button>
-                        {user && user.es_lider && selectedReport?.status === 'success' && (
-                            <Button
-                                variant="contained"
-                                startIcon={<CloudDownloadIcon />}
-                                onClick={() => {
-                                    handleDownload(selectedReport);
-                                    setDetailsDialogOpen(false);
-                                }}
-                                sx={{
-                                    fontWeight: 600,
-                                    fontSize: '14px',
-                                    textTransform: 'none',
-                                    bgcolor: 'success.main',
-                                    '&:hover': {
-                                        bgcolor: 'success.dark',
-                                    },
-                                }}
-                            >
-                                Descargar
-                            </Button>
-                        )}
-                    </DialogActions>
-                </Dialog>
-
-                {/* Diálogo de descarga exitosa */}
-                <Dialog
-                    open={downloadDialog.open}
-                    onClose={handleCloseDownloadDialog}
-                    maxWidth="sm"
-                    fullWidth
-                    PaperProps={{
-                        sx: {
-                            borderRadius: 2,
-                        }
-                    }}
-                >
-                    <DialogTitle
-                        sx={{
-                            p: 2.5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            borderBottom: 1,
-                            borderColor: 'divider',
-                        }}
-                    >
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <CheckCircleIcon
-                                sx={{
-                                    color: 'success.main',
-                                    mr: 1.5,
-                                    fontSize: 24,
-                                }}
-                            />
-                            <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                                Archivo guardado exitosamente
-                            </Typography>
                         </Box>
-                        <IconButton
-                            size="small"
-                            onClick={handleCloseDownloadDialog}
-                            sx={{ color: 'text.secondary' }}
-                        >
-                            <CloseIcon />
-                        </IconButton>
-                    </DialogTitle>
 
-                    <DialogContent sx={{ p: 2.5 }}>
-                        <Stack spacing={2}>
+                        <Box>
+                            <Typography
+                                variant="caption"
+                                fontWeight={700}
+                                sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary' }}
+                            >
+                                Guardado en
+                            </Typography>
                             <Box
                                 sx={{
-                                    p: 1.5,
-                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
-                                    border: 1,
-                                    borderColor: 'divider',
+                                    mt: 1,
+                                    p: 1.25,
                                     borderRadius: 1.5,
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    bgcolor: alpha(theme.palette.grey[500], 0.04),
+                                    fontFamily: '"Roboto Mono", monospace',
+                                    fontSize: '0.78rem',
+                                    color: 'text.secondary',
+                                    wordBreak: 'break-all',
                                 }}
                             >
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <DescriptionIcon
-                                        sx={{
-                                            fontSize: 32,
-                                            color: 'success.main',
-                                            mr: 1.5,
-                                        }}
-                                    />
-                                    <Box sx={{ flex: 1 }}>
-                                        <Typography
-                                            variant="body2"
-                                            sx={{
-                                                fontWeight: 600,
-                                                color: 'text.primary',
-                                                wordBreak: 'break-all',
-                                            }}
-                                        >
-                                            {downloadDialog.filename}
-                                        </Typography>
-                                        <Typography
-                                            variant="caption"
-                                            sx={{ color: 'text.secondary' }}
-                                        >
-                                            Archivo Excel
-                                        </Typography>
-                                    </Box>
-                                </Box>
+                                {downloadDialog.savedPath}
                             </Box>
-                            <Box>
-                                <Typography
-                                    variant="caption"
-                                    sx={{
-                                        color: 'text.secondary',
-                                        display: 'block',
-                                        mb: 1,
-                                        fontWeight: 500,
-                                    }}
-                                >
-                                    Guardado en:
-                                </Typography>
-                                <Box
-                                    sx={{
-                                        p: 1,
-                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
-                                        border: 1,
-                                        borderColor: 'divider',
-                                        borderRadius: 1.5,
-                                        fontFamily: 'monospace',
-                                        fontSize: '12px',
-                                        color: 'text.secondary',
-                                        wordBreak: 'break-all',
-                                    }}
-                                >
-                                    {downloadDialog.savedPath}
-                                </Box>
-                            </Box>
-                        </Stack>
-                    </DialogContent>
+                        </Box>
+                    </Stack>
+                </DialogContent>
 
-                    <DialogActions
-                        sx={{
-                            p: 2.5,
-                            borderTop: 1,
-                            borderColor: 'divider',
-                            gap: 1,
-                        }}
+                <Divider />
+
+                <DialogActions sx={{ p: 2.5, gap: 1 }}>
+                    <Button
+                        variant="outlined"
+                        startIcon={<FolderOpenIcon />}
+                        onClick={handleShowInFolder}
+                        fullWidth
+                        sx={{ py: 1, borderRadius: 1.5 }}
                     >
-                        <Button
-                            variant="outlined"
-                            startIcon={<FolderOpenIcon />}
-                            onClick={handleShowInFolder}
-                            fullWidth
-                            sx={{
-                                py: 1,
-                                fontWeight: 600,
-                                fontSize: '14px',
-                                textTransform: 'none',
-                            }}
-                        >
-                            Mostrar en carpeta
-                        </Button>
-                        <Button
-                            variant="contained"
-                            startIcon={<OpenInNewIcon />}
-                            onClick={handleOpenFile}
-                            fullWidth
-                            sx={{
-                                py: 1,
-                                fontWeight: 600,
-                                fontSize: '14px',
-                                textTransform: 'none',
-                                bgcolor: 'success.main',
-                                '&:hover': {
-                                    bgcolor: 'success.dark',
-                                },
-                            }}
-                        >
-                            Abrir archivo
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-            </Container>
+                        Mostrar en carpeta
+                    </Button>
+                    <Button
+                        variant="contained"
+                        startIcon={<OpenInNewIcon />}
+                        onClick={handleOpenFile}
+                        fullWidth
+                        sx={{ py: 1, borderRadius: 1.5 }}
+                    >
+                        Abrir archivo
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };

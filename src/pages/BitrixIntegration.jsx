@@ -2,20 +2,13 @@ import { useState, useCallback, useEffect, useContext } from 'react';
 import {
     Box,
     Button,
-    Card,
-    CardContent,
     Chip,
-    Container,
     Divider,
     FormControl,
     FormControlLabel,
     Grid,
     IconButton,
-    InputLabel,
     LinearProgress,
-    List,
-    ListItem,
-    ListItemText,
     MenuItem,
     Paper,
     Select,
@@ -34,6 +27,7 @@ import {
     Tooltip,
     useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
     CloudUpload,
     Delete,
@@ -883,698 +877,534 @@ export const BitrixIntegration = () => {
 
     const activeUnits = new Set((currentFileData?.productos || []).map(p => p.unidadNegocio));
 
+    // ── Area chip color map ──────────────────────────────────────────────────────
+    const getAreaChipSx = (unit) => {
+        const map = {
+            UNAU:  { bgcolor: '#EFF6FF', color: '#1D4ED8' },
+            UNAI:  { bgcolor: '#FDF4FF', color: '#7E22CE' },
+            UNVA:  { bgcolor: '#F0FDF4', color: '#15803D' },
+            UNAP:  { bgcolor: '#FFF7ED', color: '#C2410C' },
+            UNEPC: { bgcolor: '#FFFBEB', color: '#B45309' },
+            PIC:   { bgcolor: '#F0F9FF', color: '#0369A1' },
+            PAU:   { bgcolor: '#FFF1F2', color: '#BE123C' },
+        };
+        return map[unit] || { bgcolor: alpha(theme.palette.grey[500], 0.1), color: 'text.secondary' };
+    };
+
     if (!listaProductos || !empleados) {
         return (
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    minHeight: '100vh',
-                    bgcolor: 'background.default',
-                    gap: 2
-                }}
-            >
-                <CircularProgress size={30} />
-                <Typography variant="h6" color="text.secondary">
-                    Cargando datos...
+            <Box sx={{ height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
+                <CircularProgress size={24} thickness={4} />
+                <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                    Cargando datos del sistema...
                 </Typography>
             </Box>
         );
     }
-    const renderProductTable = () => {
-        if (!currentFileData || !currentFileData.productos) return null;
 
-        const totales = calcularTotalesPorArea(currentFileData.productos);
-
-        return (
-            <TableContainer component={Paper} sx={{ mt: 2, maxHeight: 400 }}>
-                <Table stickyHeader size="small">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }}>
-                                ID
-                            </TableCell>
-                            <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }}>
-                                Nombre
-                            </TableCell>
-                            <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }}>
-                                Precio
-                            </TableCell>
-                            <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }}>
-                                Área
-                            </TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {currentFileData.productos.map((producto, index) => (
-                            <TableRow key={index} hover>
-                                <TableCell>{producto.productId}</TableCell>
-                                <TableCell>{producto.nombre}</TableCell>
-                                <TableCell>${producto.precio ? numeral(producto.precio).format('0,0.00') : ''}</TableCell>
-                                <TableCell>
-                                    <Chip
-                                        label={producto.unidadNegocio}
-                                        size="small"
-                                        color={
-                                            producto.unidadNegocio === 'UNAU' ? 'primary' :
-                                                producto.unidadNegocio === 'UNAI' ? 'secondary' :
-                                                    producto.unidadNegocio === 'UNVA' ? 'success' : 'default'
-                                        }
-                                    />
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                        <TableRow>
-                            <TableCell colSpan={6}>
-                                <Box sx={{ mt: 2 }}>
-                                    <Typography variant="subtitle2" gutterBottom>
-                                        Totales por Área:
-                                    </Typography>
-                                    <Grid container spacing={1}>
-                                        {Object.entries(totales).map(([area, total]) => (
-                                            total > 0 && (
-                                                <Grid size={{ xs: 6, sm: 4, md: 2 }} key={area}>
-                                                    <Paper sx={{
-                                                        p: 1,
-                                                        textAlign: 'center',
-                                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                    }}>
-                                                        <Typography variant="caption" color="text.secondary">
-                                                            {area}
-                                                        </Typography>
-                                                        <Typography variant="body2" fontWeight="bold">
-                                                            ${total ? numeral(total).format('0,0.00') : ''}
-                                                        </Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )
-                                        ))}
-                                    </Grid>
-                                </Box>
-                            </TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        );
-    };
+    const totales = currentFileData ? calcularTotalesPorArea(currentFileData.productos) : {};
+    const totalesEntries = Object.entries(totales).filter(([, v]) => v > 0);
 
     return (
-        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 3 }}>
-            <Container maxWidth="xl">
-                {successMessage && (
-                    <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
-                        {successMessage}
-                    </Alert>
-                )}
+        <Box sx={{ height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxSizing: 'border-box' }}>
 
-                {errorMessage && (
-                    <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorMessage('')}>
-                        {errorMessage.includes(' | ') ? (
-                            <ul style={{ margin: 0, paddingLeft: 20 }}>
-                                {errorMessage.split(' | ').map((msg, i) => <li key={i}>{msg}</li>)}
-                            </ul>
-                        ) : errorMessage}
-                    </Alert>
-                )}
+            {/* ── Global progress bar ────────────────────────────────────────── */}
+            {(loading || processing) && (
+                <LinearProgress sx={{ flexShrink: 0, height: 2, zIndex: 1 }} />
+            )}
 
-                {!listaProductos || !empleados && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-                        <CircularProgress />
+            {/* ── Alerts ─────────────────────────────────────────────────────── */}
+            {(successMessage || errorMessage) && (
+                <Box sx={{ px: 3, pt: 1.5, flexShrink: 0 }}>
+                    {successMessage && (
+                        <Alert severity="success" onClose={() => setSuccessMessage('')} sx={{ borderRadius: 1.5, mb: 1, py: 0.5 }}>
+                            {successMessage}
+                        </Alert>
+                    )}
+                    {errorMessage && (
+                        <Alert severity="error" onClose={() => setErrorMessage('')} sx={{ borderRadius: 1.5, mb: 1, py: 0.5 }}>
+                            {errorMessage.includes(' | ') ? (
+                                <ul style={{ margin: 0, paddingLeft: 20 }}>
+                                    {errorMessage.split(' | ').map((msg, i) => <li key={i}>{msg}</li>)}
+                                </ul>
+                            ) : errorMessage}
+                        </Alert>
+                    )}
+                </Box>
+            )}
+
+            {/* ── Body: Sidebar + Main ───────────────────────────────────────── */}
+            <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
+
+                {/* ═══════════════════════════════
+                 *  SIDEBAR
+                 * ═══════════════════════════════ */}
+                <Box sx={{
+                    width: 272, flexShrink: 0,
+                    borderRight: '1px solid', borderColor: 'divider',
+                    display: 'flex', flexDirection: 'column', overflow: 'hidden',
+                    bgcolor: alpha(theme.palette.grey[500], 0.01),
+                }}>
+
+                    {/* Upload controls */}
+                    <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                            <Typography variant="subtitle2" fontWeight={700} sx={{ letterSpacing: '-0.01em' }}>
+                                Archivos
+                            </Typography>
+                            {files.length > 0 && (
+                                <Chip
+                                    label={files.length}
+                                    size="small"
+                                    sx={{ height: 18, fontSize: '0.7rem', fontWeight: 700, bgcolor: alpha(theme.palette.primary.main, 0.08), color: 'primary.main', '& .MuiChip-label': { px: 0.75 } }}
+                                />
+                            )}
+                        </Box>
+
+                        <Button
+                            component="label"
+                            variant="outlined"
+                            startIcon={<CloudUpload sx={{ fontSize: 15 }} />}
+                            fullWidth
+                            size="small"
+                            sx={{ borderRadius: 1.5, mb: 1.5, textTransform: 'none', fontWeight: 500, fontSize: '0.8125rem' }}
+                        >
+                            Subir archivos
+                            <input type="file" hidden multiple accept=".xlsx,.xls,.xlsm,.xltm" onChange={handleFileUpload} />
+                        </Button>
+
+                        {/* Drop zone */}
+                        <Box sx={{
+                            border: '1.5px dashed',
+                            borderColor: isDragging ? 'primary.main' : alpha(theme.palette.grey[500], 0.35),
+                            borderRadius: 1.5, p: 1.5, textAlign: 'center',
+                            bgcolor: isDragging ? alpha(theme.palette.primary.main, 0.04) : 'transparent',
+                            transition: 'all 0.15s ease',
+                            pointerEvents: 'none',
+                        }}>
+                            <CloudUpload sx={{ fontSize: 20, color: isDragging ? 'primary.main' : 'text.disabled', display: 'block', mx: 'auto', mb: 0.25 }} />
+                            <Typography variant="caption" color={isDragging ? 'primary.main' : 'text.disabled'} sx={{ fontSize: '0.72rem', lineHeight: 1.4 }}>
+                                {isDragging ? 'Suelta los archivos aquí' : 'O arrastra archivos .xlsx aquí'}
+                            </Typography>
+                        </Box>
+
+                        {loading && <LinearProgress sx={{ mt: 1.25, borderRadius: 1, height: 2 }} />}
                     </Box>
-                )}
 
-                <Grid container spacing={3}>
-                    <Grid size={{ xs: 12, md: 3 }}>
-                        <Card elevation={0} sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
-                            <CardContent>
-                                <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-                                    Archivos
+                    {/* File list */}
+                    <Box sx={{ flex: 1, overflowY: 'auto', p: 1, '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
+                        {files.length === 0 ? (
+                            <Box sx={{ py: 5, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                <InsertDriveFile sx={{ fontSize: 26, color: 'text.disabled' }} />
+                                <Typography variant="caption" color="text.disabled" textAlign="center" sx={{ fontSize: '0.75rem', lineHeight: 1.5, px: 2 }}>
+                                    Sin archivos cargados
                                 </Typography>
-                                <Divider sx={{ mb: 2 }} />
+                            </Box>
+                        ) : (
+                            files.map((fileObj, index) => {
+                                const isSelected = selectedFileIndex === index;
+                                return (
+                                    <Box
+                                        key={fileObj.id}
+                                        onClick={() => handleSelectFile(index)}
+                                        sx={{
+                                            display: 'flex', alignItems: 'center', gap: 1,
+                                            p: 1, mb: 0.5, borderRadius: 1.5,
+                                            border: '1px solid',
+                                            borderColor: isSelected ? 'primary.main' : 'transparent',
+                                            bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.04) : 'transparent',
+                                            cursor: 'pointer', transition: 'all 0.12s ease',
+                                            '&:hover': {
+                                                bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.grey[500], 0.06),
+                                                borderColor: isSelected ? 'primary.main' : 'divider',
+                                            },
+                                        }}
+                                    >
+                                        {fileObj.status === 'success'
+                                            ? <CheckCircle sx={{ fontSize: 16, color: 'success.main', flexShrink: 0 }} />
+                                            : fileObj.status === 'error'
+                                                ? <Warning sx={{ fontSize: 16, color: 'error.main', flexShrink: 0 }} />
+                                                : <InsertDriveFile sx={{ fontSize: 16, color: 'primary.main', flexShrink: 0 }} />
+                                        }
+                                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                                            <Typography variant="body2" noWrap fontWeight={isSelected ? 600 : 400} sx={{ fontSize: '0.8rem', color: isSelected ? 'primary.main' : 'text.primary' }}>
+                                                {fileObj.file.name}
+                                            </Typography>
+                                            <Typography variant="caption" sx={{ fontSize: '0.7rem', color: fileObj.status === 'error' ? 'error.main' : fileObj.status === 'success' ? 'success.main' : 'text.disabled' }}>
+                                                {fileObj.status === 'pending' ? 'Pendiente' : fileObj.status === 'success' ? 'Enviado' : 'Error'}
+                                            </Typography>
+                                        </Box>
+                                        <IconButton
+                                            size="small"
+                                            onClick={(e) => { e.stopPropagation(); handleDeleteFile(index); }}
+                                            sx={{ flexShrink: 0, p: 0.25, color: 'text.disabled', '&:hover': { color: 'error.main', bgcolor: alpha(theme.palette.error.main, 0.08) } }}
+                                        >
+                                            <Delete sx={{ fontSize: 14 }} />
+                                        </IconButton>
+                                    </Box>
+                                );
+                            })
+                        )}
+                    </Box>
+                </Box>
 
-                                <Button
-                                    component="label"
-                                    variant="contained"
-                                    startIcon={<CloudUpload />}
-                                    fullWidth
-                                    sx={{
-                                        mb: 2,
-                                        textTransform: 'none'
-                                    }}
-                                >
-                                    Subir Archivos
-                                    <input
-                                        type="file"
-                                        hidden
-                                        multiple
-                                        accept=".xlsx,.xls,.xlsm,.xltm"
-                                        onChange={handleFileUpload}
-                                    />
-                                </Button>
+                {/* ═══════════════════════════════
+                 *  MAIN CONTENT
+                 * ═══════════════════════════════ */}
+                <Box sx={{ flex: 1, overflowY: 'auto', p: 3, '&::-webkit-scrollbar': { width: 5 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 3 } }}>
 
-                                <Box
-                                    sx={{
-                                        border: '2px dashed',
-                                        borderColor: isDragging ? 'primary.main' : 'divider',
-                                        borderRadius: 2,
-                                        p: 2,
-                                        mb: 2,
-                                        textAlign: 'center',
-                                        bgcolor: isDragging
-                                            ? (theme.palette.mode === 'dark' ? 'rgba(144,202,249,0.12)' : 'rgba(25,118,210,0.06)')
-                                            : 'transparent',
-                                        transition: 'all 0.2s ease',
-                                        pointerEvents: 'none',
-                                    }}
-                                >
-                                    <CloudUpload sx={{ fontSize: 28, color: isDragging ? 'primary.main' : 'text.disabled', mb: 0.5 }} />
-                                    <Typography variant="caption" color={isDragging ? 'primary.main' : 'text.disabled'} display="block">
-                                        {isDragging ? 'Suelta los archivos aquí' : 'O arrastra archivos .xlsx aquí'}
+                    {!currentFileData ? (
+                        /* ── Empty state ── */
+                        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 400 }}>
+                            <Box sx={{ width: 60, height: 60, borderRadius: '50%', bgcolor: alpha(theme.palette.primary.main, 0.06), display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2.5 }}>
+                                <CloudUpload sx={{ fontSize: 26, color: 'text.disabled' }} />
+                            </Box>
+                            <Typography variant="h6" fontWeight={700} sx={{ letterSpacing: '-0.01em', mb: 0.5 }}>
+                                Sin archivo seleccionado
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 360, textAlign: 'center', lineHeight: 1.6, mb: 3 }}>
+                                Sube un archivo Excel o arrástralo al panel lateral para detectar automáticamente el deal y sus productos.
+                            </Typography>
+                            <Button
+                                component="label"
+                                variant="outlined"
+                                startIcon={<CloudUpload />}
+                                sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 500 }}
+                            >
+                                Seleccionar archivo
+                                <input type="file" hidden multiple accept=".xlsx,.xls,.xlsm,.xltm" onChange={handleFileUpload} />
+                            </Button>
+                        </Box>
+                    ) : (
+                        <Stack spacing={2.5}>
+
+                            {/* ── Inline page header ── */}
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                                <Box>
+                                    <Typography variant="h5" fontWeight={700} sx={{ lineHeight: 1.2, letterSpacing: '-0.01em' }}>
+                                        Enviar a Bitrix24
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }} noWrap>
+                                        {files[selectedFileIndex]?.file?.name}
                                     </Typography>
                                 </Box>
-
-                                {loading && <LinearProgress sx={{ mb: 2 }} />}
-
-                                <List dense>
-                                    {files.map((fileObj, index) => (
-                                        <ListItem
-                                            key={fileObj.id}
-                                            sx={{
-                                                bgcolor: selectedFileIndex === index
-                                                    ? (theme.palette.mode === 'dark' ? 'rgba(144, 202, 249, 0.08)' : '#F5F5F5')
-                                                    : 'transparent',
-                                                borderRadius: 1,
-                                                mb: 0.5,
-                                                cursor: 'pointer',
-                                                border: selectedFileIndex === index ? 2 : 1,
-                                                borderColor: selectedFileIndex === index ? 'primary.main' : 'divider',
-                                                '&:hover': {
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }
-                                            }}
-                                            onClick={() => handleSelectFile(index)}
-                                            secondaryAction={
-                                                <Stack direction="row" spacing={0.5}>
-                                                    {fileObj.status === 'success' && (
-                                                        <CheckCircle fontSize="small" sx={{ color: 'success.main' }} />
-                                                    )}
-                                                    {fileObj.status === 'error' && (
-                                                        <Warning fontSize="small" sx={{ color: 'error.main' }} />
-                                                    )}
-                                                    <IconButton
-                                                        edge="end"
-                                                        size="small"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleDeleteFile(index);
-                                                        }}
-                                                    >
-                                                        <Delete fontSize="small" />
-                                                    </IconButton>
-                                                </Stack>
-                                            }
-                                        >
-                                            <InsertDriveFile fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
-                                            <ListItemText
-                                                primary={
-                                                    <Typography variant="body2" noWrap>
-                                                        {fileObj.file.name}
-                                                    </Typography>
-                                                }
-                                                secondary={
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        {fileObj.status === 'pending' ? 'Pendiente' :
-                                                            fileObj.status === 'success' ? 'Procesado' :
-                                                                fileObj.status === 'error' ? 'Error' : 'Listo'}
-                                                    </Typography>
-                                                }
-                                            />
-                                        </ListItem>
-                                    ))}
-                                    {files.length === 0 && (
-                                        <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ py: 2 }}>
-                                            No hay archivos cargados
-                                        </Typography>
+                                <Box sx={{ flexShrink: 0, ml: 2 }}>
+                                    {loadingDealData ? (
+                                        <Chip size="small" label="Verificando deal..." icon={<CircularProgress size={10} sx={{ ml: '4px !important' }} />} sx={{ height: 24, fontSize: '0.75rem', bgcolor: alpha(theme.palette.grey[500], 0.08), color: 'text.secondary' }} />
+                                    ) : dealData ? (
+                                        <Chip size="small" label="Deal verificado" icon={<CheckCircle sx={{ fontSize: '13px !important' }} />} sx={{ height: 24, fontSize: '0.75rem', fontWeight: 600, bgcolor: '#F0FDF4', color: '#15803D', '& .MuiChip-icon': { color: '#15803D' } }} />
+                                    ) : (
+                                        <Chip size="small" label="Deal no encontrado" icon={<Warning sx={{ fontSize: '13px !important' }} />} sx={{ height: 24, fontSize: '0.75rem', fontWeight: 600, bgcolor: '#FFF1F2', color: '#BE123C', '& .MuiChip-icon': { color: '#BE123C' } }} />
                                     )}
-                                </List>
-                            </CardContent>
-                        </Card>
-                    </Grid>
+                                </Box>
+                            </Box>
 
-                    <Grid size={{ xs: 12, md: 9 }}>
-                        {currentFileData ? (
-                            <Stack spacing={2}>
-                                <Card elevation={0} sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
-                                    <CardContent>
-                                        <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-                                            <Info sx={{ fontSize: 20, mr: 1, verticalAlign: 'middle' }} />
-                                            Información del Deal
-                                        </Typography>
-                                        <Divider sx={{ mb: 2 }} />
-                                        <Grid container spacing={2}>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Número de Deal
-                                                    </Typography>
-                                                    <Typography noWrap variant="body1" sx={{ color: 'primary.main' }}>
-                                                        {!loadingDealData ? (currentFileData.numDeal || 'N/A') : 'Cargando..'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Nombre de la oferta
-                                                    </Typography>
-                                                    <Typography noWrap variant="body1" fontWeight="bold">
-                                                        {currentFileData.name || 'N/A'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Preparado
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.preparado || '-'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            {activeUnits.has('UNAU') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Preparado UNAU</Typography>
-                                                        <Typography variant="body2">{currentFileData.preparado_unau || '-'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            {activeUnits.has('UNAI') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Preparado UNAI</Typography>
-                                                        <Typography variant="body2">{currentFileData.preparado_unai || '-'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            {activeUnits.has('UNVA') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Preparado UNVA</Typography>
-                                                        <Typography variant="body2">{currentFileData.preparado_unva || '-'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            {activeUnits.has('UNAP') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Preparado UNAP</Typography>
-                                                        <Typography variant="body2">{currentFileData.preparado_unap || '-'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            {activeUnits.has('UNEPC') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Preparado UNEPC</Typography>
-                                                        <Typography variant="body2">{currentFileData.preparado_unepc || '-'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            {activeUnits.has('PIC') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Preparado PIC</Typography>
-                                                        <Typography variant="body2">{currentFileData.preparado_pic || '-'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            {activeUnits.has('PAU') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Preparado PAU</Typography>
-                                                        <Typography variant="body2">{currentFileData.preparado_pau || '-'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Responsable
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.responsable || 'N/A'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
-                                            {activeUnits.has('UNAU') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Responsable UNAU</Typography>
-                                                        <Typography variant="body2">{currentFileData.responsable_unau || 'N/A'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            {activeUnits.has('UNAI') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Responsable UNAI</Typography>
-                                                        <Typography variant="body2">{currentFileData.responsable_unai || 'N/A'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            {activeUnits.has('UNVA') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Responsable UNVA</Typography>
-                                                        <Typography variant="body2">{currentFileData.responsable_unva || 'N/A'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            {activeUnits.has('UNAP') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Responsable UNAP</Typography>
-                                                        <Typography variant="body2">{currentFileData.responsable_unap || 'N/A'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            {activeUnits.has('UNEPC') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Responsable UNEPC</Typography>
-                                                        <Typography variant="body2">{currentFileData.responsable_unepc || 'N/A'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            {activeUnits.has('PIC') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Responsable PIC</Typography>
-                                                        <Typography variant="body2">{currentFileData.responsable_pic || 'N/A'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            {activeUnits.has('PAU') && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                    <Paper sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5' }}>
-                                                        <Typography variant="caption" color="text.secondary">Responsable PAU</Typography>
-                                                        <Typography variant="body2">{currentFileData.responsable_pau || 'N/A'}</Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            )}
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Visto Bueno
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        {currentFileData.vistoBueno || 'N/A'}
-                                                    </Typography>
-                                                </Paper>
-                                            </Grid>
+                            {/* ═══════════════════════════════════════════
+                             *  CARD 1 — Información del Deal
+                             * ═══════════════════════════════════════════ */}
+                            <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
 
-                                            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Utilidad
-                                                    </Typography>
-                                                    <Typography variant="body2" fontWeight="bold">
-                                                        {currentFileData.utilidad ? `${(currentFileData.utilidad * 100).toFixed(2)}%` : 'N/A'}
-                                                    </Typography>
-                                                </Paper>
+                                <Box sx={{ px: 2.5, py: 1.75, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: alpha(theme.palette.grey[500], 0.02) }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Info sx={{ fontSize: 15, color: 'text.disabled' }} />
+                                        <Typography variant="subtitle2" fontWeight={700} sx={{ letterSpacing: '-0.01em' }}>Información del Deal</Typography>
+                                    </Box>
+                                    {loadingDealData && <CircularProgress size={14} sx={{ color: 'text.disabled' }} />}
+                                </Box>
+
+                                <Box sx={{ p: 2.5 }}>
+                                    {/* Identifiers row */}
+                                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, mb: 2.5, flexWrap: 'wrap' }}>
+                                        <Box sx={{ flexShrink: 0 }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', fontSize: '0.63rem', fontWeight: 700, display: 'block', mb: 0.25 }}>Deal</Typography>
+                                            <Typography variant="h4" fontWeight={700} sx={{ color: 'primary.main', fontFamily: '"Roboto Mono", monospace', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                                                #{currentFileData.numDeal || '—'}
+                                            </Typography>
+                                        </Box>
+                                        <Divider orientation="vertical" flexItem />
+                                        <Box sx={{ flex: 1, minWidth: 200 }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', fontSize: '0.63rem', fontWeight: 700, display: 'block', mb: 0.25 }}>Oferta</Typography>
+                                            <Typography variant="h6" fontWeight={700} sx={{ letterSpacing: '-0.01em', lineHeight: 1.2 }}>
+                                                {currentFileData.name || '—'}
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{ flexShrink: 0 }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', fontSize: '0.63rem', fontWeight: 700, display: 'block', mb: 0.5 }}>Probabilidad</Typography>
+                                            <FormControl size="small" sx={{ minWidth: 110 }}>
+                                                <Select
+                                                    value={dealData?.PROBABILITY || '0'}
+                                                    onChange={(e) => setDealData({ ...dealData, PROBABILITY: e.target.value })}
+                                                    disabled={loadingDealData || !dealData}
+                                                    sx={{ borderRadius: 1.5, fontSize: '0.875rem', fontWeight: 600 }}
+                                                >
+                                                    <MenuItem value="1">1%</MenuItem>
+                                                    <MenuItem value="20">20%</MenuItem>
+                                                    <MenuItem value="55">55%</MenuItem>
+                                                    <MenuItem value="80">80%</MenuItem>
+                                                    <MenuItem value="95">95%</MenuItem>
+                                                </Select>
+                                            </FormControl>
+                                        </Box>
+                                    </Box>
+
+                                    {/* Team grid */}
+                                    <Grid container spacing={2} sx={{ mb: 2 }}>
+                                        {[
+                                            {
+                                                title: 'Preparado por',
+                                                rows: [
+                                                    { label: 'Principal', value: currentFileData.preparado, always: true },
+                                                    { label: 'UNAU',  value: currentFileData.preparado_unau,  unit: 'UNAU' },
+                                                    { label: 'UNAI',  value: currentFileData.preparado_unai,  unit: 'UNAI' },
+                                                    { label: 'UNVA',  value: currentFileData.preparado_unva,  unit: 'UNVA' },
+                                                    { label: 'UNAP',  value: currentFileData.preparado_unap,  unit: 'UNAP' },
+                                                    { label: 'UNEPC', value: currentFileData.preparado_unepc, unit: 'UNEPC' },
+                                                    { label: 'PIC',   value: currentFileData.preparado_pic,   unit: 'PIC' },
+                                                    { label: 'PAU',   value: currentFileData.preparado_pau,   unit: 'PAU' },
+                                                ],
+                                            },
+                                            {
+                                                title: 'Responsable',
+                                                rows: [
+                                                    { label: 'Principal', value: currentFileData.responsable, always: true },
+                                                    { label: 'UNAU',  value: currentFileData.responsable_unau,  unit: 'UNAU' },
+                                                    { label: 'UNAI',  value: currentFileData.responsable_unai,  unit: 'UNAI' },
+                                                    { label: 'UNVA',  value: currentFileData.responsable_unva,  unit: 'UNVA' },
+                                                    { label: 'UNAP',  value: currentFileData.responsable_unap,  unit: 'UNAP' },
+                                                    { label: 'UNEPC', value: currentFileData.responsable_unepc, unit: 'UNEPC' },
+                                                    { label: 'PIC',   value: currentFileData.responsable_pic,   unit: 'PIC' },
+                                                    { label: 'PAU',   value: currentFileData.responsable_pau,   unit: 'PAU' },
+                                                ],
+                                            },
+                                        ].map(section => (
+                                            <Grid key={section.title} size={{ xs: 12, md: 6 }}>
+                                                <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, overflow: 'hidden', height: '100%' }}>
+                                                    <Box sx={{ px: 2, py: 1, bgcolor: alpha(theme.palette.primary.main, 0.03), borderBottom: '1px solid', borderColor: 'divider' }}>
+                                                        <Typography variant="caption" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', color: 'text.secondary', fontSize: '0.63rem' }}>{section.title}</Typography>
+                                                    </Box>
+                                                    <Box sx={{ px: 2, py: 1.25 }}>
+                                                        {section.rows.filter(r => r.always || activeUnits.has(r.unit)).map((row, i, arr) => (
+                                                            <Box key={row.label} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 2, py: 0.6, borderBottom: i < arr.length - 1 ? '1px solid' : 'none', borderColor: alpha(theme.palette.divider, 0.5) }}>
+                                                                <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0, fontSize: '0.8rem' }}>{row.label}</Typography>
+                                                                <Typography variant="body2" fontWeight={600} align="right" sx={{ fontSize: '0.8rem', color: row.value ? 'text.primary' : 'text.disabled' }}>
+                                                                    {row.value || '—'}
+                                                                </Typography>
+                                                            </Box>
+                                                        ))}
+                                                    </Box>
+                                                </Box>
                                             </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Códigos
+                                        ))}
+                                    </Grid>
+
+                                    {/* Bottom metrics strip */}
+                                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                                        <Box sx={{ flex: 1, minWidth: 100, p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', fontSize: '0.63rem', fontWeight: 700, display: 'block', mb: 0.25 }}>Visto Bueno</Typography>
+                                            <Typography variant="body2" fontWeight={500} sx={{ fontSize: '0.8125rem' }}>{currentFileData.vistoBueno || '—'}</Typography>
+                                        </Box>
+                                        <Box sx={{ flex: 1, minWidth: 100, p: 1.5, border: '1px solid', borderColor: alpha(theme.palette.success.main, 0.3), borderRadius: 1.5, bgcolor: alpha(theme.palette.success.main, 0.03) }}>
+                                            <Typography variant="caption" sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', fontSize: '0.63rem', fontWeight: 700, color: 'success.dark', display: 'block', mb: 0.25 }}>Utilidad</Typography>
+                                            <Typography variant="body2" fontWeight={700} sx={{ color: 'success.dark', fontSize: '1rem', fontVariantNumeric: 'tabular-nums' }}>
+                                                {currentFileData.utilidad ? `${(currentFileData.utilidad * 100).toFixed(2)}%` : '—'}
+                                            </Typography>
+                                        </Box>
+                                        {currentFileData.rubrica && (
+                                            <Box sx={{ flex: 3, minWidth: 200, p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
+                                                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', fontSize: '0.63rem', fontWeight: 700, display: 'block', mb: 0.25 }}>Rúbrica / Códigos</Typography>
+                                                <Tooltip title={currentFileData.rubrica} arrow>
+                                                    <Typography variant="body2" fontWeight={500} noWrap sx={{ fontFamily: '"Roboto Mono", monospace', fontSize: '0.78rem', cursor: 'default' }}>
+                                                        {currentFileData.rubrica}
                                                     </Typography>
-                                                    <Tooltip title={currentFileData.rubrica || 'N/A'} arrow>
-                                                        <Typography
-                                                            variant="body2"
-                                                            noWrap
-                                                            sx={{ cursor: 'pointer' }}
-                                                        >
-                                                            {currentFileData.rubrica || 'N/A'}
+                                                </Tooltip>
+                                            </Box>
+                                        )}
+                                    </Box>
+                                </Box>
+                            </Paper>
+
+                            {/* ═══════════════════════════════════════════
+                             *  CARD 2 — Productos detectados
+                             * ═══════════════════════════════════════════ */}
+                            <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
+
+                                <Box sx={{ px: 2.5, py: 1.75, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: alpha(theme.palette.grey[500], 0.02) }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Description sx={{ fontSize: 15, color: 'text.disabled' }} />
+                                        <Typography variant="subtitle2" fontWeight={700} sx={{ letterSpacing: '-0.01em' }}>Productos detectados</Typography>
+                                        <Chip label={currentFileData.productos?.length || 0} size="small" sx={{ height: 18, fontSize: '0.7rem', fontWeight: 700, bgcolor: alpha(theme.palette.primary.main, 0.08), color: 'primary.main', '& .MuiChip-label': { px: 0.75 } }} />
+                                    </Box>
+                                    <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                                        {[...activeUnits].map(unit => (
+                                            <Chip key={unit} label={unit} size="small" sx={{ height: 20, fontSize: '0.68rem', fontWeight: 600, borderRadius: 1, '& .MuiChip-label': { px: 0.75 }, ...getAreaChipSx(unit) }} />
+                                        ))}
+                                    </Stack>
+                                </Box>
+
+                                <TableContainer sx={{ maxHeight: 340, '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 2 } }}>
+                                    <Table stickyHeader size="small" sx={{ tableLayout: 'fixed' }}>
+                                        <TableHead>
+                                            <TableRow>
+                                                {[{ label: 'ID', width: '14%' }, { label: 'Nombre' }, { label: 'Precio', width: '16%' }, { label: 'Área', width: '12%' }].map(col => (
+                                                    <TableCell key={col.label} sx={{ fontWeight: 600, fontSize: '0.7rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'text.secondary', borderBottom: '2px solid', borderBottomColor: 'divider', py: 1.5, px: 2, whiteSpace: 'nowrap', bgcolor: 'background.paper', ...(col.width ? { width: col.width } : {}) }}>
+                                                        {col.label}
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {currentFileData.productos.map((producto, index) => (
+                                                <TableRow key={index} hover sx={{ '& .MuiTableCell-root': { py: 1, px: 2, borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}` }, ...(index % 2 !== 0 ? { bgcolor: alpha(theme.palette.grey[500], 0.02) } : {}), '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.03) } }}>
+                                                    <TableCell>
+                                                        <Typography variant="caption" sx={{ fontFamily: '"Roboto Mono", monospace', fontSize: '0.72rem', color: 'text.secondary' }}>
+                                                            {producto.productId}
                                                         </Typography>
-                                                    </Tooltip>
-                                                </Paper>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <FormControl fullWidth size='small'>
-                                                        <InputLabel>Probabilidad</InputLabel>
-                                                        <Select
-                                                            label="Probabilidad"
-                                                            value={dealData?.PROBABILITY || '0'}
-                                                            onChange={(e) => {
-                                                                setDealData({ ...dealData, PROBABILITY: e.target.value });
-                                                            }}
-                                                        >
-                                                            <MenuItem value="1">1</MenuItem>
-                                                            <MenuItem value="20">20</MenuItem>
-                                                            <MenuItem value="55">55</MenuItem>
-                                                            <MenuItem value="80">80</MenuItem>
-                                                            <MenuItem value="95">95</MenuItem>
-                                                        </Select>
-                                                    </FormControl>
-                                                </Paper>
-                                            </Grid>
-                                        </Grid>
-                                    </CardContent>
-                                </Card>
-
-                                <Card elevation={0} sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
-                                    <CardContent>
-                                        <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-                                            <Description sx={{ fontSize: 20, mr: 1, verticalAlign: 'middle' }} />
-                                            Productos ({currentFileData.productos?.length || 0})
-                                        </Typography>
-                                        <Divider sx={{ mb: 2 }} />
-                                        {renderProductTable()}
-                                    </CardContent>
-                                </Card>
-
-                                <Card elevation={0} sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
-                                    <CardContent>
-                                        <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-                                            Configuración de Envío
-                                        </Typography>
-                                        <Divider sx={{ mb: 3 }} />
-
-                                        <Grid container spacing={3}>
-                                            <Grid size={{ xs: 12 }}>
-                                                <Paper sx={{
-                                                    p: 2,
-                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#F5F5F5'
-                                                }}>
-                                                    <Typography variant="subtitle2" gutterBottom>
-                                                        Estado del Quote
-                                                    </Typography>
-                                                    <Chip
-                                                        label={createQuote ? 'Crear nueva Quote' : 'Actualizar Quote existente'}
-                                                        color={createQuote ? 'success' : 'primary'}
-                                                        icon={createQuote ? <CheckCircle /> : <Info />}
-                                                    />
-                                                    {!createQuote && (
-                                                        <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                                                            Quote ID: {formData.numQuote}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="body2" noWrap sx={{ fontSize: '0.8125rem' }}>{producto.nombre}</Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="body2" fontWeight={600} sx={{ fontSize: '0.8125rem', fontVariantNumeric: 'tabular-nums' }}>
+                                                            {producto.precio ? `$${numeral(producto.precio).format('0,0.00')}` : '—'}
                                                         </Typography>
-                                                    )}
-                                                </Paper>
-                                            </Grid>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Chip label={producto.unidadNegocio} size="small" sx={{ height: 20, fontSize: '0.68rem', fontWeight: 600, borderRadius: 1, '& .MuiChip-label': { px: 0.75 }, ...getAreaChipSx(producto.unidadNegocio) }} />
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
 
-                                            <Grid size={{ xs: 12 }}>
-                                                <FormControlLabel
-                                                    control={
-                                                        <Switch
-                                                            checked={formData.cambiarFechaCierre}
-                                                            onChange={(e) => setFormData({
-                                                                ...formData,
-                                                                cambiarFechaCierre: e.target.checked
-                                                            })}
-                                                        />
-                                                    }
-                                                    label={`¿Desea cambiar fecha de cierre para ${currentFileData.name}?`}
-                                                />
-                                            </Grid>
+                                {totalesEntries.length > 0 && (
+                                    <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider', bgcolor: alpha(theme.palette.grey[500], 0.01) }}>
+                                        <Typography variant="caption" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', color: 'text.secondary', fontSize: '0.63rem', display: 'block', mb: 1.25 }}>
+                                            Totales por área
+                                        </Typography>
+                                        <Box sx={{ display: 'flex', gap: 1.25, flexWrap: 'wrap' }}>
+                                            {totalesEntries.map(([area, total]) => (
+                                                <Box key={area} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, px: 1.5, py: 1, bgcolor: 'background.paper', minWidth: 100 }}>
+                                                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.63rem', display: 'block', mb: 0.25 }}>{area}</Typography>
+                                                    <Typography variant="body2" fontWeight={700} sx={{ fontSize: '0.8rem', fontVariantNumeric: 'tabular-nums' }}>
+                                                        ${numeral(total).format('0,0.00')}
+                                                    </Typography>
+                                                </Box>
+                                            ))}
+                                        </Box>
+                                    </Box>
+                                )}
+                            </Paper>
 
-                                            {formData.cambiarFechaCierre && (
-                                                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                                                    <TextField
-                                                        fullWidth
-                                                        onClick={(e) => e.target.showPicker()}
-                                                        label="Nueva Fecha Cierre"
-                                                        type="date"
-                                                        value={formData.fechaCierre}
-                                                        onChange={(e) => setFormData({
-                                                            ...formData,
-                                                            fechaCierre: e.target.value
-                                                        })}
-                                                        error={!!errors.fechaCierre}
-                                                        helperText={errors.fechaCierre || 'Formato: YYYY-MM-DD'}
-                                                        size="small"
-                                                        InputLabelProps={{ shrink: true }}
-                                                    />
+                            {/* ═══════════════════════════════════════════
+                             *  CARD 3 — Configuración de Envío
+                             * ═══════════════════════════════════════════ */}
+                            <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
+
+                                <Box sx={{ px: 2.5, py: 1.75, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: alpha(theme.palette.grey[500], 0.02) }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Send sx={{ fontSize: 15, color: 'text.disabled' }} />
+                                        <Typography variant="subtitle2" fontWeight={700} sx={{ letterSpacing: '-0.01em' }}>Configuración de Envío</Typography>
+                                    </Box>
+                                    <Chip
+                                        label={createQuote ? 'Crear Quote nueva' : `Actualizar Quote #${formData.numQuote}`}
+                                        size="small"
+                                        icon={createQuote ? <CheckCircle sx={{ fontSize: '13px !important' }} /> : <Info sx={{ fontSize: '13px !important' }} />}
+                                        sx={{
+                                            height: 24, fontSize: '0.75rem', fontWeight: 600, borderRadius: 1,
+                                            '& .MuiChip-label': { px: 1 },
+                                            ...(createQuote
+                                                ? { bgcolor: '#F0FDF4', color: '#15803D', '& .MuiChip-icon': { color: '#15803D', ml: '6px' } }
+                                                : { bgcolor: '#EFF6FF', color: '#1D4ED8', '& .MuiChip-icon': { color: '#1D4ED8', ml: '6px' } })
+                                        }}
+                                    />
+                                </Box>
+
+                                <Box sx={{ p: 2.5 }}>
+
+                                    {/* Date fields (only when creating a new quote) */}
+                                    {createQuote && (
+                                        <Box sx={{ mb: 2.5 }}>
+                                            <Typography variant="caption" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', color: 'text.secondary', fontSize: '0.63rem', display: 'block', mb: 1.5 }}>
+                                                Fechas de la Quote
+                                            </Typography>
+                                            <Grid container spacing={2}>
+                                                <Grid size={{ xs: 12, sm: 4 }}>
+                                                    <TextField fullWidth label="Fecha Correo" type="date" onClick={(e) => e.target.showPicker()} value={formData.fechaCorreo} onChange={(e) => setFormData({ ...formData, fechaCorreo: e.target.value })} error={!!errors.fechaCorreo} helperText={errors.fechaCorreo} required size="small" InputLabelProps={{ shrink: true }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }} />
                                                 </Grid>
-                                            )}
+                                                <Grid size={{ xs: 12, sm: 4 }}>
+                                                    <TextField fullWidth label="Fecha Inicio" type="date" onClick={(e) => e.target.showPicker()} value={formData.fechaInicio} onChange={(e) => setFormData({ ...formData, fechaInicio: e.target.value })} error={!!errors.fechaInicio} helperText={errors.fechaInicio} required size="small" InputLabelProps={{ shrink: true }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }} />
+                                                </Grid>
+                                                <Grid size={{ xs: 12, sm: 4 }}>
+                                                    <TextField fullWidth label="Fecha Envío" type="date" onClick={(e) => e.target.showPicker()} value={formData.fechaEnvio} onChange={(e) => setFormData({ ...formData, fechaEnvio: e.target.value })} error={!!errors.fechaEnvio} helperText={errors.fechaEnvio} required size="small" InputLabelProps={{ shrink: true }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }} />
+                                                </Grid>
+                                            </Grid>
+                                        </Box>
+                                    )}
 
-                                            {createQuote && (
-                                                <>
-                                                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                                                        <TextField
-                                                            fullWidth
-                                                            label="Fecha Correo"
-                                                            type="date"
-                                                            onClick={(e) => e.target.showPicker()}
-                                                            value={formData.fechaCorreo}
-                                                            onChange={(e) => setFormData({
-                                                                ...formData,
-                                                                fechaCorreo: e.target.value
-                                                            })}
-                                                            error={!!errors.fechaCorreo}
-                                                            helperText={errors.fechaCorreo || 'Formato: YYYY-MM-DD'}
-                                                            required
-                                                            size="small"
-                                                            InputLabelProps={{ shrink: true }}
-                                                        />
-                                                    </Grid>
-                                                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                                                        <TextField
-                                                            fullWidth
-                                                            label="Fecha Inicio"
-                                                            onClick={(e) => e.target.showPicker()}
-                                                            type="date"
-                                                            value={formData.fechaInicio}
-                                                            onChange={(e) => setFormData({
-                                                                ...formData,
-                                                                fechaInicio: e.target.value
-                                                            })}
-                                                            error={!!errors.fechaInicio}
-                                                            helperText={errors.fechaInicio || 'Formato: YYYY-MM-DD'}
-                                                            required
-                                                            size="small"
-                                                            InputLabelProps={{ shrink: true }}
-                                                        />
-                                                    </Grid>
-                                                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                                                        <TextField
-                                                            fullWidth
-                                                            label="Fecha Envío"
-                                                            onClick={(e) => e.target.showPicker()}
-                                                            type="date"
-                                                            value={formData.fechaEnvio}
-                                                            onChange={(e) => setFormData({
-                                                                ...formData,
-                                                                fechaEnvio: e.target.value
-                                                            })}
-                                                            error={!!errors.fechaEnvio}
-                                                            helperText={errors.fechaEnvio || 'Formato: YYYY-MM-DD'}
-                                                            required
-                                                            size="small"
-                                                            InputLabelProps={{ shrink: true }}
-                                                        />
-                                                    </Grid>
-                                                </>
-                                            )}
+                                    {/* Cambiar fecha de cierre */}
+                                    <Box sx={{ mb: 2.5 }}>
+                                        <FormControlLabel
+                                            control={<Switch checked={formData.cambiarFechaCierre} onChange={(e) => setFormData({ ...formData, cambiarFechaCierre: e.target.checked })} size="small" />}
+                                            label={<Typography variant="body2">Cambiar fecha de cierre del deal</Typography>}
+                                        />
+                                        {formData.cambiarFechaCierre && (
+                                            <Box sx={{ mt: 1.5, maxWidth: 240 }}>
+                                                <TextField fullWidth label="Nueva Fecha Cierre" type="date" onClick={(e) => e.target.showPicker()} value={formData.fechaCierre} onChange={(e) => setFormData({ ...formData, fechaCierre: e.target.value })} error={!!errors.fechaCierre} helperText={errors.fechaCierre} size="small" InputLabelProps={{ shrink: true }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }} />
+                                            </Box>
+                                        )}
+                                    </Box>
 
-
-                                        </Grid>
-                                        <br />
-                                        <Divider />
-                                        <br />
-                                        <Typography variant="h6" gutterBottom>
+                                    {/* Material Number */}
+                                    <Box sx={{ mb: 2.5 }}>
+                                        <Typography variant="caption" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', color: 'text.secondary', fontSize: '0.63rem', display: 'block', mb: 1 }}>
                                             Campos adicionales
                                         </Typography>
-                                        <br />
-                                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                                            <TextField
-                                                fullWidth
-                                                label="Material Number"
-                                                type="text"
-                                                placeholder='Opcional (NO APLICA)'
-                                                value={formData.codeMaterial}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    codeMaterial: e.target.value
-                                                })}
-                                                error={!!errors.codeMaterial}
-                                                size="large"
-                                                InputLabelProps={{ shrink: true }}
-                                            />
-                                        </Grid>
-                                        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                                            <Button
-                                                variant="outlined"
-                                                onClick={() => {
-                                                    setSelectedFileIndex(null);
-                                                    setCurrentFileData(null);
-                                                }}
-                                                sx={{ textTransform: 'none' }}
-                                            >
-                                                Cancelar
-                                            </Button>
-                                            <Button
-                                                variant="contained"
-                                                startIcon={processing ? <CircularProgress size={16} color="inherit" /> : <Send />}
-                                                onClick={handleSubmit}
-                                                disabled={processing || !dealData || loadingDealData}
-                                                sx={{
-                                                    textTransform: 'none'
-                                                }}
-                                            >
-                                                {processing ? 'Enviando...' : createQuote ? 'Crear Quote' : 'Actualizar Quote'}
-                                            </Button>
-                                        </Box>
+                                        <TextField
+                                            label="Material Number"
+                                            type="text"
+                                            placeholder="Opcional (NO APLICA)"
+                                            value={formData.codeMaterial}
+                                            onChange={(e) => setFormData({ ...formData, codeMaterial: e.target.value })}
+                                            error={!!errors.codeMaterial}
+                                            size="small"
+                                            InputLabelProps={{ shrink: true }}
+                                            sx={{ maxWidth: 320, '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
+                                        />
+                                    </Box>
 
-                                        {processing && <LinearProgress sx={{ mt: 2 }} />}
-                                    </CardContent>
-                                </Card>
-                            </Stack>
-                        ) : (
-                            <Card elevation={0} sx={{ borderRadius: 2, textAlign: 'center', py: 8, bgcolor: 'background.paper' }}>
-                                <CardContent>
-                                    <CloudUpload sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
-                                    <Typography variant="h6" color="text.secondary" gutterBottom>
-                                        No hay archivo seleccionado
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Sube archivos Excel o selecciona uno del panel lateral
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        )}
-                    </Grid>
-                </Grid>
-            </Container>
+                                    <Divider sx={{ mb: 2.5 }} />
+
+                                    {/* Submit row */}
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <Button
+                                            variant="text"
+                                            onClick={() => { setSelectedFileIndex(null); setCurrentFileData(null); }}
+                                            sx={{ textTransform: 'none', color: 'text.secondary', borderRadius: 1.5, '&:hover': { bgcolor: alpha(theme.palette.grey[500], 0.08) } }}
+                                        >
+                                            Cancelar
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            size="large"
+                                            startIcon={processing ? <CircularProgress size={16} color="inherit" /> : <Send />}
+                                            onClick={handleSubmit}
+                                            disabled={processing || !dealData || loadingDealData}
+                                            sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 600, px: 3.5, boxShadow: 'none', '&:hover': { boxShadow: 'none' } }}
+                                        >
+                                            {processing ? 'Enviando a Bitrix24...' : createQuote ? 'Crear Quote y Enviar' : 'Actualizar Quote y Enviar'}
+                                        </Button>
+                                    </Box>
+
+                                    {processing && <LinearProgress sx={{ mt: 2, borderRadius: 1 }} />}
+                                </Box>
+                            </Paper>
+
+                            <Box sx={{ pb: 1 }} />
+                        </Stack>
+                    )}
+                </Box>
+            </Box>
         </Box>
     );
 };

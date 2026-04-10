@@ -35,6 +35,7 @@ import {
     ProductionQuantityLimits,
     Brightness4 as DarkModeIcon,
     Brightness7 as LightModeIcon,
+    Dashboard as DashboardIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MainContext } from '../contexts/MainContext';
@@ -42,6 +43,14 @@ import { MainContext } from '../contexts/MainContext';
 
 const drawerWidth = 280;
 const miniDrawerWidth = 72;
+const sidebarBg = '#0f172a';
+const sidebarBgAlt = '#111c36';
+const sidebarBorder = 'rgba(148, 163, 184, 0.16)';
+const sidebarText = '#e2e8f0';
+const sidebarTextMuted = '#94a3b8';
+const sidebarHover = 'rgba(148, 163, 184, 0.12)';
+const sidebarSelected = '#2563eb';
+const sidebarSelectedHover = '#1d4ed8';
 
 const MainLayout = () => {
     const theme = useTheme();
@@ -114,6 +123,11 @@ const MainLayout = () => {
             path: '/bitrix/history',
         },
         {
+            title: 'Dashboard Bitrix',
+            icon: <DashboardIcon />,
+            path: '/bitrix/dashboard',
+        },
+        {
             title: 'Productos',
             icon: <ProductionQuantityLimits />,
             path: '/products',
@@ -145,7 +159,7 @@ const MainLayout = () => {
     };
 
     const drawerDesktop = (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: sidebarBg, color: sidebarText }}>
             <Toolbar
                 sx={{
                     display: 'flex',
@@ -153,7 +167,7 @@ const MainLayout = () => {
                     justifyContent: desktopOpen ? 'space-between' : 'center',
                     px: desktopOpen ? 2 : 1,
                     minHeight: 64,
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                    background: `linear-gradient(135deg, ${sidebarBgAlt} 0%, ${sidebarBg} 100%)`,
                 }}
             >
                 {desktopOpen && (
@@ -177,7 +191,7 @@ const MainLayout = () => {
                 </IconButton>
             </Toolbar>
 
-            <Divider />
+            <Divider sx={{ borderColor: sidebarBorder }} />
             <List sx={{ px: 1, py: 2, flexGrow: 1 }}>
                 {menuItems.map((item) => (
                     <Tooltip key={item.title} title={!desktopOpen ? item.title : ''} placement="right">
@@ -189,13 +203,14 @@ const MainLayout = () => {
                                     borderRadius: 2,
                                     justifyContent: desktopOpen ? 'initial' : 'center',
                                     px: desktopOpen ? 2 : 2.5,
+                                    color: isActive(item.path) ? 'white' : sidebarText,
                                     '&.Mui-selected': {
-                                        backgroundColor: theme.palette.primary.main,
                                         color: 'white',
-                                        '&:hover': { backgroundColor: theme.palette.primary.dark },
+                                        backgroundColor: sidebarSelected,
+                                        '&:hover': { backgroundColor: sidebarSelectedHover },
                                         '& .MuiListItemIcon-root': { color: 'white' },
                                     },
-                                    '&:hover': { backgroundColor: theme.palette.action.hover },
+                                    '&:hover': { backgroundColor: sidebarHover },
                                 }}
                             >
                                 <ListItemIcon
@@ -203,7 +218,7 @@ const MainLayout = () => {
                                         minWidth: desktopOpen ? 40 : 0,
                                         mr: desktopOpen ? 2 : 0,
                                         justifyContent: 'center',
-                                        color: isActive(item.path) ? 'white' : theme.palette.text.secondary,
+                                        color: isActive(item.path) ? 'white' : sidebarTextMuted,
                                     }}
                                 >
                                     {item.icon}
@@ -222,17 +237,17 @@ const MainLayout = () => {
                     </Tooltip>
                 ))}
             </List>
-            <Divider />
+            <Divider sx={{ borderColor: sidebarBorder }} />
             <Box sx={{ p: 2, pt: 2 }}>
-                <Typography variant="caption" color="text.secondary" align="center" display="block">
-                    © 2025 Quotizador
+                <Typography variant="caption" sx={{ color: sidebarTextMuted }} align="center" display="block">
+                    © 2026 Quotizador
                 </Typography>
             </Box>
         </Box>
     );
 
     const drawerMobile = (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: sidebarBg, color: sidebarText }}>
             <Toolbar
                 sx={{
                     display: 'flex',
@@ -240,7 +255,7 @@ const MainLayout = () => {
                     justifyContent: 'space-between',
                     px: 2,
                     minHeight: 64,
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                    background: `linear-gradient(135deg, ${sidebarBgAlt} 0%, ${sidebarBg} 100%)`,
                 }}
             >
                 <Typography
@@ -256,7 +271,7 @@ const MainLayout = () => {
                 </Typography>
             </Toolbar>
 
-            <Divider />
+            <Divider sx={{ borderColor: sidebarBorder }} />
             <List sx={{ px: 1, py: 2, flexGrow: 1 }}>
                 {menuItems.map((item) => (
                     <ListItem key={item.title} disablePadding sx={{ mb: 0.5 }}>
@@ -266,20 +281,22 @@ const MainLayout = () => {
                             sx={{
                                 borderRadius: 2,
                                 px: 2,
+                                color: isActive(item.path) ? 'white' : sidebarText,
                                 '&.Mui-selected': {
-                                    backgroundColor: theme.palette.primary.main,
                                     color: 'white',
-                                    '&:hover': { backgroundColor: theme.palette.primary.dark },
+                                    backgroundColor: sidebarSelected,
+                                    '&:hover': { backgroundColor: sidebarSelectedHover },
                                     '& .MuiListItemIcon-root': { color: 'white' },
                                 },
-                                '&:hover': { backgroundColor: theme.palette.action.hover },
+                                '&:hover': { backgroundColor: sidebarHover },
                             }}
                         >
                             <ListItemIcon
                                 sx={{
                                     minWidth: 40,
                                     mr: 2,
-                                    color: isActive(item.path) ? 'white' : theme.palette.text.secondary,
+                                    color: isActive(item.path) ? 'white' : sidebarTextMuted,
+                                    justifyContent: 'center',
                                 }}
                             >
                                 {item.icon}
@@ -331,14 +348,7 @@ const MainLayout = () => {
                         </IconButton>
                     )}
 
-                    <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
-                        {location.pathname.includes('/reports/generate') && 'Generar Reporte Excel'}
-                        {location.pathname.includes('/reports/history') && 'Historial de Reportes'}
-                        {location.pathname.includes('/bitrix/send') && 'Enviar a Bitrix'}
-                        {location.pathname.includes('/bitrix/history') && 'Historial Bitrix'}
-                        {location.pathname.includes('/products') && 'Gestión de Productos'}
-                        {location.pathname.includes('/employees') && 'Gestión de vendedores'}
-                    </Typography>
+                    <Box sx={{ flexGrow: 1 }} />
 
                     {/* Botón de cambio de tema */}
                     <Tooltip title={mode === 'light' ? 'Modo oscuro' : 'Modo claro'}>
@@ -389,7 +399,7 @@ const MainLayout = () => {
                                         sx={{
                                             width: 36,
                                             height: 36,
-                                            backgroundColor: theme.palette.primary.main,
+                                            backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[800] : theme.palette.grey[700],
                                             fontSize: '0.875rem',
                                             fontWeight: 600,
                                         }}
@@ -460,6 +470,8 @@ const MainLayout = () => {
                     '& .MuiDrawer-paper': {
                         boxSizing: 'border-box',
                         width: drawerWidth,
+                        bgcolor: sidebarBg,
+                        color: sidebarText,
                     },
                 }}
             >
@@ -481,7 +493,9 @@ const MainLayout = () => {
                     '& .MuiDrawer-paper': {
                         width: desktopOpen ? drawerWidth : miniDrawerWidth,
                         boxSizing: 'border-box',
-                        borderRight: `1px solid ${theme.palette.divider}`,
+                        borderRight: `1px solid ${sidebarBorder}`,
+                        bgcolor: sidebarBg,
+                        color: sidebarText,
                         overflowX: 'hidden',
                         transition: theme.transitions.create('width', {
                             easing: theme.transitions.easing.sharp,
