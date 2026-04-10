@@ -37,20 +37,21 @@ import {
     Brightness7 as LightModeIcon,
     Dashboard as DashboardIcon,
 } from '@mui/icons-material';
+import { alpha } from '@mui/material/styles';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MainContext } from '../contexts/MainContext';
 
 
 const drawerWidth = 280;
 const miniDrawerWidth = 72;
-const sidebarBg = '#0f172a';
-const sidebarBgAlt = '#111c36';
-const sidebarBorder = 'rgba(148, 163, 184, 0.16)';
-const sidebarText = '#e2e8f0';
+const sidebarBg = '#111827';
+const sidebarBgAlt = '#1f2937';
+const sidebarBorder = 'rgba(148, 163, 184, 0.14)';
+const sidebarText = '#e5e7eb';
 const sidebarTextMuted = '#94a3b8';
-const sidebarHover = 'rgba(148, 163, 184, 0.12)';
-const sidebarSelected = '#2563eb';
-const sidebarSelectedHover = '#1d4ed8';
+const sidebarHover = 'rgba(148, 163, 184, 0.08)';
+const sidebarSelected = '#334155';
+const sidebarSelectedHover = '#475569';
 
 const MainLayout = () => {
     const theme = useTheme();
@@ -238,11 +239,13 @@ const MainLayout = () => {
                 ))}
             </List>
             <Divider sx={{ borderColor: sidebarBorder }} />
-            <Box sx={{ p: 2, pt: 2 }}>
-                <Typography variant="caption" sx={{ color: sidebarTextMuted }} align="center" display="block">
+            {desktopOpen && (
+                <Box sx={{ p: 2, pt: 2 }}>
+                    <Typography variant="caption" sx={{ color: sidebarTextMuted }} align="center" display="block">
                     © 2026 Quotizador
-                </Typography>
-            </Box>
+                    </Typography>
+                </Box>
+            )}
         </Box>
     );
 
@@ -377,8 +380,8 @@ const MainLayout = () => {
                                             sx={{
                                                 height: 22,
                                                 fontSize: '0.7rem',
-                                                backgroundColor: '#ffd700',
-                                                color: '#000',
+                                                backgroundColor: alpha(theme.palette.primary.main, 0.12),
+                                                color: theme.palette.text.secondary,
                                             }}
                                         />
                                     )}

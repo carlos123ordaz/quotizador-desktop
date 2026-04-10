@@ -66,14 +66,14 @@ const HEADER_CELL_SX = {
 };
 
 const UN_PALETTES = [
-    { backgroundColor: '#EFF6FF', color: '#1D4ED8' },
-    { backgroundColor: '#F0FDF4', color: '#15803D' },
-    { backgroundColor: '#FFF7ED', color: '#C2410C' },
-    { backgroundColor: '#F5F3FF', color: '#7C3AED' },
-    { backgroundColor: '#FFFBEB', color: '#B45309' },
-    { backgroundColor: '#FFF1F2', color: '#BE123C' },
-    { backgroundColor: '#F0F9FF', color: '#0369A1' },
-    { backgroundColor: '#FDF4FF', color: '#9333EA' },
+    { backgroundColor: '#f1f5f9', color: '#334155' },
+    { backgroundColor: '#eef2f7', color: '#475569' },
+    { backgroundColor: '#f3f4f6', color: '#4b5563' },
+    { backgroundColor: '#e5e7eb', color: '#374151' },
+    { backgroundColor: '#f8fafc', color: '#52606d' },
+    { backgroundColor: '#eceff3', color: '#5b6675' },
+    { backgroundColor: '#f4f4f5', color: '#52525b' },
+    { backgroundColor: '#edf2f7', color: '#445063' },
 ];
 
 const getUNChipStyle = (value) => {
@@ -87,6 +87,10 @@ const getUNChipStyle = (value) => {
 
 const ProductsPage = () => {
     const theme = useTheme();
+    const productPalette = {
+        neutralHover: alpha(theme.palette.primary.main, 0.04),
+        neutralStrong: alpha(theme.palette.primary.main, 0.12),
+    };
 
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -293,7 +297,7 @@ const ProductsPage = () => {
                                 startIcon={<AddIcon />}
                                 onClick={() => handleOpenDialog()}
                                 disableElevation
-                                sx={{ mt: 3, borderRadius: 1.5, fontWeight: 600, px: 3 }}
+                                sx={{ mt: 3, borderRadius: 1.5, fontWeight: 600, px: 3, boxShadow: 'none' }}
                             >
                                 Crear producto
                             </Button>
@@ -358,7 +362,7 @@ const ProductsPage = () => {
                                 borderColor: 'divider',
                                 borderRadius: 1.5,
                                 p: 0.875,
-                                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.04) },
+                                '&:hover': { bgcolor: productPalette.neutralHover },
                             }}
                         >
                             <RefreshIcon sx={{ fontSize: 18 }} />
@@ -377,9 +381,9 @@ const ProductsPage = () => {
                                 px: 2.5,
                                 py: 0.875,
                                 fontSize: '0.875rem',
-                                boxShadow: `0 1px 3px ${alpha(theme.palette.primary.main, 0.3)}`,
+                                boxShadow: `0 1px 3px ${alpha(theme.palette.common.black, 0.08)}`,
                                 '&:hover': {
-                                    boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.4)}`,
+                                    boxShadow: `0 4px 10px ${alpha(theme.palette.common.black, 0.12)}`,
                                 },
                             }}
                         >
@@ -412,7 +416,7 @@ const ProductsPage = () => {
                             maxWidth: 440,
                             '& .MuiOutlinedInput-root': {
                                 borderRadius: 1.5,
-                                bgcolor: alpha(theme.palette.grey[500], 0.04),
+                                bgcolor: alpha(theme.palette.grey[500], 0.03),
                                 '&:hover': { bgcolor: 'background.paper' },
                                 '&.Mui-focused': { bgcolor: 'background.paper' },
                             },
@@ -511,7 +515,7 @@ const ProductsPage = () => {
                                                     ? alpha(theme.palette.grey[500], 0.025)
                                                     : 'transparent',
                                             '&:hover': {
-                                                bgcolor: alpha(theme.palette.primary.main, 0.04),
+                                                bgcolor: productPalette.neutralHover,
                                             },
                                             '& .MuiTableCell-root': {
                                                 py: 1.375,
@@ -640,7 +644,7 @@ const ProductsPage = () => {
                                                             sx={{
                                                                 p: 0.5,
                                                                 color: 'text.secondary',
-                                                                '&:hover': { color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.08) },
+                                                                '&:hover': { color: 'primary.main', bgcolor: productPalette.neutralStrong },
                                                             }}
                                                         >
                                                             <EditIcon sx={{ fontSize: 15 }} />
@@ -916,7 +920,14 @@ const ProductsPage = () => {
                     <Alert
                         severity="warning"
                         variant="outlined"
-                        sx={{ mb: 2, borderRadius: 1.5, fontSize: '0.8125rem' }}
+                        sx={{
+                            mb: 2,
+                            borderRadius: 1.5,
+                            fontSize: '0.8125rem',
+                            borderColor: alpha(theme.palette.warning.main, 0.28),
+                            bgcolor: alpha(theme.palette.warning.main, 0.05),
+                            color: 'text.primary',
+                        }}
                     >
                         Se eliminará permanentemente este producto del sistema.
                     </Alert>
@@ -956,7 +967,7 @@ const ProductsPage = () => {
 
             {/* Backdrop de carga en dialog */}
             <Backdrop
-                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1, bgcolor: alpha('#111827', 0.38) }}
                 open={loading && openDialog}
             >
                 <CircularProgress color="inherit" size={32} />
@@ -972,8 +983,17 @@ const ProductsPage = () => {
                 <Alert
                     onClose={handleCloseSnackbar}
                     severity={snackbar.severity}
-                    variant="filled"
-                    sx={{ width: '100%', borderRadius: 1.5 }}
+                    variant="outlined"
+                    sx={{
+                        width: '100%',
+                        borderRadius: 1.5,
+                        bgcolor: 'background.paper',
+                        color: 'text.primary',
+                        borderColor:
+                            snackbar.severity === 'error'
+                                ? alpha(theme.palette.error.main, 0.28)
+                                : alpha(theme.palette.primary.main, 0.2),
+                    }}
                     elevation={6}
                 >
                     {snackbar.message}

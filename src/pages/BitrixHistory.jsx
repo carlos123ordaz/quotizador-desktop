@@ -141,6 +141,10 @@ const DataRow = ({ label, value, mono }) => {
 export const BitrixHistory = () => {
     const theme = useTheme();
     const { user } = useContext(MainContext);
+    const pagePalette = {
+        softHover: alpha(theme.palette.primary.main, 0.04),
+        softStrong: alpha(theme.palette.primary.main, 0.08),
+    };
 
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -292,7 +296,7 @@ export const BitrixHistory = () => {
                             size="small"
                             sx={{
                                 border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 0.875,
-                                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.04) },
+                                '&:hover': { bgcolor: pagePalette.softHover },
                             }}
                         >
                             <RefreshIcon sx={{ fontSize: 18 }} />
@@ -324,7 +328,7 @@ export const BitrixHistory = () => {
                             flexGrow: 1, minWidth: 200, maxWidth: 400,
                             '& .MuiOutlinedInput-root': {
                                 borderRadius: 1.5,
-                                bgcolor: alpha(theme.palette.grey[500], 0.04),
+                                bgcolor: alpha(theme.palette.grey[500], 0.03),
                                 '&:hover': { bgcolor: 'background.paper' },
                                 '&.Mui-focused': { bgcolor: 'background.paper' },
                             },
@@ -416,11 +420,11 @@ export const BitrixHistory = () => {
                                             hover
                                             sx={{
                                                 bgcolor: expandedRows[item._id]
-                                                    ? alpha(theme.palette.primary.main, 0.03)
+                                                    ? alpha(theme.palette.primary.main, 0.025)
                                                     : index % 2 !== 0
                                                         ? alpha(theme.palette.grey[500], 0.025)
                                                         : 'transparent',
-                                                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.04) },
+                                                '&:hover': { bgcolor: pagePalette.softHover },
                                                 '& .MuiTableCell-root': {
                                                     py: 1.25, px: 2,
                                                     borderBottom: expandedRows[item._id]
@@ -437,7 +441,7 @@ export const BitrixHistory = () => {
                                                     sx={{
                                                         p: 0.5,
                                                         color: expandedRows[item._id] ? 'primary.main' : 'text.disabled',
-                                                        '&:hover': { color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.08) },
+                                                        '&:hover': { color: 'primary.main', bgcolor: pagePalette.softStrong },
                                                     }}
                                                 >
                                                     <ExpandMoreIcon
@@ -491,8 +495,8 @@ export const BitrixHistory = () => {
                                                         '& .MuiChip-label': { px: 0.75 },
                                                         '& .MuiChip-icon': { ml: '6px' },
                                                         ...(item.tipo_operacion === 'crear'
-                                                            ? { backgroundColor: '#EFF6FF', color: '#1D4ED8' }
-                                                            : { backgroundColor: '#FFFBEB', color: '#B45309' }
+                                                            ? { backgroundColor: alpha(theme.palette.primary.main, 0.12), color: theme.palette.text.primary }
+                                                            : { backgroundColor: alpha(theme.palette.warning.main, 0.12), color: theme.palette.text.primary }
                                                         ),
                                                     }}
                                                 />
@@ -510,8 +514,8 @@ export const BitrixHistory = () => {
                                                         borderRadius: 1,
                                                         '& .MuiChip-label': { px: 1 },
                                                         ...(item.estado === 'exitoso'
-                                                            ? { backgroundColor: '#F0FDF4', color: '#15803D' }
-                                                            : { backgroundColor: '#FFF1F2', color: '#BE123C' }
+                                                            ? { backgroundColor: alpha(theme.palette.success.main, 0.12), color: theme.palette.text.primary }
+                                                            : { backgroundColor: alpha(theme.palette.error.main, 0.12), color: theme.palette.text.primary }
                                                         ),
                                                     }}
                                                 />
@@ -631,11 +635,11 @@ export const BitrixHistory = () => {
                                                                     <Box
                                                                         sx={{
                                                                             border: '1px solid',
-                                                                            borderColor: alpha(theme.palette.error.main, 0.3),
+                                                                            borderColor: alpha(theme.palette.error.main, 0.24),
                                                                             borderLeft: `3px solid ${theme.palette.error.main}`,
                                                                             borderRadius: 1.5,
                                                                             p: 2,
-                                                                            bgcolor: alpha(theme.palette.error.main, 0.04),
+                                                                            bgcolor: alpha(theme.palette.error.main, 0.035),
                                                                         }}
                                                                     >
                                                                         <Typography

@@ -318,6 +318,14 @@ export const BitrixDashboard = () => {
     const successRate = displayStats.total_envios > 0
         ? Math.round((displayStats.exitosos / displayStats.total_envios) * 100)
         : 0;
+    const dashboardPalette = {
+        primary: theme.palette.primary.main,
+        success: theme.palette.success.main,
+        error: theme.palette.error.main,
+        info: theme.palette.info.main,
+        warning: theme.palette.warning.main,
+        neutral: theme.palette.secondary.main,
+    };
 
     return (
         <Box
@@ -402,11 +410,11 @@ export const BitrixDashboard = () => {
 
             <Grid container spacing={2}>
                 {[
-                    { label: 'Total envíos', value: displayStats.total_envios, icon: <SendIcon sx={{ fontSize: 18 }} />, color: theme.palette.primary.main },
-                    { label: 'Exitosos', value: displayStats.exitosos, icon: <CheckCircleIcon sx={{ fontSize: 18 }} />, color: theme.palette.success.main, subtitle: `${successRate}% tasa de éxito` },
-                    { label: 'Con errores', value: displayStats.errores, icon: <ErrorIcon sx={{ fontSize: 18 }} />, color: theme.palette.error.main },
-                    { label: 'Creaciones exitosas', value: displayStats.creaciones, icon: <AddIcon sx={{ fontSize: 18 }} />, color: theme.palette.info.main },
-                    { label: 'Actualizaciones exitosas', value: displayStats.actualizaciones, icon: <EditIcon sx={{ fontSize: 18 }} />, color: theme.palette.warning.main },
+                    { label: 'Total envíos', value: displayStats.total_envios, icon: <SendIcon sx={{ fontSize: 18 }} />, color: dashboardPalette.primary },
+                    { label: 'Exitosos', value: displayStats.exitosos, icon: <CheckCircleIcon sx={{ fontSize: 18 }} />, color: dashboardPalette.success, subtitle: `${successRate}% tasa de éxito` },
+                    { label: 'Con errores', value: displayStats.errores, icon: <ErrorIcon sx={{ fontSize: 18 }} />, color: dashboardPalette.error },
+                    { label: 'Creaciones exitosas', value: displayStats.creaciones, icon: <AddIcon sx={{ fontSize: 18 }} />, color: dashboardPalette.info },
+                    { label: 'Actualizaciones exitosas', value: displayStats.actualizaciones, icon: <EditIcon sx={{ fontSize: 18 }} />, color: dashboardPalette.warning },
                 ].map((metric) => (
                     <Grid key={metric.label} size={{ xs: 12, sm: 6, md: 2.4 }}>
                         <MetricCard {...metric} loading={loading} />
@@ -422,7 +430,7 @@ export const BitrixDashboard = () => {
                             <DonutChart
                                 value={displayStats.exitosos || 0}
                                 total={displayStats.total_envios || 0}
-                                color={theme.palette.success.main}
+                                color={dashboardPalette.success}
                                 label="envíos exitosos"
                                 loading={loading}
                             />
@@ -432,12 +440,12 @@ export const BitrixDashboard = () => {
                                 <Chip
                                     size="small"
                                     label={`${displayStats.exitosos || 0} OK`}
-                                    sx={{ bgcolor: alpha(theme.palette.success.main, 0.1), color: theme.palette.success.dark, fontWeight: 600, height: 22, fontSize: '0.72rem' }}
+                                    sx={{ bgcolor: alpha(dashboardPalette.success, 0.12), color: theme.palette.text.primary, fontWeight: 600, height: 22, fontSize: '0.72rem' }}
                                 />
                                 <Chip
                                     size="small"
                                     label={`${displayStats.errores || 0} error`}
-                                    sx={{ bgcolor: alpha(theme.palette.error.main, 0.1), color: theme.palette.error.dark, fontWeight: 600, height: 22, fontSize: '0.72rem' }}
+                                    sx={{ bgcolor: alpha(dashboardPalette.error, 0.12), color: theme.palette.text.primary, fontWeight: 600, height: 22, fontSize: '0.72rem' }}
                                 />
                             </Stack>
                         )}
@@ -453,10 +461,10 @@ export const BitrixDashboard = () => {
                             </Box>
                         ) : (
                             <Box sx={{ mt: 0.5 }}>
-                                <HBar label="Creaciones" value={displayStats.creaciones || 0} max={successfulOperationTotal} color={theme.palette.info.main} />
-                                <HBar label="Actualizaciones" value={displayStats.actualizaciones || 0} max={successfulOperationTotal} color={theme.palette.warning.main} />
-                                <HBar label="Exitosos" value={displayStats.exitosos || 0} max={displayStats.total_envios || 0} color={theme.palette.success.main} />
-                                <HBar label="Con errores" value={displayStats.errores || 0} max={displayStats.total_envios || 0} color={theme.palette.error.main} />
+                                <HBar label="Creaciones" value={displayStats.creaciones || 0} max={successfulOperationTotal} color={dashboardPalette.info} />
+                                <HBar label="Actualizaciones" value={displayStats.actualizaciones || 0} max={successfulOperationTotal} color={dashboardPalette.warning} />
+                                <HBar label="Exitosos" value={displayStats.exitosos || 0} max={displayStats.total_envios || 0} color={dashboardPalette.success} />
+                                <HBar label="Con errores" value={displayStats.errores || 0} max={displayStats.total_envios || 0} color={dashboardPalette.error} />
                             </Box>
                         )}
                     </Paper>
@@ -506,7 +514,7 @@ export const BitrixDashboard = () => {
                         ) : (
                             <Box>
                                 {topUsers.map((user, i) => {
-                                    const medalColors = ['#ffd700', '#c0c0c0', '#cd7f32'];
+                                    const medalColors = ['#475569', '#64748b', '#94a3b8'];
                                     const bgColor = i < 3 ? medalColors[i] : alpha(theme.palette.grey[500], 0.15);
                                     return (
                                         <Box key={user.name} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
@@ -525,7 +533,7 @@ export const BitrixDashboard = () => {
                                                 <Typography
                                                     variant="caption"
                                                     fontWeight={700}
-                                                    sx={{ fontSize: '0.65rem', color: i < 3 ? 'rgba(0,0,0,0.75)' : 'text.secondary' }}
+                                                    sx={{ fontSize: '0.65rem', color: i < 3 ? '#f8fafc' : 'text.secondary' }}
                                                 >
                                                     {i + 1}
                                                 </Typography>
@@ -575,11 +583,11 @@ export const BitrixDashboard = () => {
                                 {totalesPorArea.map(({ area, total }, i) => {
                                     const maxTotal = totalesPorArea[0].total;
                                     const colors = [
-                                        theme.palette.primary.main,
-                                        theme.palette.info.main,
-                                        theme.palette.success.main,
-                                        theme.palette.warning.main,
-                                        theme.palette.secondary.main,
+                                        dashboardPalette.primary,
+                                        dashboardPalette.info,
+                                        dashboardPalette.success,
+                                        dashboardPalette.warning,
+                                        dashboardPalette.neutral,
                                     ];
                                     const color = colors[i % colors.length];
                                     return (

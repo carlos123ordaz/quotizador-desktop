@@ -71,12 +71,12 @@ const HEADER_CELL_SX = {
 };
 
 const DEP_PALETTES = [
-    { backgroundColor: '#EFF6FF', color: '#1D4ED8' },
-    { backgroundColor: '#F0FDF4', color: '#15803D' },
-    { backgroundColor: '#FFF7ED', color: '#C2410C' },
-    { backgroundColor: '#F5F3FF', color: '#7C3AED' },
-    { backgroundColor: '#FFFBEB', color: '#B45309' },
-    { backgroundColor: '#F0F9FF', color: '#0369A1' },
+    { backgroundColor: '#f1f5f9', color: '#334155' },
+    { backgroundColor: '#eef2f7', color: '#475569' },
+    { backgroundColor: '#f3f4f6', color: '#4b5563' },
+    { backgroundColor: '#e5e7eb', color: '#374151' },
+    { backgroundColor: '#f8fafc', color: '#52606d' },
+    { backgroundColor: '#edf2f7', color: '#445063' },
 ];
 
 const getDepChipStyle = (value) => {
@@ -183,6 +183,10 @@ const StatCard = ({ label, value, icon, accentColor, active, onClick, loading })
 
 const EmployeesPage = () => {
     const theme = useTheme();
+    const pagePalette = {
+        softHover: alpha(theme.palette.primary.main, 0.04),
+        softStrong: alpha(theme.palette.primary.main, 0.12),
+    };
 
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -445,7 +449,7 @@ const EmployeesPage = () => {
                             size="small"
                             sx={{
                                 border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 0.875,
-                                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.04) },
+                                '&:hover': { bgcolor: pagePalette.softHover },
                             }}
                         >
                             <RefreshIcon sx={{ fontSize: 18 }} />
@@ -462,11 +466,11 @@ const EmployeesPage = () => {
                             fontWeight: 600,
                             fontSize: '0.875rem',
                             px: 1.75,
-                            borderColor: alpha(theme.palette.primary.main, 0.18),
-                            bgcolor: alpha(theme.palette.primary.main, 0.02),
+                            borderColor: alpha(theme.palette.primary.main, 0.16),
+                            bgcolor: alpha(theme.palette.primary.main, 0.018),
                             '&:hover': {
-                                borderColor: alpha(theme.palette.primary.main, 0.35),
-                                bgcolor: alpha(theme.palette.primary.main, 0.05),
+                                borderColor: alpha(theme.palette.primary.main, 0.28),
+                                bgcolor: alpha(theme.palette.primary.main, 0.04),
                             },
                         }}
                     >
@@ -500,7 +504,7 @@ const EmployeesPage = () => {
             {/* ── Barra de filtros ─────────────────────────────────────────────── */}
             <Grid container spacing={2} flexShrink={0}>
                 <Grid size={{ xs: 12, sm: 4 }}>
-                    <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2, background: `linear-gradient(180deg, ${alpha(theme.palette.primary.main, 0.06)} 0%, rgba(255,255,255,0) 100%)` }}>
+                    <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2, background: `linear-gradient(180deg, ${alpha(theme.palette.primary.main, 0.045)} 0%, rgba(255,255,255,0) 100%)` }}>
                         <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
                             <Box>
                                 <Typography variant="caption" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary' }}>
@@ -510,14 +514,14 @@ const EmployeesPage = () => {
                                     {(stats.total ?? 0).toLocaleString()}
                                 </Typography>
                             </Box>
-                            <Box sx={{ width: 40, height: 40, borderRadius: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: alpha(theme.palette.primary.main, 0.1), color: 'primary.main' }}>
+                            <Box sx={{ width: 40, height: 40, borderRadius: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: alpha(theme.palette.primary.main, 0.08), color: 'primary.main' }}>
                                 <PeopleAltIcon fontSize="small" />
                             </Box>
                         </Box>
                     </Paper>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>
-                    <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2, background: `linear-gradient(180deg, ${alpha(theme.palette.success.main, 0.06)} 0%, rgba(255,255,255,0) 100%)` }}>
+                    <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2, background: `linear-gradient(180deg, ${alpha(theme.palette.success.main, 0.045)} 0%, rgba(255,255,255,0) 100%)` }}>
                         <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
                             <Box>
                                 <Typography variant="caption" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary' }}>
@@ -527,7 +531,7 @@ const EmployeesPage = () => {
                                     {(stats.activos ?? 0).toLocaleString()}
                                 </Typography>
                             </Box>
-                            <Box sx={{ width: 40, height: 40, borderRadius: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: alpha(theme.palette.success.main, 0.1), color: 'success.main' }}>
+                            <Box sx={{ width: 40, height: 40, borderRadius: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: alpha(theme.palette.success.main, 0.08), color: 'success.main' }}>
                                 <CheckCircleIcon fontSize="small" />
                             </Box>
                         </Box>
@@ -563,7 +567,7 @@ const EmployeesPage = () => {
                             flexGrow: 1, minWidth: 200, maxWidth: 440,
                             '& .MuiOutlinedInput-root': {
                                 borderRadius: 1.5,
-                                bgcolor: alpha(theme.palette.grey[500], 0.04),
+                                bgcolor: alpha(theme.palette.grey[500], 0.03),
                                 '&:hover': { bgcolor: 'background.paper' },
                                 '&.Mui-focused': { bgcolor: 'background.paper' },
                             },
@@ -648,7 +652,7 @@ const EmployeesPage = () => {
                                             cursor: user?.es_lider ? 'pointer' : 'default',
                                             bgcolor: index % 2 !== 0 ? alpha(theme.palette.grey[500], 0.02) : 'transparent',
                                             transition: 'background-color 0.18s ease',
-                                            '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.035) },
+                                            '&:hover': { bgcolor: pagePalette.softHover },
                                             '& .MuiTableCell-root': {
                                                 py: 1.375, px: 2,
                                                 borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
@@ -739,7 +743,7 @@ const EmployeesPage = () => {
                                                     borderRadius: 1,
                                                     '& .MuiChip-label': { px: 1 },
                                                     ...(employee.activo
-                                                        ? { backgroundColor: '#F0FDF4', color: '#15803D' }
+                                                        ? { backgroundColor: alpha(theme.palette.success.main, 0.12), color: theme.palette.text.primary }
                                                         : { backgroundColor: alpha(theme.palette.grey[500], 0.1), color: 'text.secondary' }
                                                     ),
                                                 }}
@@ -754,7 +758,7 @@ const EmployeesPage = () => {
                                                         <IconButton
                                                             size="small"
                                                             onClick={(e) => { e.stopPropagation(); handleOpenDialog(employee); }}
-                                                            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, color: 'text.secondary', '&:hover': { color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.08), borderColor: alpha(theme.palette.primary.main, 0.2) } }}
+                                                            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, color: 'text.secondary', '&:hover': { color: 'primary.main', bgcolor: pagePalette.softStrong, borderColor: alpha(theme.palette.primary.main, 0.2) } }}
                                                         >
                                                             <EditIcon sx={{ fontSize: 15 }} />
                                                         </IconButton>
@@ -941,7 +945,7 @@ const EmployeesPage = () => {
                 <Divider sx={{ mt: 2.5 }} />
 
                 <DialogContent sx={{ pt: 2.5, px: 3 }}>
-                    <Alert severity="warning" variant="outlined" sx={{ mb: 2, borderRadius: 1.5, fontSize: '0.8125rem' }}>
+                    <Alert severity="warning" variant="outlined" sx={{ mb: 2, borderRadius: 1.5, fontSize: '0.8125rem', borderColor: alpha(theme.palette.warning.main, 0.28), bgcolor: alpha(theme.palette.warning.main, 0.05), color: 'text.primary' }}>
                         Se eliminará permanentemente este vendedor del sistema.
                     </Alert>
                     <Typography variant="body2" color="text.secondary">
@@ -1070,7 +1074,7 @@ const EmployeesPage = () => {
                             )}
 
                             {syncResult.insertados === 0 && (
-                                <Alert severity="info" variant="outlined" sx={{ mt: 2, borderRadius: 1.5, fontSize: '0.8125rem' }}>
+                                <Alert severity="info" variant="outlined" sx={{ mt: 2, borderRadius: 1.5, fontSize: '0.8125rem', borderColor: alpha(theme.palette.info.main, 0.24), bgcolor: alpha(theme.palette.info.main, 0.045), color: 'text.primary' }}>
                                     No hay usuarios nuevos por agregar. El sistema ya está actualizado.
                                 </Alert>
                             )}
@@ -1088,7 +1092,7 @@ const EmployeesPage = () => {
             </Dialog>
 
             {/* Backdrop de carga en dialog */}
-            <Backdrop sx={{ color: '#fff', zIndex: (t) => t.zIndex.drawer + 1 }} open={loading && openDialog}>
+            <Backdrop sx={{ color: '#fff', zIndex: (t) => t.zIndex.drawer + 1, bgcolor: alpha('#111827', 0.38) }} open={loading && openDialog}>
                 <CircularProgress color="inherit" size={32} />
             </Backdrop>
 
@@ -1099,7 +1103,7 @@ const EmployeesPage = () => {
                 onClose={handleCloseSnackbar}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-                <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant="filled" sx={{ width: '100%', borderRadius: 1.5 }} elevation={6}>
+                <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant="outlined" sx={{ width: '100%', borderRadius: 1.5, bgcolor: 'background.paper', color: 'text.primary', borderColor: snackbar.severity === 'error' ? alpha(theme.palette.error.main, 0.28) : alpha(theme.palette.primary.main, 0.2) }} elevation={6}>
                     {snackbar.message}
                 </Alert>
             </Snackbar>

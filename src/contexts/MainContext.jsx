@@ -18,22 +18,68 @@ export const MainContextApp = ({ children }) => {
                     ...(mode === 'light'
                         ? {
                             primary: {
-                                main: '#1976d2',
-                                dark: '#115293',
+                                main: '#334155',
+                                dark: '#1e293b',
+                            },
+                            secondary: {
+                                main: '#64748b',
+                            },
+                            success: {
+                                main: '#4b6358',
+                                dark: '#34463d',
+                            },
+                            info: {
+                                main: '#516173',
+                                dark: '#344150',
+                            },
+                            warning: {
+                                main: '#766454',
+                                dark: '#5a4b40',
+                            },
+                            error: {
+                                main: '#8b4d4d',
+                                dark: '#6f3d3d',
                             },
                             background: {
-                                default: '#f5f5f5',
+                                default: '#f3f4f6',
                                 paper: '#ffffff',
+                            },
+                            text: {
+                                primary: '#111827',
+                                secondary: '#4b5563',
                             },
                         }
                         : {
                             primary: {
-                                main: '#90caf9',
-                                dark: '#42a5f5',
+                                main: '#94a3b8',
+                                dark: '#64748b',
+                            },
+                            secondary: {
+                                main: '#64748b',
+                            },
+                            success: {
+                                main: '#7f9a8c',
+                                dark: '#5f776b',
+                            },
+                            info: {
+                                main: '#8191a3',
+                                dark: '#5f7183',
+                            },
+                            warning: {
+                                main: '#a18f7c',
+                                dark: '#7f6f5f',
+                            },
+                            error: {
+                                main: '#b67b7b',
+                                dark: '#965f5f',
                             },
                             background: {
-                                default: '#121212',
-                                paper: '#1e1e1e',
+                                default: '#111827',
+                                paper: '#1f2937',
+                            },
+                            text: {
+                                primary: '#e5e7eb',
+                                secondary: '#9ca3af',
                             },
                         }),
                 },
