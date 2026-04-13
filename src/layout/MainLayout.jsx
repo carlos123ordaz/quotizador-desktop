@@ -1,57 +1,49 @@
 import { useContext, useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-    Box,
-    Drawer,
     AppBar,
-    Toolbar,
-    List,
-    Typography,
+    Avatar,
+    Box,
+    Chip,
     Divider,
+    Drawer,
     IconButton,
+    List,
     ListItem,
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    useTheme,
-    useMediaQuery,
-    Tooltip,
-    Avatar,
     Menu,
     MenuItem,
-    Chip,
+    Paper,
+    Toolbar,
+    Tooltip,
+    Typography,
+    useMediaQuery,
+    useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
-    Menu as MenuIcon,
-    ChevronLeft as ChevronLeftIcon,
-    ChevronRight as ChevronRightIcon,
-    Article as ArticleIcon,
-    Send as SendIcon,
-    History as HistoryIcon,
     AccountCircle,
-    Logout,
-    Star,
-    People,
-    ProductionQuantityLimits,
+    Article as ArticleIcon,
     Brightness4 as DarkModeIcon,
     Brightness7 as LightModeIcon,
+    ChevronLeft as ChevronLeftIcon,
+    ChevronRight as ChevronRightIcon,
     Dashboard as DashboardIcon,
+    History as HistoryIcon,
+    Logout,
+    Menu as MenuIcon,
+    People,
+    ProductionQuantityLimits,
+    Send as SendIcon,
+    Star,
 } from '@mui/icons-material';
-import { alpha } from '@mui/material/styles';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { MainContext } from '../contexts/MainContext';
-
+import { corporateColors } from '../theme/tokens';
 
 const drawerWidth = 280;
 const miniDrawerWidth = 72;
-const sidebarBg = '#111827';
-const sidebarBgAlt = '#1f2937';
-const sidebarBorder = 'rgba(148, 163, 184, 0.14)';
-const sidebarText = '#e5e7eb';
-const sidebarTextMuted = '#94a3b8';
-const sidebarHover = 'rgba(148, 163, 184, 0.08)';
-const sidebarSelected = '#334155';
-const sidebarSelectedHover = '#475569';
 
 const MainLayout = () => {
     const theme = useTheme();
@@ -63,12 +55,21 @@ const MainLayout = () => {
     const [desktopOpen, setDesktopOpen] = useState(true);
     const [anchorEl, setAnchorEl] = useState(null);
 
+    const sidebarBg = theme.palette.mode === 'light' ? corporateColors.brand : '#11273A';
+    const sidebarBgAlt = theme.palette.mode === 'light' ? '#0F4A6E' : '#173149';
+    const sidebarBorder = alpha('#FFFFFF', theme.palette.mode === 'light' ? 0.10 : 0.08);
+    const sidebarText = corporateColors.sidebarText;
+    const sidebarTextMuted = corporateColors.sidebarMuted;
+    const sidebarHover = alpha('#FFFFFF', 0.06);
+    const sidebarSelected = alpha(corporateColors.primaryHover, 0.26);
+    const sidebarSelectedHover = alpha(corporateColors.primaryHover, 0.36);
+
     const handleDrawerToggle = () => {
         if (isMobile) {
-            setMobileOpen(!mobileOpen);
-        } else {
-            setDesktopOpen(!desktopOpen);
+            setMobileOpen((prev) => !prev);
+            return;
         }
+        setDesktopOpen((prev) => !prev);
     };
 
     const handleNavigate = (path) => {
@@ -78,13 +79,8 @@ const MainLayout = () => {
         }
     };
 
-    const handleUserMenuOpen = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleUserMenuClose = () => {
-        setAnchorEl(null);
-    };
+    const handleUserMenuOpen = (event) => setAnchorEl(event.currentTarget);
+    const handleUserMenuClose = () => setAnchorEl(null);
 
     const handleLogout = () => {
         localStorage.removeItem('usuario');
@@ -101,220 +97,139 @@ const MainLayout = () => {
     const isActive = (path) => location.pathname === path;
 
     const menuItems = [
-        ...(user?.es_lider ? [
-            {
-                title: 'Generar Reporte',
-                icon: <ArticleIcon />,
-                path: '/reports/generate',
-            },
-            {
-                title: 'Historial Reportes',
-                icon: <HistoryIcon />,
-                path: '/reports/history',
-            },
-        ] : []),
-        {
-            title: 'Enviar a Bitrix',
-            icon: <SendIcon />,
-            path: '/bitrix/send',
-        },
-        {
-            title: 'Historial Bitrix',
-            icon: <HistoryIcon />,
-            path: '/bitrix/history',
-        },
-        {
-            title: 'Dashboard Bitrix',
-            icon: <DashboardIcon />,
-            path: '/bitrix/dashboard',
-        },
-        {
-            title: 'Productos',
-            icon: <ProductionQuantityLimits />,
-            path: '/products',
-        },
-        {
-            title: 'Usuarios',
-            icon: <People />,
-            path: '/users',
-        },
+        ...(user?.es_lider
+            ? [
+                { title: 'Generar Reporte', icon: <ArticleIcon />, path: '/reports/generate' },
+                { title: 'Historial Reportes', icon: <HistoryIcon />, path: '/reports/history' },
+            ]
+            : []),
+        { title: 'Enviar a Bitrix', icon: <SendIcon />, path: '/bitrix/send' },
+        { title: 'Historial Bitrix', icon: <HistoryIcon />, path: '/bitrix/history' },
+        { title: 'Dashboard Bitrix', icon: <DashboardIcon />, path: '/bitrix/dashboard' },
+        { title: 'Productos', icon: <ProductionQuantityLimits />, path: '/products' },
+        { title: 'Usuarios', icon: <People />, path: '/users' },
     ];
 
     useEffect(() => {
         const storedUser = localStorage.getItem('usuario');
         if (!storedUser) {
             navigate('/login');
-        } else {
-            setUser(JSON.parse(storedUser));
+            return;
         }
-    }, [navigate]);
+        setUser(JSON.parse(storedUser));
+    }, [navigate, setUser]);
 
-    const getUserInitials = () => {
-        if (!user) return '??';
-        return user.iniciales || '??';
-    };
+    const getUserInitials = () => user?.iniciales || '??';
 
     const getUserFullName = () => {
         if (!user) return 'Usuario';
         return `${user.nombre || ''} ${user.apellido || ''}`.trim() || 'Usuario';
     };
 
-    const drawerDesktop = (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: sidebarBg, color: sidebarText }}>
-            <Toolbar
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: desktopOpen ? 'space-between' : 'center',
-                    px: desktopOpen ? 2 : 1,
-                    minHeight: 64,
-                    background: `linear-gradient(135deg, ${sidebarBgAlt} 0%, ${sidebarBg} 100%)`,
-                }}
-            >
-                {desktopOpen && (
-                    <Typography
-                        variant="h6"
-                        noWrap
-                        sx={{
-                            color: 'white',
-                            fontWeight: 700,
-                            letterSpacing: 0.5,
-                        }}
-                    >
-                        Quotizador
-                    </Typography>
-                )}
-                <IconButton
-                    onClick={handleDrawerToggle}
-                    sx={{ color: 'white' }}
-                >
-                    {desktopOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-                </IconButton>
-            </Toolbar>
+    const currentSectionTitle = menuItems.find((item) => isActive(item.path))?.title || 'Quotizador';
 
-            <Divider sx={{ borderColor: sidebarBorder }} />
-            <List sx={{ px: 1, py: 2, flexGrow: 1 }}>
-                {menuItems.map((item) => (
-                    <Tooltip key={item.title} title={!desktopOpen ? item.title : ''} placement="right">
-                        <ListItem disablePadding sx={{ mb: 0.5 }}>
-                            <ListItemButton
-                                onClick={() => handleNavigate(item.path)}
-                                selected={isActive(item.path)}
-                                sx={{
-                                    borderRadius: 2,
-                                    justifyContent: desktopOpen ? 'initial' : 'center',
-                                    px: desktopOpen ? 2 : 2.5,
-                                    color: isActive(item.path) ? 'white' : sidebarText,
-                                    '&.Mui-selected': {
-                                        color: 'white',
-                                        backgroundColor: sidebarSelected,
-                                        '&:hover': { backgroundColor: sidebarSelectedHover },
-                                        '& .MuiListItemIcon-root': { color: 'white' },
-                                    },
-                                    '&:hover': { backgroundColor: sidebarHover },
-                                }}
-                            >
-                                <ListItemIcon
-                                    sx={{
-                                        minWidth: desktopOpen ? 40 : 0,
-                                        mr: desktopOpen ? 2 : 0,
-                                        justifyContent: 'center',
-                                        color: isActive(item.path) ? 'white' : sidebarTextMuted,
-                                    }}
-                                >
-                                    {item.icon}
-                                </ListItemIcon>
-                                {desktopOpen && (
-                                    <ListItemText
-                                        primary={item.title}
-                                        primaryTypographyProps={{
-                                            fontSize: 14,
-                                            fontWeight: isActive(item.path) ? 600 : 500,
-                                        }}
-                                    />
-                                )}
-                            </ListItemButton>
-                        </ListItem>
-                    </Tooltip>
-                ))}
-            </List>
-            <Divider sx={{ borderColor: sidebarBorder }} />
-            {desktopOpen && (
-                <Box sx={{ p: 2, pt: 2 }}>
-                    <Typography variant="caption" sx={{ color: sidebarTextMuted }} align="center" display="block">
-                    © 2026 Quotizador
-                    </Typography>
-                </Box>
-            )}
-        </Box>
-    );
-
-    const drawerMobile = (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: sidebarBg, color: sidebarText }}>
-            <Toolbar
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    px: 2,
-                    minHeight: 64,
-                    background: `linear-gradient(135deg, ${sidebarBgAlt} 0%, ${sidebarBg} 100%)`,
-                }}
-            >
-                <Typography
-                    variant="h6"
-                    noWrap
-                    sx={{
-                        color: 'white',
-                        fontWeight: 700,
-                        letterSpacing: 0.5,
-                    }}
-                >
-                    Quotizador
-                </Typography>
-            </Toolbar>
-
-            <Divider sx={{ borderColor: sidebarBorder }} />
-            <List sx={{ px: 1, py: 2, flexGrow: 1 }}>
-                {menuItems.map((item) => (
-                    <ListItem key={item.title} disablePadding sx={{ mb: 0.5 }}>
+    const renderMenuItems = (collapsed = false) => (
+        <List sx={{ px: 1, py: 2, flexGrow: 1 }}>
+            {menuItems.map((item) => (
+                <Tooltip key={item.title} title={collapsed ? item.title : ''} placement="right">
+                    <ListItem disablePadding sx={{ mb: 0.5 }}>
                         <ListItemButton
                             onClick={() => handleNavigate(item.path)}
                             selected={isActive(item.path)}
                             sx={{
-                                borderRadius: 2,
-                                px: 2,
-                                color: isActive(item.path) ? 'white' : sidebarText,
+                                minHeight: 46,
+                                borderRadius: 2.5,
+                                justifyContent: collapsed ? 'center' : 'initial',
+                                px: collapsed ? 2.25 : 2,
+                                color: isActive(item.path) ? 'common.white' : sidebarText,
                                 '&.Mui-selected': {
-                                    color: 'white',
+                                    color: 'common.white',
                                     backgroundColor: sidebarSelected,
+                                    boxShadow: `inset 3px 0 0 ${corporateColors.accentGold}`,
+                                    '& .MuiListItemIcon-root': { color: 'common.white' },
                                     '&:hover': { backgroundColor: sidebarSelectedHover },
-                                    '& .MuiListItemIcon-root': { color: 'white' },
                                 },
                                 '&:hover': { backgroundColor: sidebarHover },
                             }}
                         >
                             <ListItemIcon
                                 sx={{
-                                    minWidth: 40,
-                                    mr: 2,
-                                    color: isActive(item.path) ? 'white' : sidebarTextMuted,
+                                    minWidth: collapsed ? 0 : 40,
+                                    mr: collapsed ? 0 : 2,
                                     justifyContent: 'center',
+                                    color: isActive(item.path) ? 'common.white' : sidebarTextMuted,
                                 }}
                             >
                                 {item.icon}
                             </ListItemIcon>
-                            <ListItemText
-                                primary={item.title}
-                                primaryTypographyProps={{
-                                    fontSize: 14,
-                                    fontWeight: isActive(item.path) ? 600 : 500,
-                                }}
-                            />
+                            {!collapsed && (
+                                <ListItemText
+                                    primary={item.title}
+                                    primaryTypographyProps={{
+                                        fontSize: 14,
+                                        fontWeight: isActive(item.path) ? 700 : 500,
+                                    }}
+                                />
+                            )}
                         </ListItemButton>
                     </ListItem>
-                ))}
-            </List>
+                </Tooltip>
+            ))}
+        </List>
+    );
+
+    const drawerContent = (collapsed = false) => (
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: sidebarBg, color: sidebarText }}>
+            <Toolbar
+                sx={{
+                    minHeight: 72,
+                    px: collapsed ? 1 : 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: collapsed ? 'center' : 'space-between',
+                    backgroundColor: sidebarBgAlt,
+                    borderBottom: `1px solid ${sidebarBorder}`,
+                }}
+            >
+                {!collapsed && (
+                    <Box>
+                        <Typography variant="overline" sx={{ color: sidebarTextMuted, letterSpacing: '0.14em', fontWeight: 700 }}>
+                            Plataforma
+                        </Typography>
+                        <Typography variant="h6" sx={{ color: 'common.white', lineHeight: 1.1 }}>
+                            Quotizador
+                        </Typography>
+                    </Box>
+                )}
+                {!isMobile && (
+                    <IconButton onClick={handleDrawerToggle} sx={{ color: 'common.white' }}>
+                        {desktopOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+                    </IconButton>
+                )}
+            </Toolbar>
+
+            {renderMenuItems(collapsed)}
+
+            {!collapsed && (
+                <Box sx={{ p: 2, pt: 1.5 }}>
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 1.5,
+                            borderRadius: 2.5,
+                            bgcolor: alpha('#FFFFFF', 0.06),
+                            borderColor: alpha('#FFFFFF', 0.08),
+                        }}
+                    >
+                        <Typography variant="caption" sx={{ color: sidebarTextMuted, display: 'block', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            Entorno
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'common.white', fontWeight: 600 }}>
+                            Sistema interno corporativo
+                        </Typography>
+                    </Paper>
+                </Box>
+            )}
         </Box>
     );
 
@@ -333,78 +248,101 @@ const MainLayout = () => {
                         easing: theme.transitions.easing.sharp,
                         duration: theme.transitions.duration.enteringScreen,
                     }),
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                    bgcolor: 'background.paper',
+                    bgcolor: alpha(theme.palette.background.paper, 0.94),
                     color: 'text.primary',
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 6px 22px rgba(11, 61, 92, 0.08)',
                 }}
             >
-                <Toolbar>
+                <Toolbar sx={{ minHeight: 72 }}>
                     {isMobile && (
-                        <IconButton
-                            color="inherit"
-                            aria-label="open drawer"
-                            edge="start"
-                            onClick={handleDrawerToggle}
-                            sx={{ mr: 2 }}
-                        >
+                        <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
                             <MenuIcon />
                         </IconButton>
                     )}
 
-                    <Box sx={{ flexGrow: 1 }} />
+                    <Box sx={{ flexGrow: 1 }}>
+                        {!isMobile && (
+                            <Box>
+                                <Typography variant="body2" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, lineHeight: 1.1 }}>
+                                    Operaciones
+                                </Typography>
+                                <Typography variant="h6" sx={{ color: corporateColors.brand, lineHeight: 1.15 }}>
+                                    {currentSectionTitle}
+                                </Typography>
+                            </Box>
+                        )}
+                    </Box>
 
-                    {/* Botón de cambio de tema */}
                     <Tooltip title={mode === 'light' ? 'Modo oscuro' : 'Modo claro'}>
                         <IconButton
                             onClick={toggleTheme}
                             color="inherit"
-                            sx={{ mr: 1 }}
+                            sx={{
+                                mr: 1,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                borderRadius: 2,
+                                bgcolor: alpha(theme.palette.background.paper, 0.92),
+                            }}
                         >
                             {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
                         </IconButton>
                     </Tooltip>
 
-                    {/* Avatar y menú de usuario */}
                     {user && (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             {!isMobile && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 1 }}>
-                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                        {getUserFullName()}
-                                    </Typography>
-                                    {user && user.es_lider && (
+                                <Paper
+                                    elevation={0}
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                        mr: 1,
+                                        px: 1.5,
+                                        py: 0.75,
+                                        borderRadius: 2.5,
+                                        bgcolor: alpha(corporateColors.brand, 0.03),
+                                    }}
+                                >
+                                    <Box>
+                                        <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                                            {getUserFullName()}
+                                        </Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                            @{user.iniciales}
+                                        </Typography>
+                                    </Box>
+                                    {user.es_lider && (
                                         <Chip
                                             icon={<Star sx={{ fontSize: 14 }} />}
                                             label="Líder"
                                             size="small"
                                             sx={{
-                                                height: 22,
-                                                fontSize: '0.7rem',
-                                                backgroundColor: alpha(theme.palette.primary.main, 0.12),
-                                                color: theme.palette.text.secondary,
+                                                height: 24,
+                                                fontSize: '0.72rem',
+                                                backgroundColor: alpha(corporateColors.accentGold, 0.16),
+                                                color: corporateColors.brand,
                                             }}
                                         />
                                     )}
-                                </Box>
+                                </Paper>
                             )}
 
                             <Tooltip title="Cuenta">
                                 <IconButton
                                     onClick={handleUserMenuOpen}
-                                    sx={{
-                                        p: 0,
-                                        '&:hover': {
-                                            backgroundColor: 'transparent',
-                                        }
-                                    }}
+                                    sx={{ p: 0, '&:hover': { backgroundColor: 'transparent' } }}
                                 >
                                     <Avatar
                                         sx={{
-                                            width: 36,
-                                            height: 36,
-                                            backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[800] : theme.palette.grey[700],
+                                            width: 38,
+                                            height: 38,
+                                            backgroundColor: corporateColors.brand,
                                             fontSize: '0.875rem',
-                                            fontWeight: 600,
+                                            fontWeight: 700,
+                                            boxShadow: `0 0 0 3px ${alpha(corporateColors.primaryHover, 0.12)}`,
                                         }}
                                     >
                                         {getUserInitials()}
@@ -423,18 +361,14 @@ const MainLayout = () => {
                                     elevation: 3,
                                     sx: {
                                         mt: 1.5,
-                                        minWidth: 200,
-                                        '& .MuiMenuItem-root': {
-                                            px: 2,
-                                            py: 1,
-                                        },
+                                        minWidth: 220,
+                                        borderRadius: 2.5,
+                                        '& .MuiMenuItem-root': { px: 2, py: 1 },
                                     },
                                 }}
                             >
                                 <Box sx={{ px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
-                                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                        {getUserFullName()}
-                                    </Typography>
+                                    <Typography variant="subtitle2">{getUserFullName()}</Typography>
                                     <Typography variant="caption" color="text.secondary">
                                         @{user.iniciales}
                                     </Typography>
@@ -447,7 +381,6 @@ const MainLayout = () => {
                                     Mi Perfil
                                 </MenuItem>
                                 <Divider />
-
                                 <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
                                     <ListItemIcon>
                                         <Logout fontSize="small" sx={{ color: 'error.main' }} />
@@ -460,14 +393,11 @@ const MainLayout = () => {
                 </Toolbar>
             </AppBar>
 
-            {/* Drawer Mobile */}
             <Drawer
                 variant="temporary"
                 open={mobileOpen}
                 onClose={handleDrawerToggle}
-                ModalProps={{
-                    keepMounted: true,
-                }}
+                ModalProps={{ keepMounted: true }}
                 sx={{
                     display: { xs: 'block', md: 'none' },
                     '& .MuiDrawer-paper': {
@@ -475,13 +405,13 @@ const MainLayout = () => {
                         width: drawerWidth,
                         bgcolor: sidebarBg,
                         color: sidebarText,
+                        backgroundImage: 'none',
                     },
                 }}
             >
-                {drawerMobile}
+                {drawerContent(false)}
             </Drawer>
 
-            {/* Drawer Desktop */}
             <Drawer
                 variant="permanent"
                 open={desktopOpen}
@@ -499,6 +429,7 @@ const MainLayout = () => {
                         borderRight: `1px solid ${sidebarBorder}`,
                         bgcolor: sidebarBg,
                         color: sidebarText,
+                        backgroundImage: 'none',
                         overflowX: 'hidden',
                         transition: theme.transitions.create('width', {
                             easing: theme.transitions.easing.sharp,
@@ -507,7 +438,7 @@ const MainLayout = () => {
                     },
                 }}
             >
-                {drawerDesktop}
+                {drawerContent(!desktopOpen)}
             </Drawer>
 
             <Box
@@ -515,13 +446,14 @@ const MainLayout = () => {
                 sx={{
                     flexGrow: 1,
                     width: '100%',
+                    minHeight: '100vh',
                     transition: theme.transitions.create(['margin'], {
                         easing: theme.transitions.easing.sharp,
                         duration: theme.transitions.duration.enteringScreen,
                     }),
                 }}
             >
-                <Toolbar />
+                <Toolbar sx={{ minHeight: 72 }} />
                 <Outlet />
             </Box>
         </Box>

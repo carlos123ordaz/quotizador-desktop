@@ -1,0 +1,52 @@
+:root {
+  --color-brand: #0B3D5C;
+  --color-primary: #1F49B6;
+  --color-primary-hover: #4E7CDD;
+  --color-accent-gold: #E9A61A;
+  --color-accent-orange: #EA8344;
+  --color-accent-teal: #4F9DA5;
+  --color-text-primary: #3C3C3B;
+  --color-text-secondary: #828281;
+  --color-info: #0088BB;
+  --color-background: #F6F8FB;
+  --color-surface: #FFFFFF;
+  --color-border: #D7DEE6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  font-family: "Segoe UI Variable Display", "Segoe UI", "Trebuchet MS", sans-serif;
+  color: var(--color-text-primary);
+  background: var(--color-background);
+}
+
+a {
+  color: var(--color-info);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(130, 130, 129, 0.35);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}

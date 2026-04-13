@@ -47,6 +47,7 @@ import numeral from 'numeral';
 import { readFile } from '@tauri-apps/plugin-fs';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import moment from 'moment';
+import { corporateColors, getAreaTone } from '../theme/tokens';
 
 export const BitrixIntegration = () => {
     const theme = useTheme();
@@ -879,16 +880,7 @@ export const BitrixIntegration = () => {
 
     // ── Area chip color map ──────────────────────────────────────────────────────
     const getAreaChipSx = (unit) => {
-        const map = {
-            UNAU:  { bgcolor: '#EFF6FF', color: '#1D4ED8' },
-            UNAI:  { bgcolor: '#FDF4FF', color: '#7E22CE' },
-            UNVA:  { bgcolor: '#F0FDF4', color: '#15803D' },
-            UNAP:  { bgcolor: '#FFF7ED', color: '#C2410C' },
-            UNEPC: { bgcolor: '#FFFBEB', color: '#B45309' },
-            PIC:   { bgcolor: '#F0F9FF', color: '#0369A1' },
-            PAU:   { bgcolor: '#FFF1F2', color: '#BE123C' },
-        };
-        return map[unit] || { bgcolor: alpha(theme.palette.grey[500], 0.1), color: 'text.secondary' };
+        return getAreaTone(unit);
     };
 
     if (!listaProductos || !empleados) {
@@ -1092,9 +1084,9 @@ export const BitrixIntegration = () => {
                                     {loadingDealData ? (
                                         <Chip size="small" label="Verificando deal..." icon={<CircularProgress size={10} sx={{ ml: '4px !important' }} />} sx={{ height: 24, fontSize: '0.75rem', bgcolor: alpha(theme.palette.grey[500], 0.08), color: 'text.secondary' }} />
                                     ) : dealData ? (
-                                        <Chip size="small" label="Deal verificado" icon={<CheckCircle sx={{ fontSize: '13px !important' }} />} sx={{ height: 24, fontSize: '0.75rem', fontWeight: 600, bgcolor: '#F0FDF4', color: '#15803D', '& .MuiChip-icon': { color: '#15803D' } }} />
+                                        <Chip size="small" label="Deal verificado" icon={<CheckCircle sx={{ fontSize: '13px !important' }} />} sx={{ height: 24, fontSize: '0.75rem', fontWeight: 600, bgcolor: alpha(corporateColors.accentTeal, 0.16), color: corporateColors.brand, '& .MuiChip-icon': { color: corporateColors.accentTeal } }} />
                                     ) : (
-                                        <Chip size="small" label="Deal no encontrado" icon={<Warning sx={{ fontSize: '13px !important' }} />} sx={{ height: 24, fontSize: '0.75rem', fontWeight: 600, bgcolor: '#FFF1F2', color: '#BE123C', '& .MuiChip-icon': { color: '#BE123C' } }} />
+                                        <Chip size="small" label="Deal no encontrado" icon={<Warning sx={{ fontSize: '13px !important' }} />} sx={{ height: 24, fontSize: '0.75rem', fontWeight: 600, bgcolor: alpha(corporateColors.accentOrange, 0.14), color: corporateColors.accentOrange, '& .MuiChip-icon': { color: corporateColors.accentOrange } }} />
                                     )}
                                 </Box>
                             </Box>
@@ -1314,8 +1306,8 @@ export const BitrixIntegration = () => {
                                             height: 24, fontSize: '0.75rem', fontWeight: 600, borderRadius: 1,
                                             '& .MuiChip-label': { px: 1 },
                                             ...(createQuote
-                                                ? { bgcolor: '#F0FDF4', color: '#15803D', '& .MuiChip-icon': { color: '#15803D', ml: '6px' } }
-                                                : { bgcolor: '#EFF6FF', color: '#1D4ED8', '& .MuiChip-icon': { color: '#1D4ED8', ml: '6px' } })
+                                                ? { bgcolor: alpha(corporateColors.accentTeal, 0.16), color: corporateColors.brand, '& .MuiChip-icon': { color: corporateColors.accentTeal, ml: '6px' } }
+                                                : { bgcolor: alpha(corporateColors.primaryHover, 0.16), color: corporateColors.primary, '& .MuiChip-icon': { color: corporateColors.primary, ml: '6px' } })
                                         }}
                                     />
                                 </Box>

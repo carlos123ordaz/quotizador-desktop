@@ -41,6 +41,7 @@ import { openPath, revealItemInDir } from '@tauri-apps/plugin-opener';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { MainContext } from '../contexts/MainContext';
 import { CONFIG } from '../config';
+import { corporateColors } from '../theme/tokens';
 
 const MetricCard = ({ label, value, color }) => (
     <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2, height: '100%' }}>
@@ -91,8 +92,8 @@ const ReportGenerator = () => {
     };
 
     const getStatusConfig = (status) => {
-        if (status === 'success') return { label: 'Listo', color: '#15803D', background: '#F0FDF4' };
-        if (status === 'error') return { label: 'Error', color: '#BE123C', background: '#FFF1F2' };
+        if (status === 'success') return { label: 'Listo', color: corporateColors.brand, background: alpha(corporateColors.accentTeal, 0.16) };
+        if (status === 'error') return { label: 'Error', color: corporateColors.accentOrange, background: alpha(corporateColors.accentOrange, 0.14) };
         return { label: 'Pendiente', color: theme.palette.text.secondary, background: alpha(theme.palette.grey[500], 0.1) };
     };
 
@@ -426,7 +427,7 @@ const ReportGenerator = () => {
                                             {moment(result.timestamp).format('DD/MM/YYYY HH:mm')}
                                         </Typography>
                                     </Box>
-                                    <Chip label={errors.length > 0 ? 'Resultado parcial' : 'Resultado limpio'} size="small" sx={{ height: 24, fontSize: '0.72rem', fontWeight: 700, color: errors.length > 0 ? '#B45309' : '#15803D', bgcolor: errors.length > 0 ? '#FFFBEB' : '#F0FDF4' }} />
+                                    <Chip label={errors.length > 0 ? 'Resultado parcial' : 'Resultado limpio'} size="small" sx={{ height: 24, fontSize: '0.72rem', fontWeight: 700, color: errors.length > 0 ? corporateColors.warning : corporateColors.brand, bgcolor: errors.length > 0 ? alpha(corporateColors.warning, 0.16) : alpha(corporateColors.accentTeal, 0.16) }} />
                                 </Box>
 
                                 <Box sx={{ p: 2.5 }}>

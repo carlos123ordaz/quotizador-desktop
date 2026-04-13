@@ -1,46 +1,46 @@
 import React, { useState } from 'react';
 import {
-    Box,
-    Paper,
-    TextField,
-    Button,
-    Typography,
-    FormControlLabel,
-    Switch,
-    IconButton,
-    InputAdornment,
     Alert,
+    Box,
+    Button,
     CircularProgress,
     Container,
-    useTheme
+    Link,
+    Paper,
+    TextField,
+    Typography,
+    IconButton,
+    InputAdornment,
 } from '@mui/material';
-import { Visibility, VisibilityOff, PersonAdd } from '@mui/icons-material';
-import { useForm, Controller } from 'react-hook-form';
+import { alpha, useTheme } from '@mui/material/styles';
+import { PersonAdd, Visibility, VisibilityOff } from '@mui/icons-material';
+import { Controller, useForm } from 'react-hook-form';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { CONFIG } from '../config';
+import { corporateColors } from '../theme/tokens';
 
 const RegisterScreen = () => {
     const theme = useTheme();
+    const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-    const navigate = useNavigate();
+
     const {
         control,
         handleSubmit,
         formState: { errors },
-        reset
+        reset,
     } = useForm({
         defaultValues: {
             nombre: '',
             apellido: '',
-            esLider: false,
             iniciales: '',
             webhookBitrix: '',
-            contrasena: ''
-        }
+            contrasena: '',
+        },
     });
 
     const onSubmit = async (data) => {
@@ -49,24 +49,21 @@ const RegisterScreen = () => {
         setErrorMessage('');
 
         try {
-
-            const response = await axios.post(`${CONFIG.uri}/register`, {
+            await axios.post(`${CONFIG.uri}/register`, {
                 nombre: data.nombre,
                 apellido: data.apellido,
-                es_lider: data.esLider,
+                es_lider: false,
                 iniciales: data.iniciales,
                 webhook_bitrix: data.webhookBitrix,
-                contrasena: data.contrasena
+                contrasena: data.contrasena,
             });
 
             setSuccessMessage('Usuario registrado exitosamente');
             reset();
 
-
             setTimeout(() => {
                 navigate('/login');
-            }, 2000);
-
+            }, 1800);
         } catch (error) {
             if (error.response) {
                 setErrorMessage(error.response.data.detail || 'Error al registrar usuario');
@@ -84,304 +81,189 @@ const RegisterScreen = () => {
         <Box
             sx={{
                 minHeight: '100vh',
-                backgroundColor: 'background.default',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                py: 4
+                background: `linear-gradient(180deg, ${alpha(corporateColors.brand, 0.08)} 0%, ${theme.palette.background.default} 280px)`,
+                py: 6,
             }}
         >
-            <Container maxWidth="sm">
+            <Container maxWidth="md">
                 <Paper
                     elevation={0}
                     sx={{
-                        p: 4,
-                        border: 1,
-                        borderColor: 'divider',
-                        borderRadius: 2,
-                        backgroundColor: 'background.paper'
+                        display: 'grid',
+                        gridTemplateColumns: { xs: '1fr', md: '0.9fr 1.1fr' },
+                        borderRadius: 3,
+                        overflow: 'hidden',
                     }}
                 >
-                    {/* Header */}
-                    <Box sx={{ mb: 4, textAlign: 'center' }}>
-                        <PersonAdd
+                    <Box
+                        sx={{
+                            p: { xs: 3, md: 4.5 },
+                            backgroundColor: alpha(corporateColors.brand, 0.04),
+                            borderRight: { md: `1px solid ${theme.palette.divider}` },
+                        }}
+                    >
+                        <Box
                             sx={{
-                                fontSize: 48,
-                                color: 'primary.main',
-                                mb: 2
-                            }}
-                        />
-                        <Typography
-                            variant="h5"
-                            sx={{
-                                fontWeight: 500,
-                                color: 'text.primary',
-                            }}
-                        >
-                            Registro de Usuario
-                        </Typography>
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                color: 'text.secondary',
-                                mt: 1,
+                                width: 52,
+                                height: 52,
+                                borderRadius: 2.5,
+                                bgcolor: alpha(corporateColors.primary, 0.10),
+                                color: corporateColors.primary,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                mb: 2,
                             }}
                         >
-                            Complete el formulario para crear una nueva cuenta
+                            <PersonAdd />
+                        </Box>
+                        <Typography variant="h4">Crear cuenta</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1.25, lineHeight: 1.7 }}>
+                            Registra un usuario nuevo con acceso al entorno corporativo y configura su webhook de integración con Bitrix.
                         </Typography>
+
+                        <Box sx={{ mt: 4, display: 'grid', gap: 1.5 }}>
+                            {[
+                                'Credenciales de acceso unificadas',
+                                'Configuración personal de integración',
+                                'Alta consistente dentro del sistema',
+                            ].map((item) => (
+                                <Box
+                                    key={item}
+                                    sx={{
+                                        px: 1.5,
+                                        py: 1.25,
+                                        borderRadius: 2,
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        bgcolor: 'background.paper',
+                                    }}
+                                >
+                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                        {item}
+                                    </Typography>
+                                </Box>
+                            ))}
+                        </Box>
                     </Box>
 
-                    {/* Mensajes de éxito o error */}
-                    {successMessage && (
-                        <Alert severity="success" sx={{ mb: 3 }}>
-                            {successMessage}
-                        </Alert>
-                    )}
+                    <Box sx={{ p: { xs: 3, md: 4.5 } }}>
+                        {successMessage && <Alert severity="success" sx={{ mb: 3 }}>{successMessage}</Alert>}
+                        {errorMessage && <Alert severity="error" sx={{ mb: 3 }}>{errorMessage}</Alert>}
 
-                    {errorMessage && (
-                        <Alert severity="error" sx={{ mb: 3 }}>
-                            {errorMessage}
-                        </Alert>
-                    )}
+                        <form onSubmit={handleSubmit(onSubmit)}>
+                            <Box sx={{ display: 'grid', gap: 2.25 }}>
+                                <Controller
+                                    name="nombre"
+                                    control={control}
+                                    rules={{
+                                        required: 'El nombre es obligatorio',
+                                        minLength: { value: 2, message: 'El nombre debe tener al menos 2 caracteres' },
+                                    }}
+                                    render={({ field }) => (
+                                        <TextField {...field} label="Nombre" fullWidth error={!!errors.nombre} helperText={errors.nombre?.message} />
+                                    )}
+                                />
 
-                    {/* Formulario */}
-                    <form onSubmit={handleSubmit(onSubmit)}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                            {/* Nombre */}
-                            <Controller
-                                name="nombre"
-                                control={control}
-                                rules={{
-                                    required: 'El nombre es obligatorio',
-                                    minLength: {
-                                        value: 2,
-                                        message: 'El nombre debe tener al menos 2 caracteres'
-                                    }
-                                }}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Nombre"
-                                        variant="outlined"
-                                        fullWidth
-                                        error={!!errors.nombre}
-                                        helperText={errors.nombre?.message}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                '&:hover fieldset': {
-                                                    borderColor: 'primary.main'
-                                                },
-                                                '&.Mui-focused fieldset': {
-                                                    borderColor: 'primary.main'
-                                                }
-                                            }
-                                        }}
-                                    />
-                                )}
-                            />
+                                <Controller
+                                    name="apellido"
+                                    control={control}
+                                    rules={{
+                                        required: 'El apellido es obligatorio',
+                                        minLength: { value: 2, message: 'El apellido debe tener al menos 2 caracteres' },
+                                    }}
+                                    render={({ field }) => (
+                                        <TextField {...field} label="Apellido" fullWidth error={!!errors.apellido} helperText={errors.apellido?.message} />
+                                    )}
+                                />
 
-                            {/* Apellido */}
-                            <Controller
-                                name="apellido"
-                                control={control}
-                                rules={{
-                                    required: 'El apellido es obligatorio',
-                                    minLength: {
-                                        value: 2,
-                                        message: 'El apellido debe tener al menos 2 caracteres'
-                                    }
-                                }}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Apellido"
-                                        variant="outlined"
-                                        fullWidth
-                                        error={!!errors.apellido}
-                                        helperText={errors.apellido?.message}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                '&:hover fieldset': {
-                                                    borderColor: 'primary.main'
-                                                },
-                                                '&.Mui-focused fieldset': {
-                                                    borderColor: 'primary.main'
-                                                }
-                                            }
-                                        }}
-                                    />
-                                )}
-                            />
+                                <Controller
+                                    name="iniciales"
+                                    control={control}
+                                    rules={{
+                                        required: 'Las iniciales son obligatorias',
+                                        pattern: {
+                                            value: /^[A-Z]{2,4}$/,
+                                            message: 'Las iniciales deben ser 2-4 letras mayúsculas',
+                                        },
+                                    }}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            label="Iniciales"
+                                            placeholder="Ej: JD"
+                                            fullWidth
+                                            error={!!errors.iniciales}
+                                            helperText={errors.iniciales?.message || 'Será el usuario de ingreso'}
+                                            inputProps={{ style: { textTransform: 'uppercase' } }}
+                                            onChange={(event) => field.onChange(event.target.value.toUpperCase())}
+                                        />
+                                    )}
+                                />
 
-                            {/* Iniciales (Username) */}
-                            <Controller
-                                name="iniciales"
-                                control={control}
-                                rules={{
-                                    required: 'Las iniciales son obligatorias',
-                                    pattern: {
-                                        value: /^[A-Z]{2,4}$/,
-                                        message: 'Las iniciales deben ser 2-4 letras mayúsculas'
-                                    }
-                                }}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Iniciales (Username)"
-                                        variant="outlined"
-                                        fullWidth
-                                        placeholder="Ej: JD, ABC"
-                                        error={!!errors.iniciales}
-                                        helperText={errors.iniciales?.message || 'Será tu usuario de ingreso'}
-                                        inputProps={{ style: { textTransform: 'uppercase' } }}
-                                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                '&:hover fieldset': {
-                                                    borderColor: 'primary.main'
-                                                },
-                                                '&.Mui-focused fieldset': {
-                                                    borderColor: 'primary.main'
-                                                }
-                                            }
-                                        }}
-                                    />
-                                )}
-                            />
+                                <Controller
+                                    name="webhookBitrix"
+                                    control={control}
+                                    rules={{
+                                        required: 'El webhook de Bitrix es obligatorio',
+                                        pattern: {
+                                            value: /^https?:\/\/.+/,
+                                            message: 'Debe ser una URL válida',
+                                        },
+                                    }}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            label="Webhook de Bitrix"
+                                            placeholder="https://..."
+                                            fullWidth
+                                            error={!!errors.webhookBitrix}
+                                            helperText={errors.webhookBitrix?.message}
+                                        />
+                                    )}
+                                />
 
-                            {/* Webhook de Bitrix */}
-                            <Controller
-                                name="webhookBitrix"
-                                control={control}
-                                rules={{
-                                    required: 'El webhook de Bitrix es obligatorio',
-                                    pattern: {
-                                        value: /^https?:\/\/.+/,
-                                        message: 'Debe ser una URL válida'
-                                    }
-                                }}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Webhook de Bitrix"
-                                        variant="outlined"
-                                        fullWidth
-                                        placeholder="https://..."
-                                        error={!!errors.webhookBitrix}
-                                        helperText={errors.webhookBitrix?.message}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                '&:hover fieldset': {
-                                                    borderColor: 'primary.main'
-                                                },
-                                                '&.Mui-focused fieldset': {
-                                                    borderColor: 'primary.main'
-                                                }
-                                            }
-                                        }}
-                                    />
-                                )}
-                            />
+                                <Controller
+                                    name="contrasena"
+                                    control={control}
+                                    rules={{
+                                        required: 'La contraseña es obligatoria',
+                                        minLength: { value: 6, message: 'La contraseña debe tener al menos 6 caracteres' },
+                                    }}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            label="Contraseña"
+                                            type={showPassword ? 'text' : 'password'}
+                                            fullWidth
+                                            error={!!errors.contrasena}
+                                            helperText={errors.contrasena?.message}
+                                            InputProps={{
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <IconButton onClick={() => setShowPassword((prev) => !prev)} edge="end">
+                                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                                        </IconButton>
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                        />
+                                    )}
+                                />
 
-                            {/* Contraseña */}
-                            <Controller
-                                name="contrasena"
-                                control={control}
-                                rules={{
-                                    required: 'La contraseña es obligatoria',
-                                    minLength: {
-                                        value: 6,
-                                        message: 'La contraseña debe tener al menos 6 caracteres'
-                                    }
-                                }}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Contraseña"
-                                        type={showPassword ? 'text' : 'password'}
-                                        variant="outlined"
-                                        fullWidth
-                                        error={!!errors.contrasena}
-                                        helperText={errors.contrasena?.message}
-                                        InputProps={{
-                                            endAdornment: (
-                                                <InputAdornment position="end">
-                                                    <IconButton
-                                                        onClick={() => setShowPassword(!showPassword)}
-                                                        edge="end"
-                                                    >
-                                                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                                                    </IconButton>
-                                                </InputAdornment>
-                                            )
-                                        }}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                '&:hover fieldset': {
-                                                    borderColor: 'primary.main'
-                                                },
-                                                '&.Mui-focused fieldset': {
-                                                    borderColor: 'primary.main'
-                                                }
-                                            }
-                                        }}
-                                    />
-                                )}
-                            />
+                                <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} sx={{ mt: 1 }}>
+                                    {loading ? <CircularProgress size={22} sx={{ color: '#FFFFFF' }} /> : 'Registrar usuario'}
+                                </Button>
+                            </Box>
+                        </form>
 
-
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                fullWidth
-                                disabled={loading}
-                                sx={{
-                                    mt: 2,
-                                    py: 1.5,
-                                    textTransform: 'none',
-                                    fontSize: '1rem',
-                                    fontWeight: 500,
-                                    '&:disabled': {
-                                        backgroundColor: 'action.disabledBackground'
-                                    }
-                                }}
-                            >
-                                {loading ? (
-                                    <CircularProgress size={24} sx={{ color: theme.palette.mode === 'dark' ? 'primary.main' : '#fff' }} />
-                                ) : (
-                                    'Registrar Usuario'
-                                )}
-                            </Button>
-                        </Box>
-                    </form>
-
-                    {/* Footer */}
-                    <Box sx={{ mt: 3, textAlign: 'center' }}>
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                color: 'text.secondary',
-                            }}
-                        >
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
                             ¿Ya tienes una cuenta?{' '}
-                            <Button
-                                sx={{
-                                    textTransform: 'none',
-                                    color: 'primary.main',
-                                    fontWeight: 500,
-                                    p: 0,
-                                    minWidth: 'auto',
-                                    '&:hover': {
-                                        backgroundColor: 'transparent',
-                                        textDecoration: 'underline'
-                                    }
-                                }}
-                                onClick={() => {
-                                    navigate('/login');
-                                }}
-                            >
-                                Iniciar Sesión
-                            </Button>
+                            <Link component="button" type="button" underline="hover" onClick={() => navigate('/login')} sx={{ fontWeight: 600 }}>
+                                Iniciar sesión
+                            </Link>
                         </Typography>
                     </Box>
                 </Paper>

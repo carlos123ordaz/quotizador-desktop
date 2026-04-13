@@ -49,6 +49,7 @@ import { useForm, Controller } from 'react-hook-form';
 import axios from 'axios';
 import { MainContext } from '../contexts/MainContext';
 import { CONFIG } from '../config';
+import { corporateColors, getAreaTone } from '../theme/tokens';
 
 // ─── Helpers visuales ─────────────────────────────────────────────────────────
 
@@ -65,23 +66,7 @@ const HEADER_CELL_SX = {
     whiteSpace: 'nowrap',
 };
 
-const UN_PALETTES = [
-    { backgroundColor: '#f1f5f9', color: '#334155' },
-    { backgroundColor: '#eef2f7', color: '#475569' },
-    { backgroundColor: '#f3f4f6', color: '#4b5563' },
-    { backgroundColor: '#e5e7eb', color: '#374151' },
-    { backgroundColor: '#f8fafc', color: '#52606d' },
-    { backgroundColor: '#eceff3', color: '#5b6675' },
-    { backgroundColor: '#f4f4f5', color: '#52525b' },
-    { backgroundColor: '#edf2f7', color: '#445063' },
-];
-
-const getUNChipStyle = (value) => {
-    if (!value) return {};
-    let hash = 0;
-    for (let i = 0; i < value.length; i++) hash = (hash + value.charCodeAt(i)) % UN_PALETTES.length;
-    return UN_PALETTES[hash];
-};
+const getUNChipStyle = (value) => getAreaTone(value);
 
 // ─── Componente principal ──────────────────────────────────────────────────────
 
@@ -967,7 +952,7 @@ const ProductsPage = () => {
 
             {/* Backdrop de carga en dialog */}
             <Backdrop
-                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1, bgcolor: alpha('#111827', 0.38) }}
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1, bgcolor: alpha(corporateColors.brand, 0.34) }}
                 open={loading && openDialog}
             >
                 <CircularProgress color="inherit" size={32} />

@@ -54,6 +54,7 @@ import { useForm, Controller } from 'react-hook-form';
 import axios from 'axios';
 import { MainContext } from '../contexts/MainContext';
 import { CONFIG } from '../config';
+import { corporateColors, getAreaTone } from '../theme/tokens';
 
 // ─── Helpers visuales ─────────────────────────────────────────────────────────
 
@@ -70,21 +71,7 @@ const HEADER_CELL_SX = {
     whiteSpace: 'nowrap',
 };
 
-const DEP_PALETTES = [
-    { backgroundColor: '#f1f5f9', color: '#334155' },
-    { backgroundColor: '#eef2f7', color: '#475569' },
-    { backgroundColor: '#f3f4f6', color: '#4b5563' },
-    { backgroundColor: '#e5e7eb', color: '#374151' },
-    { backgroundColor: '#f8fafc', color: '#52606d' },
-    { backgroundColor: '#edf2f7', color: '#445063' },
-];
-
-const getDepChipStyle = (value) => {
-    if (!value) return {};
-    let hash = 0;
-    for (let i = 0; i < value.length; i++) hash = (hash + value.charCodeAt(i)) % DEP_PALETTES.length;
-    return DEP_PALETTES[hash];
-};
+const getDepChipStyle = (value) => getAreaTone(value);
 
 const getInitials = (nombre) => {
     if (!nombre) return '?';
@@ -94,8 +81,12 @@ const getInitials = (nombre) => {
 };
 
 const AVATAR_COLORS = [
-    '#334155', '#475569', '#1E3A5F', '#36506C',
-    '#4B5563', '#3F4C5A', '#2F4858', '#5B6470',
+    corporateColors.brand,
+    corporateColors.primary,
+    corporateColors.accentTeal,
+    corporateColors.info,
+    corporateColors.primaryHover,
+    '#2F4858',
 ];
 
 const getAvatarColor = (nombre) => {
@@ -670,7 +661,7 @@ const EmployeesPage = () => {
                                                         bgcolor: employee.activo
                                                             ? getAvatarColor(employee.nombre)
                                                             : alpha(theme.palette.grey[500], 0.3),
-                                                        color: employee.activo ? '#fff' : 'text.disabled',
+                                                        color: employee.activo ? 'common.white' : 'text.disabled',
                                                         flexShrink: 0,
                                                     }}
                                                 >
@@ -1092,7 +1083,7 @@ const EmployeesPage = () => {
             </Dialog>
 
             {/* Backdrop de carga en dialog */}
-            <Backdrop sx={{ color: '#fff', zIndex: (t) => t.zIndex.drawer + 1, bgcolor: alpha('#111827', 0.38) }} open={loading && openDialog}>
+            <Backdrop sx={{ color: '#fff', zIndex: (t) => t.zIndex.drawer + 1, bgcolor: alpha(corporateColors.brand, 0.34) }} open={loading && openDialog}>
                 <CircularProgress color="inherit" size={32} />
             </Backdrop>
 
