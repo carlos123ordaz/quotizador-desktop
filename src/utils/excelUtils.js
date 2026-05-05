@@ -106,17 +106,18 @@ export const processExcelFile = (file, listaProductos, fieldMappings = null) => 
                     responsable = responsable_unau || responsable_unva || responsable_unai
                         || responsable_unap || responsable_unepc || responsable_pic || responsable_pau || 'D.Rejas';
                 }
-                if (!preparado || preparado.includes('N.Ingresante')) preparado = 'D.Rejas';
-                if (!responsable || responsable.includes('N.Ingresante')) responsable = 'D.Rejas';
+                if (!preparado || String(preparado).includes('N.Ingresante')) preparado = 'D.Rejas';
+                if (!responsable || String(responsable).includes('N.Ingresante')) responsable = 'D.Rejas';
 
                 const productos = extractProductos(resumenSheet, listaProductos);
                 for (let i = 0; i < 20; i++) {
                     const nombre = getCellValue(resumenSheet, 2, 5 + i);
                     const costo = getCellValue(resumenSheet, 3, 5 + i);
-                    if (costo) {
-                        if (nombre.startsWith("Auma")) costoAuma += costo;
-                        if (nombre.startsWith("MSA")) costoMsa += costo;
-                        if (nombre.startsWith("Valmet")) costoValmet += costo;
+                    if (costo && nombre) {
+                        const nombreStr = String(nombre);
+                        if (nombreStr.startsWith("Auma")) costoAuma += costo;
+                        if (nombreStr.startsWith("MSA")) costoMsa += costo;
+                        if (nombreStr.startsWith("Valmet")) costoValmet += costo;
                     }
                 }
 
