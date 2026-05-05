@@ -12,6 +12,7 @@ import { BitrixIntegration } from './pages/BitrixIntegration'
 import EmployeesPage from './pages/EmployeesPage'
 import ProductsPage from './pages/ProductsPage'
 import ProfilePage from './pages/ProfilePage'
+import TemplateVersionsPage from './pages/TemplateVersionsPage'
 
 function App() {
 
@@ -31,6 +32,7 @@ function App() {
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/users" element={<EmployeesPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/template-versions" element={<TemplateVersionsPage />} />
           </Route>
         </Routes>
 

@@ -60,6 +60,8 @@ export const BitrixIntegration = () => {
     const [createQuote, setCreateQuote] = useState(true);
     const [processing, setProcessing] = useState(false);
     const { user } = useContext(MainContext);
+    const [templateVersions, setTemplateVersions] = useState([]);
+    const [selectedVersionId, setSelectedVersionId] = useState('');
     const [dealData, setDealData] = useState(null);
     const [formData, setFormData] = useState({
         crearQuote: false,
@@ -101,7 +103,7 @@ export const BitrixIntegration = () => {
                             type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                         });
 
-                        const data = await processExcelFile(file, listaProductos);
+                        const data = await processExcelFile(file, listaProductos, getSelectedVersionFields());
                         return {
                             file,
                             data,
@@ -135,7 +137,7 @@ export const BitrixIntegration = () => {
             setLoading(false);
         }
 
-    }, [listaProductos, selectedFileIndex]);
+    }, [listaProductos, selectedFileIndex, selectedVersionId, templateVersions]);
 
     useEffect(() => {
         let unlistenFn;
@@ -196,7 +198,7 @@ export const BitrixIntegration = () => {
             const processedFiles = await Promise.all(
                 uploadedFiles.map(async (file) => {
                     try {
-                        const data = await processExcelFile(file, listaProductos);
+                        const data = await processExcelFile(file, listaProductos, getSelectedVersionFields());
                         return {
                             file,
                             data,
@@ -262,9 +264,26 @@ export const BitrixIntegration = () => {
         }
     }
 
+    const getTemplateVersions = async () => {
+        try {
+            const response = await axios.get(`${CONFIG.uri}/template-versions`);
+            const activas = (response.data.versiones || []).filter(v => v.activo);
+            setTemplateVersions(activas);
+        } catch {
+            // silencioso — el selector simplemente quedará vacío
+        }
+    };
+
+    const getSelectedVersionFields = () => {
+        if (!selectedVersionId) return null;
+        const version = templateVersions.find(v => v._id === selectedVersionId);
+        return version ? version.campos : null;
+    };
+
     useEffect(() => {
         getProductos();
         getEmpleados();
+        getTemplateVersions();
     }, [])
 
     const handleSelectFile = (index) => {
@@ -937,6 +956,34 @@ export const BitrixIntegration = () => {
                     display: 'flex', flexDirection: 'column', overflow: 'hidden',
                     bgcolor: alpha(theme.palette.grey[500], 0.01),
                 }}>
+
+                    {/* Version selector */}
+                    {templateVersions.length > 0 && (
+                        <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
+                            <Typography variant="caption" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', color: 'text.secondary', fontSize: '0.63rem', display: 'block', mb: 1 }}>
+                                Versión de plantilla
+                            </Typography>
+                            <FormControl fullWidth size="small">
+                                <Select
+                                    displayEmpty
+                                    value={selectedVersionId}
+                                    onChange={e => setSelectedVersionId(e.target.value)}
+                                    sx={{ borderRadius: 1.5, fontSize: '0.8125rem' }}
+                                >
+                                    <MenuItem value="">
+                                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8125rem' }}>
+                                            Automático (legado)
+                                        </Typography>
+                                    </MenuItem>
+                                    {templateVersions.map(v => (
+                                        <MenuItem key={v._id} value={v._id}>
+                                            <Typography variant="body2" sx={{ fontSize: '0.8125rem' }}>{v.nombre}</Typography>
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Box>
+                    )}
 
                     {/* Upload controls */}
                     <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>

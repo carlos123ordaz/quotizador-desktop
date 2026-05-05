@@ -32,6 +32,7 @@ import {
     ChevronRight as ChevronRightIcon,
     Dashboard as DashboardIcon,
     History as HistoryIcon,
+    Layers as LayersIcon,
     Logout,
     Menu as MenuIcon,
     People,
@@ -101,6 +102,7 @@ const MainLayout = () => {
             ? [
                 { title: 'Generar Reporte', icon: <ArticleIcon />, path: '/reports/generate' },
                 { title: 'Historial Reportes', icon: <HistoryIcon />, path: '/reports/history' },
+                { title: 'Versiones de Plantilla', icon: <LayersIcon />, path: '/template-versions' },
             ]
             : []),
         { title: 'Enviar a Bitrix', icon: <SendIcon />, path: '/bitrix/send' },
@@ -209,27 +211,6 @@ const MainLayout = () => {
             </Toolbar>
 
             {renderMenuItems(collapsed)}
-
-            {!collapsed && (
-                <Box sx={{ p: 2, pt: 1.5 }}>
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            p: 1.5,
-                            borderRadius: 2.5,
-                            bgcolor: alpha('#FFFFFF', 0.06),
-                            borderColor: alpha('#FFFFFF', 0.08),
-                        }}
-                    >
-                        <Typography variant="caption" sx={{ color: sidebarTextMuted, display: 'block', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                            Entorno
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'common.white', fontWeight: 600 }}>
-                            Sistema interno corporativo
-                        </Typography>
-                    </Paper>
-                </Box>
-            )}
         </Box>
     );
 

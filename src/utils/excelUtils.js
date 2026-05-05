@@ -6,7 +6,16 @@ export const getCellValue = (worksheet, row, col) => {
     return cell ? cell.v : null;
 };
 
-export const processExcelFile = (file, listaProductos) => {
+const getSheet = (workbook, hoja) => {
+    const map = {
+        Datos: workbook.Sheets['Datos'],
+        Oferta: workbook.Sheets['Oferta'],
+        Resumen: workbook.Sheets['Resumen'],
+    };
+    return map[hoja] || workbook.Sheets['Datos'];
+};
+
+export const processExcelFile = (file, listaProductos, fieldMappings = null) => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
@@ -22,45 +31,83 @@ export const processExcelFile = (file, listaProductos) => {
                     reject(new Error('No se encontraron todas las hojas necesarias'));
                     return;
                 }
-                let numDeal, costoAuma = 0, costoMsa = 0, costoValmet = 0, preparado, preparado_unau, preparado_unva, preparado_unai, preparado_unap, preparado_unepc, preparado_pic, preparado_pau, responsable, responsable_unau, responsable_unva, responsable_unai, responsable_unap, responsable_unepc, responsable_pic, responsable_pau, vistoBueno;
-                if (getCellValue(ofertaSheet, 352, 113)) {
-                    numDeal = getCellValue(ofertaSheet, 352, 113);
-                    preparado = getCellValue(datosSheet, 10, 5);
-                    responsable = getCellValue(datosSheet, 11, 5);
-                    vistoBueno = getCellValue(datosSheet, 12, 5);
-                    preparado_unau = getCellValue(datosSheet, 24, 5);
-                    preparado_unva = getCellValue(datosSheet, 25, 5);
-                    preparado_unai = getCellValue(datosSheet, 26, 5);
-                    preparado_unap = getCellValue(datosSheet, 27, 5);
-                    preparado_unepc = getCellValue(datosSheet, 28, 5);
-                    preparado_pic = getCellValue(datosSheet, 29, 5);
-                    preparado_pau = getCellValue(datosSheet, 30, 5);
-                    responsable_unau = getCellValue(datosSheet, 31, 5);
-                    responsable_unva = getCellValue(datosSheet, 32, 5);
-                    responsable_unai = getCellValue(datosSheet, 33, 5);
-                    responsable_unap = getCellValue(datosSheet, 34, 5);
-                    responsable_unepc = getCellValue(datosSheet, 35, 5);
-                    responsable_pic = getCellValue(datosSheet, 36, 5);
-                    responsable_pau = getCellValue(datosSheet, 37, 5);
+
+                let numDeal, costoAuma = 0, costoMsa = 0, costoValmet = 0;
+                let preparado, preparado_unau, preparado_unva, preparado_unai,
+                    preparado_unap, preparado_unepc, preparado_pic, preparado_pau;
+                let responsable, responsable_unau, responsable_unva, responsable_unai,
+                    responsable_unap, responsable_unepc, responsable_pic, responsable_pau;
+                let vistoBueno, rubrica, utilidad;
+
+                if (fieldMappings && fieldMappings.length > 0) {
+                    const getFieldValue = (campoInterno) => {
+                        const campo = fieldMappings.find(c => c.campo_interno === campoInterno);
+                        if (!campo) return null;
+                        return getCellValue(getSheet(workbook, campo.hoja), campo.fila, campo.columna);
+                    };
+
+                    numDeal = getFieldValue('numDeal')
+                        || getCellValue(ofertaSheet, 352, 113)
+                        || getCellValue(ofertaSheet, 235, 113);
+                    preparado = getFieldValue('preparado');
+                    responsable = getFieldValue('responsable');
+                    vistoBueno = getFieldValue('vistoBueno');
+                    preparado_unau = getFieldValue('preparado_unau');
+                    preparado_unva = getFieldValue('preparado_unva');
+                    preparado_unai = getFieldValue('preparado_unai');
+                    preparado_unap = getFieldValue('preparado_unap');
+                    preparado_unepc = getFieldValue('preparado_unepc');
+                    preparado_pic = getFieldValue('preparado_pic');
+                    preparado_pau = getFieldValue('preparado_pau');
+                    responsable_unau = getFieldValue('responsable_unau');
+                    responsable_unva = getFieldValue('responsable_unva');
+                    responsable_unai = getFieldValue('responsable_unai');
+                    responsable_unap = getFieldValue('responsable_unap');
+                    responsable_unepc = getFieldValue('responsable_unepc');
+                    responsable_pic = getFieldValue('responsable_pic');
+                    responsable_pau = getFieldValue('responsable_pau');
+                    rubrica = getFieldValue('rubrica') || getCellValue(resumenSheet, 24, 12);
+                    utilidad = getFieldValue('utilidad') || getCellValue(resumenSheet, 30, 5);
                 } else {
-                    numDeal = getCellValue(ofertaSheet, 235, 113)
-                    preparado = getCellValue(datosSheet, 10, 5);
-                    responsable = getCellValue(datosSheet, 11, 5);
-                    vistoBueno = getCellValue(datosSheet, 12, 5);
+                    if (getCellValue(ofertaSheet, 352, 113)) {
+                        numDeal = getCellValue(ofertaSheet, 352, 113);
+                        preparado = getCellValue(datosSheet, 10, 5);
+                        responsable = getCellValue(datosSheet, 11, 5);
+                        vistoBueno = getCellValue(datosSheet, 12, 5);
+                        preparado_unau = getCellValue(datosSheet, 24, 5);
+                        preparado_unva = getCellValue(datosSheet, 25, 5);
+                        preparado_unai = getCellValue(datosSheet, 26, 5);
+                        preparado_unap = getCellValue(datosSheet, 27, 5);
+                        preparado_unepc = getCellValue(datosSheet, 28, 5);
+                        preparado_pic = getCellValue(datosSheet, 29, 5);
+                        preparado_pau = getCellValue(datosSheet, 30, 5);
+                        responsable_unau = getCellValue(datosSheet, 31, 5);
+                        responsable_unva = getCellValue(datosSheet, 32, 5);
+                        responsable_unai = getCellValue(datosSheet, 33, 5);
+                        responsable_unap = getCellValue(datosSheet, 34, 5);
+                        responsable_unepc = getCellValue(datosSheet, 35, 5);
+                        responsable_pic = getCellValue(datosSheet, 36, 5);
+                        responsable_pau = getCellValue(datosSheet, 37, 5);
+                    } else {
+                        numDeal = getCellValue(ofertaSheet, 235, 113);
+                        preparado = getCellValue(datosSheet, 10, 5);
+                        responsable = getCellValue(datosSheet, 11, 5);
+                        vistoBueno = getCellValue(datosSheet, 12, 5);
+                    }
+                    rubrica = getCellValue(resumenSheet, 24, 12);
+                    utilidad = getCellValue(resumenSheet, 30, 5);
                 }
 
                 if (!preparado) {
-                    preparado = preparado_unva || preparado_unai || preparado_unap || preparado_unepc || preparado_pic || preparado_pau || 'D.Rejas';
+                    preparado = preparado_unva || preparado_unai || preparado_unap
+                        || preparado_unepc || preparado_pic || preparado_pau || 'D.Rejas';
                 }
                 if (!responsable) {
-                    responsable = responsable_unau || responsable_unva || responsable_unai || responsable_unap || responsable_unepc || responsable_pic || responsable_pau || 'D.Rejas';
+                    responsable = responsable_unau || responsable_unva || responsable_unai
+                        || responsable_unap || responsable_unepc || responsable_pic || responsable_pau || 'D.Rejas';
                 }
-                if (!preparado || preparado.includes('N.Ingresante')) {
-                    preparado = 'D.Rejas';
-                }
-                if (!responsable || responsable.includes('N.Ingresante')) {
-                    responsable = 'D.Rejas';
-                }
+                if (!preparado || preparado.includes('N.Ingresante')) preparado = 'D.Rejas';
+                if (!responsable || responsable.includes('N.Ingresante')) responsable = 'D.Rejas';
 
                 const productos = extractProductos(resumenSheet, listaProductos);
                 for (let i = 0; i < 20; i++) {
@@ -73,7 +120,7 @@ export const processExcelFile = (file, listaProductos) => {
                     }
                 }
 
-                const extractedData = {
+                resolve({
                     fileName: file.name,
                     numDeal: numDeal || 'N/A',
                     name: file.name.slice(0, -5),
@@ -94,15 +141,13 @@ export const processExcelFile = (file, listaProductos) => {
                     responsable_pic,
                     responsable_pau,
                     vistoBueno,
-                    rubrica: getCellValue(resumenSheet, 24, 12),
-                    utilidad: getCellValue(resumenSheet, 30, 5),
-                    productos: productos,
-                    costoAuma: costoAuma,
-                    costoMsa: costoMsa,
-                    costoValmet: costoValmet,
-                };
-
-                resolve(extractedData);
+                    rubrica,
+                    utilidad,
+                    productos,
+                    costoAuma,
+                    costoMsa,
+                    costoValmet,
+                });
             } catch (error) {
                 reject(error);
             }
@@ -125,7 +170,7 @@ const extractProductos = (sheet, listaProductos) => {
         const nombre = getCellValue(sheet, 2, currentCol);
         const precio = getCellValue(sheet, 20, currentCol) || 0;
         const productoInfo = listaProductos[nombre];
-        console.log(nombre)
+        console.log(nombre);
         if (productoInfo) {
             productos.push({
                 cantidad: 1,
