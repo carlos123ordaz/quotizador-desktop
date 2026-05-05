@@ -76,73 +76,13 @@ const LoginScreen = () => {
                 py: 6,
             }}
         >
-            <Container maxWidth="lg">
+            <Container maxWidth="sm">
                 <Box
                     sx={{
-                        display: 'grid',
-                        gridTemplateColumns: { xs: '1fr', md: '1.05fr 0.95fr' },
-                        gap: 3,
-                        alignItems: 'stretch',
+                        display: 'flex',
+                        justifyContent: 'center',
                     }}
                 >
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            p: { xs: 3, md: 5 },
-                            borderRadius: 3,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'space-between',
-                            minHeight: { md: 560 },
-                            backgroundColor: corporateColors.brand,
-                            color: 'common.white',
-                        }}
-                    >
-                        <Box>
-                            <Typography variant="overline" sx={{ color: alpha('#FFFFFF', 0.72), letterSpacing: '0.16em', fontWeight: 700 }}>
-                                Quotizador
-                            </Typography>
-                            <Typography variant="h3" sx={{ mt: 1.5, maxWidth: 420, lineHeight: 1.05 }}>
-                                Plataforma interna para operación comercial y Bitrix.
-                            </Typography>
-                            <Typography variant="body1" sx={{ mt: 2.5, maxWidth: 440, color: alpha('#FFFFFF', 0.78), lineHeight: 1.7 }}>
-                                Entorno corporativo con gestión de reportes, productos, usuarios y procesos de envío centralizados en una interfaz más clara y consistente.
-                            </Typography>
-                        </Box>
-
-                        <Box
-                            sx={{
-                                mt: 4,
-                                display: 'grid',
-                                gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-                                gap: 1.5,
-                            }}
-                        >
-                            {[
-                                { value: 'Bitrix', label: 'Integración operativa' },
-                                { value: 'Reportes', label: 'Gestión estructurada' },
-                                { value: 'Usuarios', label: 'Control interno' },
-                            ].map((item) => (
-                                <Box
-                                    key={item.label}
-                                    sx={{
-                                        p: 1.75,
-                                        borderRadius: 2.5,
-                                        border: `1px solid ${alpha('#FFFFFF', 0.12)}`,
-                                        backgroundColor: alpha('#FFFFFF', 0.05),
-                                    }}
-                                >
-                                    <Typography variant="subtitle2" sx={{ color: alpha('#FFFFFF', 0.74) }}>
-                                        {item.label}
-                                    </Typography>
-                                    <Typography variant="h6" sx={{ mt: 0.75, color: 'common.white' }}>
-                                        {item.value}
-                                    </Typography>
-                                </Box>
-                            ))}
-                        </Box>
-                    </Paper>
-
                     <Paper
                         elevation={0}
                         sx={{
@@ -151,6 +91,7 @@ const LoginScreen = () => {
                             display: 'flex',
                             flexDirection: 'column',
                             justifyContent: 'center',
+                            width: '100%',
                         }}
                     >
                         <Box sx={{ mb: 4 }}>
@@ -159,7 +100,7 @@ const LoginScreen = () => {
                                     width: 52,
                                     height: 52,
                                     borderRadius: 2.5,
-                                    bgcolor: alpha(corporateColors.primary, 0.10),
+                                    bgcolor: alpha(corporateColors.primary, 0.1),
                                     color: corporateColors.primary,
                                     display: 'flex',
                                     alignItems: 'center',

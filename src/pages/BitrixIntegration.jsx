@@ -1202,10 +1202,21 @@ export const BitrixIntegration = () => {
                                             </Typography>
                                         </Box>
                                         {currentFileData.rubrica && (
-                                            <Box sx={{ flex: 3, minWidth: 200, p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
+                                            <Box sx={{ flex: 3, minWidth: 0, p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 1.5, overflow: 'hidden' }}>
                                                 <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', fontSize: '0.63rem', fontWeight: 700, display: 'block', mb: 0.25 }}>Rúbrica / Códigos</Typography>
                                                 <Tooltip title={currentFileData.rubrica} arrow>
-                                                    <Typography variant="body2" fontWeight={500} noWrap sx={{ fontFamily: '"Roboto Mono", monospace', fontSize: '0.78rem', cursor: 'default' }}>
+                                                    <Typography
+                                                        variant="body2"
+                                                        fontWeight={500}
+                                                        sx={{
+                                                            fontFamily: '"Roboto Mono", monospace',
+                                                            fontSize: '0.78rem',
+                                                            cursor: 'default',
+                                                            whiteSpace: 'normal',
+                                                            overflowWrap: 'anywhere',
+                                                            wordBreak: 'break-word',
+                                                        }}
+                                                    >
                                                         {currentFileData.rubrica}
                                                     </Typography>
                                                 </Tooltip>

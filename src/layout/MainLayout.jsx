@@ -55,7 +55,7 @@ const MainLayout = () => {
     const [desktopOpen, setDesktopOpen] = useState(true);
     const [anchorEl, setAnchorEl] = useState(null);
 
-    const sidebarBg = theme.palette.mode === 'light' ? corporateColors.brand : '#11273A';
+    const sidebarBg = '#0F172A';
     const sidebarBgAlt = theme.palette.mode === 'light' ? '#0F4A6E' : '#173149';
     const sidebarBorder = alpha('#FFFFFF', theme.palette.mode === 'light' ? 0.10 : 0.08);
     const sidebarText = corporateColors.sidebarText;

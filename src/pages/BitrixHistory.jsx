@@ -111,6 +111,7 @@ const DataRow = ({ label, value, mono }) => {
                 justifyContent: 'space-between',
                 alignItems: 'baseline',
                 gap: 2,
+                minWidth: 0,
                 py: 0.75,
                 borderBottom: '1px solid',
                 borderColor: alpha(theme.palette.divider, 0.5),
@@ -125,9 +126,14 @@ const DataRow = ({ label, value, mono }) => {
                 fontWeight={600}
                 align="right"
                 sx={{
+                    flex: 1,
+                    minWidth: 0,
                     color: 'text.primary',
                     fontFamily: mono ? '"Roboto Mono", monospace' : 'inherit',
                     fontSize: mono ? '0.8rem' : '0.8125rem',
+                    whiteSpace: 'normal',
+                    overflowWrap: 'anywhere',
+                    wordBreak: 'break-word',
                 }}
             >
                 {value}

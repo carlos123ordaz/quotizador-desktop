@@ -114,15 +114,18 @@ export const processExcelFile = (file, listaProductos) => {
 };
 
 const extractProductos = (sheet, listaProductos) => {
+    console.log('Extrayendo productos del resumenSheet...');
     const productos = [];
     let col = 5;
     for (let i = 0; i < 20; i++) {
         const currentCol = col + i;
         const hasValue = getCellValue(sheet, 18, currentCol);
+        console.log(`Columna ${currentCol}: ${hasValue}`);
         if (!hasValue) continue;
         const nombre = getCellValue(sheet, 2, currentCol);
         const precio = getCellValue(sheet, 20, currentCol) || 0;
         const productoInfo = listaProductos[nombre];
+        console.log(nombre)
         if (productoInfo) {
             productos.push({
                 cantidad: 1,
