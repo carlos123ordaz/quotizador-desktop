@@ -103,7 +103,7 @@ export const BitrixIntegration = () => {
                             type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                         });
 
-                        const data = await processExcelFile(file, listaProductos, getSelectedVersionFields());
+                        const data = await processExcelFile(file, listaProductos, getSelectedVersionFields(), templateVersions);
                         return {
                             file,
                             data,
@@ -198,7 +198,7 @@ export const BitrixIntegration = () => {
             const processedFiles = await Promise.all(
                 uploadedFiles.map(async (file) => {
                     try {
-                        const data = await processExcelFile(file, listaProductos, getSelectedVersionFields());
+                        const data = await processExcelFile(file, listaProductos, getSelectedVersionFields(), templateVersions);
                         return {
                             file,
                             data,
@@ -352,42 +352,6 @@ export const BitrixIntegration = () => {
         }
         if (!getEmpleadoId(currentFileData.preparado, empleados)) {
             newErrors.preparado = 'Vendedor no encontrado, la persona tiene que estar registrado en el Bitrix y el Quotizador';
-        }
-
-        // Validar que preparado y responsable correspondan a las unidades de negocio de los productos
-        const unitFieldMap = {
-            'UNAU': { preparadoKey: 'preparado_unau', responsableKey: 'responsable_unau', label: 'UNAU' },
-            'UNAI': { preparadoKey: 'preparado_unai', responsableKey: 'responsable_unai', label: 'UNAI' },
-            'UNVA': { preparadoKey: 'preparado_unva', responsableKey: 'responsable_unva', label: 'UNVA' },
-            'UNAP': { preparadoKey: 'preparado_unap', responsableKey: 'responsable_unap', label: 'UNAP' },
-            'UNEPC': { preparadoKey: 'preparado_unepc', responsableKey: 'responsable_unepc', label: 'UNEPC' },
-            'PIC': { preparadoKey: 'preparado_pic', responsableKey: 'responsable_pic', label: 'PIC' },
-            'PAU': { preparadoKey: 'preparado_pau', responsableKey: 'responsable_pau', label: 'PAU' },
-        };
-
-        const unidadesEnProductos = new Set(
-            (currentFileData.productos || []).map(p => p.unidadNegocio)
-        );
-
-        const missingPreparado = [];
-        const missingResponsable = [];
-
-        for (const [unidad, fields] of Object.entries(unitFieldMap)) {
-            if (unidadesEnProductos.has(unidad)) {
-                if (!currentFileData[fields.preparadoKey]) {
-                    missingPreparado.push(fields.label);
-                }
-                if (!currentFileData[fields.responsableKey]) {
-                    missingResponsable.push(fields.label);
-                }
-            }
-        }
-
-        if (missingPreparado.length > 0) {
-            newErrors.preparadoUnidades = `Falta "Preparado por" en el Excel para: ${missingPreparado.join(', ')}`;
-        }
-        if (missingResponsable.length > 0) {
-            newErrors.responsableUnidades = `Falta "Responsable" en el Excel para: ${missingResponsable.join(', ')}`;
         }
 
         setErrors(newErrors);
@@ -1222,7 +1186,7 @@ export const BitrixIntegration = () => {
                                                         <Typography variant="caption" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', color: 'text.secondary', fontSize: '0.63rem' }}>{section.title}</Typography>
                                                     </Box>
                                                     <Box sx={{ px: 2, py: 1.25 }}>
-                                                        {section.rows.filter(r => r.always || activeUnits.has(r.unit)).map((row, i, arr) => (
+                                                        {section.rows.filter(r => r.always || !!r.value).map((row, i, arr) => (
                                                             <Box key={row.label} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 2, py: 0.6, borderBottom: i < arr.length - 1 ? '1px solid' : 'none', borderColor: alpha(theme.palette.divider, 0.5) }}>
                                                                 <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0, fontSize: '0.8rem' }}>{row.label}</Typography>
                                                                 <Typography variant="body2" fontWeight={600} align="right" sx={{ fontSize: '0.8rem', color: row.value ? 'text.primary' : 'text.disabled' }}>
