@@ -39,7 +39,7 @@ import {
     InsertDriveFile,
 } from '@mui/icons-material';
 import { calcularTotalesPorArea, formatDateForBitrix, isValidDate, processExcelFile } from '../utils/excelUtils';
-import { lista_area, depart_cisac, unidad_negocio, getEmpleadoId } from '../utils/bitrixUtils';
+import { lista_area, depart_cisac, unidad_negocio, getEmpleadoId, fetchBitrixLists } from '../utils/bitrixUtils';
 import axios from 'axios';
 import { MainContext } from '../contexts/MainContext';
 import { CONFIG } from '../config';
@@ -668,6 +668,7 @@ export const BitrixIntegration = () => {
                 rows: productos
             });
 
+            await fetchBitrixLists();
             const dealParams = buildDealPayload();
             await axios.post(`${webhook}/crm.deal.update`, dealParams);
             if (createQuote) {

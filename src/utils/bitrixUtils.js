@@ -1,17 +1,35 @@
-const lista_AU = new Set([2145, 2147, 2149, 2151, 2153, 2155, 2157, 2159, 2161, 2163, 2165, 2377, 2721, 2379, 2167, 2169, 2239, 2241, 2243, 2245, 2247, 2249, 2251, 2253, 2255, 2257, 2259, 2381, 2723, 2383, 2261, 2263, 3010, 3034, 3012, 3036, 3014, 3038, 3016, 3040, 3018, 3042, 3020, 3044, 3022, 3046, 2920, 2922, 3024, 3048, 3028, 3052, 3030, 3054, 3032, 3056, 3026, 3050, 4070, 4264, 4072, 4074, 2237, 4064, 4066, 4068, 4262, 2191]);
-const lista_AI = new Set([2101, 2121, 2123, 2125, 2127, 2129, 2103, 2111, 2105, 2113, 2131, 2133, 2107, 2137, 2139, 2141, 2143, 2199, 2201, 2203, 2205, 2207, 2209, 2211, 2213, 2215, 2217, 2219, 2221, 2223, 2225, 2227, 2229, 2231, 2233, 2235, 2896, 2904, 2898, 2906, 2900, 2908, 2902, 2910, 4160, 4162, 4164, 4166, 3198, 4104, 4106, 4108, 4110, 4112, 4146, 4148, 2197, 4150, 4152, 4154, 4156, 4158, 4096, 4098, 4100, 4102, 2189, 4124, 4126, 4128, 4130, 4132, 4134, 4136, 4138, 4140, 4142, 4144, 2109, 2135, 3196, 4094]);
-const lista_VA = new Set([2173, 2175, 2177, 2673, 2675, 2677, 2679, 2681, 2683, 2685, 2179, 2181, 2687, 2183, 2185, 2187, 2193, 2195, 2267, 2269, 2271, 2689, 2691, 2693, 2695, 2697, 2699, 2701, 2273, 2275, 2703, 2277, 2279, 2281, 2283, 2285, 2928, 2942, 2930, 2944, 2932, 2946, 3004, 3006, 2934, 2948, 2936, 2950, 2938, 2952, 3086, 3088, 4270, 3128, 3130, 3132, 3134, 3136, 3138, 3140, 3142, 3144, 3146, 3148, 3150, 3152, 3154, 3156, 3158, 3160, 2265, 4086, 4088, 2940, 3082, 3084, 3094, 3096, 3098, 3100, 3102, 3104, 3106, 3108, 3110, 3112, 3114, 4268, 3116, 3118, 3120, 3122, 3124, 3126, 2926, 4082, 4084, 2171]);
-const lista_serv = new Set([357, 359, 2097, 363, 2065, 365, 2067, 2069, 367, 2071, 371, 373, 375, 377, 379, 526, 528, 2095, 530, 2057, 532, 2059, 2061, 536, 2063, 540, 542, 544, 546, 548, 2800, 2802, 355, 524]);
+const BASE_URL = 'https://corsusaint.bitrix24.com/rest/6644/64o0hscrd2vpkgy5';
 
-export const lista_area = (products, area, tipo = 0, listaProductos) => {
-    const obj_area = {
-        'UNAU': lista_AU,
-        'UNAI': lista_AI,
-        'UNVA': lista_VA,
-        'serv': lista_serv
+let _lists = null;
+
+export const fetchBitrixLists = async () => {
+    if (_lists) return _lists;
+
+    const [dealRes, quoteRes] = await Promise.all([
+        fetch(`${BASE_URL}/crm.deal.fields.json`, { method: 'POST' }),
+        fetch(`${BASE_URL}/crm.quote.fields.json`, { method: 'POST' })
+    ]);
+
+    const dealFields = (await dealRes.json()).result;
+    const quoteFields = (await quoteRes.json()).result;
+
+    const toIds = (field) => field.items.map(item => parseInt(item.ID));
+    const mergeSet = (dealField, quoteField) => new Set([...toIds(dealField), ...toIds(quoteField)]);
+
+    _lists = {
+        UNAU: mergeSet(dealFields['UF_CRM_1579309558'], quoteFields['UF_CRM_1579310551']),
+        UNAI: mergeSet(dealFields['UF_CRM_1579308051'], quoteFields['UF_CRM_1579310442']),
+        UNVA: mergeSet(dealFields['UF_CRM_1579309681'], quoteFields['UF_CRM_1579310649']),
+        serv: mergeSet(dealFields['UF_CRM_5716A1B71750E'], quoteFields['UF_CRM_1444015918']),
     };
 
-    const ar = obj_area[area];
+    return _lists;
+};
+
+export const lista_area = (products, area, tipo = 0, listaProductos) => {
+    if (!_lists) throw new Error('fetchBitrixLists() debe llamarse antes de lista_area()');
+
+    const ar = _lists[area];
     const listado = products
         .map(prod => {
             const key = Object.keys(listaProductos).find(k => listaProductos[k][0] === prod.PRODUCT_ID);
